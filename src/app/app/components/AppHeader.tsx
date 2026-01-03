@@ -1,11 +1,21 @@
 import Link from "next/link";
+import ProfileMenu from "./ProfileMenu";
 
 type AppHeaderProps = {
   userRole?: "admin" | "investor" | "wholesaler" | "contractor";
   currentPage?: string;
+  avatarUrl?: string | null;
+  displayName?: string | null;
+  email?: string | null;
 };
 
-export default function AppHeader({ userRole = "investor", currentPage }: AppHeaderProps) {
+export default function AppHeader({
+  userRole = "investor",
+  currentPage,
+  avatarUrl = null,
+  displayName = null,
+  email = null,
+}: AppHeaderProps) {
   return (
     <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
@@ -72,14 +82,7 @@ export default function AppHeader({ userRole = "investor", currentPage }: AppHea
               )}
             </nav>
           </div>
-          <form action="/logout" method="POST">
-            <button
-              type="submit"
-              className="rounded-md bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-50 dark:hover:bg-zinc-700"
-            >
-              Sign Out
-            </button>
-          </form>
+          <ProfileMenu avatarUrl={avatarUrl} displayName={displayName} email={email} />
         </div>
       </div>
     </header>

@@ -33,6 +33,8 @@ type Deal = {
 type Profile = {
   id: string;
   role: "admin" | "investor" | "wholesaler" | "contractor";
+  display_name: string | null;
+  avatar_url: string | null;
 };
 
 export default async function DealsPage() {
@@ -41,10 +43,10 @@ export default async function DealsPage() {
 
   if (!authData.user) redirect("/login");
 
-  // Get user profile to determine role
+  // Get user profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, display_name, avatar_url")
     .eq("id", authData.user.id)
     .single();
 
@@ -109,7 +111,13 @@ export default async function DealsPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
-      <AppHeader userRole={userRole} currentPage="deals" />
+      <AppHeader
+        userRole={userRole}
+        currentPage="deals"
+        avatarUrl={profileData?.avatar_url || null}
+        displayName={profileData?.display_name || null}
+        email={authData.user.email}
+      />
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">Deal Board</h1>

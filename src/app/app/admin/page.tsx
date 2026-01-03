@@ -9,6 +9,8 @@ export const dynamic = 'force-dynamic';
 type Profile = {
   id: string;
   role: "admin" | "investor" | "wholesaler" | "contractor";
+  display_name: string | null;
+  avatar_url: string | null;
 };
 
 export default async function AdminDashboard() {
@@ -20,7 +22,7 @@ export default async function AdminDashboard() {
   // Check if user is admin
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, display_name, avatar_url")
     .eq("id", authData.user.id)
     .single();
 
@@ -55,7 +57,13 @@ export default async function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
-      <AppHeader userRole="admin" currentPage="admin" />
+      <AppHeader
+        userRole="admin"
+        currentPage="admin"
+        avatarUrl={profileData?.avatar_url || null}
+        displayName={profileData?.display_name || null}
+        email={authData.user.email}
+      />
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <div>
