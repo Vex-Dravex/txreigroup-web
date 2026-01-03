@@ -36,7 +36,13 @@ function LoginForm() {
           : `Configuration Error: Missing environment variables (${missingVars.join(', ')}). Please create a .env.local file with NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY from your Supabase dashboard.`
       );
     }
-  }, []);
+    
+    // Check for error query parameter (e.g., from auth callback)
+    const errorParam = searchParams.get("error");
+    if (errorParam === "invalid_token") {
+      setError("The email confirmation link is invalid or has expired. Please try signing up again or request a new confirmation email.");
+    }
+  }, [searchParams]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
