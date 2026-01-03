@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 
 // Update lesson progress
 export async function updateLessonProgress(lessonId: string, progressPercentage: number) {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
 
   if (!authData.user) {
@@ -23,7 +23,15 @@ export async function updateLessonProgress(lessonId: string, progressPercentage:
     throw new Error("Lesson not found");
   }
 
-  const courseId = (lesson.course_modules as { course_id: string }).course_id;
+  // Handle course_modules as array (Supabase returns arrays for relations)
+  const courseModules = Array.isArray(lesson.course_modules) 
+    ? lesson.course_modules[0] 
+    : lesson.course_modules;
+  const courseId = (courseModules as { course_id: string })?.course_id;
+
+  if (!courseId) {
+    throw new Error("Course ID not found");
+  }
 
   // Update or create progress
   const { data: existingProgress } = await supabase
@@ -66,7 +74,7 @@ export async function updateLessonProgress(lessonId: string, progressPercentage:
 
 // Mark lesson as complete
 export async function markLessonComplete(lessonId: string) {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
 
   if (!authData.user) {
@@ -84,7 +92,15 @@ export async function markLessonComplete(lessonId: string) {
     throw new Error("Lesson not found");
   }
 
-  const courseId = (lesson.course_modules as { course_id: string }).course_id;
+  // Handle course_modules as array (Supabase returns arrays for relations)
+  const courseModules = Array.isArray(lesson.course_modules) 
+    ? lesson.course_modules[0] 
+    : lesson.course_modules;
+  const courseId = (courseModules as { course_id: string })?.course_id;
+
+  if (!courseId) {
+    throw new Error("Course ID not found");
+  }
 
   // Update or create progress with 100% and completed_at
   const { data: existingProgress } = await supabase

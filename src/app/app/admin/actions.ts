@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 
 // Verify admin access
 async function verifyAdmin() {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
 
   if (!authData.user) {
@@ -30,7 +30,7 @@ async function verifyAdmin() {
 export async function approveDeal(dealId: string, adminNotes?: string) {
   const adminId = await verifyAdmin();
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   // Update deal status
   const { error } = await supabase
@@ -69,7 +69,7 @@ export async function rejectDeal(dealId: string, adminNotes: string) {
     throw new Error("Admin notes are required when rejecting a deal");
   }
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   // Update deal status
   const { error } = await supabase
@@ -102,7 +102,7 @@ export async function rejectDeal(dealId: string, adminNotes: string) {
 export async function updateInquiryStatus(inquiryId: string, status: string) {
   await verifyAdmin();
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase
     .from("deal_inquiries")
@@ -123,7 +123,7 @@ export async function updateInquiryStatus(inquiryId: string, status: string) {
 export async function updateUserRole(userId: string, role: "admin" | "investor" | "wholesaler" | "contractor") {
   await verifyAdmin();
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase
     .from("profiles")
@@ -144,7 +144,7 @@ export async function updateUserRole(userId: string, role: "admin" | "investor" 
 export async function updateUserStatus(userId: string, status: string) {
   await verifyAdmin();
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase
     .from("profiles")
@@ -165,7 +165,7 @@ export async function updateUserStatus(userId: string, status: string) {
 export async function verifyContractor(contractorId: string, adminNotes?: string) {
   const adminId = await verifyAdmin();
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase
     .from("contractor_profiles")
@@ -195,7 +195,7 @@ export async function rejectContractor(contractorId: string, adminNotes: string)
     throw new Error("Admin notes are required when rejecting a contractor");
   }
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase
     .from("contractor_profiles")

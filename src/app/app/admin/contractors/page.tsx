@@ -28,7 +28,7 @@ type Profile = {
 };
 
 export default async function AdminContractorsPage() {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
 
   if (!authData.user) redirect("/login");

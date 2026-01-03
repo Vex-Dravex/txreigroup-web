@@ -42,7 +42,7 @@ export default async function LessonPage({
 }: {
   params: { id: string; lessonId: string };
 }) {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
 
   if (!authData.user) redirect("/login");
@@ -82,7 +82,12 @@ export default async function LessonPage({
   const lessonData = lesson as Lesson;
 
   // Verify lesson belongs to the course
-  if (lessonData.course_modules?.course_id !== params.id) {
+  // Handle course_modules as array (Supabase returns arrays for relations)
+  const courseModules = Array.isArray(lessonData.course_modules) 
+    ? lessonData.course_modules[0] 
+    : lessonData.course_modules;
+  
+  if (!courseModules || courseModules.course_id !== params.id) {
     notFound();
   }
 
@@ -113,7 +118,22 @@ export default async function LessonPage({
     .order("course_modules.display_order", { ascending: true })
     .order("display_order", { ascending: true });
 
-  const allLessonsData = (allLessons || []) as Array<{
+  const allLessonsData = ((allLessons || []) as Array<{
+    id: string;
+    module_id: string;
+    title: string;
+    display_order: number;
+    course_modules: { course_id: string; display_order: number }[] | { course_id: string; display_order: number } | null;
+  }>).map((lesson) => {
+    // Normalize course_modules to single object
+    const courseModules = Array.isArray(lesson.course_modules) 
+      ? lesson.course_modules[0] 
+      : lesson.course_modules;
+    return {
+      ...lesson,
+      course_modules: courseModules,
+    };
+  }) as Array<{
     id: string;
     module_id: string;
     title: string;
