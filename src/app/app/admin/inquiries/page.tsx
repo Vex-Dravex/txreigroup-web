@@ -4,6 +4,9 @@ import Link from "next/link";
 import { updateInquiryStatus } from "../actions";
 import InquiryStatusForm from "./InquiryStatusForm";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 type Inquiry = {
   id: string;
   deal_id: string;

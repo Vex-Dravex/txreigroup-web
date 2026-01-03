@@ -4,6 +4,9 @@ import Link from "next/link";
 import { verifyContractor, rejectContractor } from "../actions";
 import ContractorVerificationForm from "./ContractorVerificationForm";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 type ContractorProfile = {
   id: string;
   business_name: string;

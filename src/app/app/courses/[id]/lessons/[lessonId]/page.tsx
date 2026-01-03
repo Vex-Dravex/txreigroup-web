@@ -4,6 +4,9 @@ import Link from "next/link";
 import { updateLessonProgress, markLessonComplete } from "./actions";
 import LessonContent from "./LessonContent";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 type Lesson = {
   id: string;
   module_id: string;

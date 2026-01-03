@@ -3,6 +3,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import ContractorLeadForm from "./ContractorLeadForm";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 type ContractorProfile = {
   id: string;
   business_name: string;

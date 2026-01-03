@@ -5,6 +5,9 @@ import { updateUserRole, updateUserStatus } from "../actions";
 import UserRoleForm from "./UserRoleForm";
 import UserStatusForm from "./UserStatusForm";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 type User = {
   id: string;
   display_name: string | null;

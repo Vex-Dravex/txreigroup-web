@@ -4,6 +4,9 @@ import Link from "next/link";
 import { approveDeal, rejectDeal } from "../actions";
 import DealApprovalForm from "./DealApprovalForm";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 type Deal = {
   id: string;
   wholesaler_id: string;
