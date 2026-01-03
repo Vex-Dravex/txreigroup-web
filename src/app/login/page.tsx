@@ -57,17 +57,52 @@ function LoginForm() {
       const supabase = createSupabaseBrowserClient();
       
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { data: signUpData, error } = await supabase.auth.signUp({ 
+          email, 
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
+          }
+        });
+        
         if (error) throw error;
-        setSuccessMessage("Account created! Please check your email to verify your account.");
-        // Don't redirect immediately on signup - let user see success message
-        setTimeout(() => {
+        
+        // Check if email confirmation is required
+        if (signUpData.user && !signUpData.session) {
+          // Email confirmation required
+          setSuccessMessage(
+            "Account created! Please check your email and click the confirmation link to verify your account before signing in."
+          );
+          // Don't redirect - user needs to confirm email first
+          setMode("signin"); // Switch to signin mode so they can log in after confirming
+        } else if (signUpData.session) {
+          // Auto-logged in (email confirmation disabled)
+          setSuccessMessage("Account created! Redirecting...");
           router.push(next);
           router.refresh();
-        }, 2000);
+        } else {
+          // Fallback
+          setSuccessMessage("Account created! Please check your email to verify your account.");
+          setMode("signin");
+        }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
+        
+        if (error) {
+          // Provide more helpful error messages
+          if (error.message.includes("Invalid login credentials")) {
+            throw new Error("Invalid email or password. Please check your credentials and try again.");
+          } else if (error.message.includes("Email not confirmed")) {
+            throw new Error("Please check your email and click the confirmation link to verify your account before signing in.");
+          } else {
+            throw error;
+          }
+        }
+        
+        if (!signInData.user) {
+          throw new Error("Sign in failed. Please try again.");
+        }
+        
         router.push(next);
         router.refresh();
       }
