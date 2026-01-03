@@ -27,7 +27,16 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
    - **Project URL** (for `NEXT_PUBLIC_SUPABASE_URL`)
    - **anon/public key** (for `NEXT_PUBLIC_SUPABASE_ANON_KEY`)
 
-**Step 2: Add environment variables to Vercel**
+**Step 2: Configure Supabase Auth Redirect URLs**
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
+2. Select your project
+3. Go to **Authentication** → **URL Configuration**
+4. Add your site URLs to **Redirect URLs**:
+   - `https://your-app.vercel.app/auth/callback`
+   - `http://localhost:3000/auth/callback` (for local development)
+5. Click **Save**
+
+**Step 3: Add environment variables to Vercel**
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
 2. Select your project
 3. Go to **Settings** → **Environment Variables**

@@ -63,11 +63,15 @@ function LoginForm() {
       const supabase = createSupabaseBrowserClient();
       
       if (mode === "signup") {
+        // Use production URL from env var, fallback to current origin for development
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+        const redirectUrl = `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`;
+        
         const { data: signUpData, error } = await supabase.auth.signUp({ 
           email, 
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
+            emailRedirectTo: redirectUrl
           }
         });
         
