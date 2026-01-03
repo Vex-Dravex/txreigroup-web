@@ -19,6 +19,21 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // Check if Supabase env vars are available on mount
+  useEffect(() => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!url || !key) {
+      const isProduction = process.env.NODE_ENV === 'production';
+      setError(
+        isProduction
+          ? "Configuration error: Supabase environment variables are missing. Please contact support or check your deployment settings."
+          : "Configuration error: Missing Supabase environment variables. Please check your .env.local file."
+      );
+    }
+  }, []);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -26,6 +41,14 @@ function LoginForm() {
     setLoading(true);
 
     try {
+      // Validate env vars before creating client
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      
+      if (!url || !key) {
+        throw new Error("Supabase configuration is missing. Please check your environment variables.");
+      }
+      
       // Create client only when needed (client-side only)
       const supabase = createSupabaseBrowserClient();
       

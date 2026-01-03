@@ -16,9 +16,14 @@ export function createSupabaseBrowserClient() {
         },
       } as any;
     }
-    throw new Error(
-      "Missing Supabase environment variables. Please check your .env.local file."
-    );
+    
+    // Client-side error - provide helpful message
+    const isProduction = process.env.NODE_ENV === 'production';
+    const errorMessage = isProduction
+      ? "Missing Supabase environment variables. Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your deployment environment (e.g., Vercel dashboard)."
+      : "Missing Supabase environment variables. Please check your .env.local file and ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.";
+    
+    throw new Error(errorMessage);
   }
   
   return createBrowserClient(url, key);
