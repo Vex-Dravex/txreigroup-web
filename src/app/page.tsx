@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
@@ -6,22 +5,58 @@ import Link from "next/link";
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  // Try to check auth, but don't fail if it errors (e.g., during build or if env vars missing)
-  let shouldRedirect = false;
+  // Check if user is authenticated (but don't redirect - homepage is public)
+  let isAuthenticated = false;
   try {
     const supabase = await createSupabaseServerClient();
     const { data: authData } = await supabase.auth.getUser();
-    if (authData?.user) {
-      shouldRedirect = true;
-    }
+    isAuthenticated = !!authData?.user;
   } catch (error) {
-    // If auth check fails, just show the landing page
-    console.error("Auth check failed, showing landing page:", error);
+    // If auth check fails, user is not authenticated
+    console.error("Auth check failed:", error);
   }
 
-  // If user is authenticated, redirect to app
-  if (shouldRedirect) {
-    redirect("/app");
+  // Fetch homepage content (public, no auth required)
+  let upcomingLivestreams: any[] = [];
+  let latestBlogPosts: any[] = [];
+  let communityUpdates: any[] = [];
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    
+    // Fetch upcoming livestreams (next 3)
+    const { data: livestreams } = await supabase
+      .from("livestreams")
+      .select("*")
+      .eq("is_upcoming", true)
+      .gte("scheduled_at", new Date().toISOString())
+      .order("scheduled_at", { ascending: true })
+      .limit(3);
+    
+    upcomingLivestreams = livestreams || [];
+
+    // Fetch latest published blog posts (3 most recent)
+    const { data: blogPosts } = await supabase
+      .from("blog_posts")
+      .select("*")
+      .eq("is_published", true)
+      .order("published_at", { ascending: false })
+      .limit(3);
+    
+    latestBlogPosts = blogPosts || [];
+
+    // Fetch latest community updates (5 most recent, prioritize featured)
+    const { data: updates } = await supabase
+      .from("community_updates")
+      .select("*")
+      .order("is_featured", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(5);
+    
+    communityUpdates = updates || [];
+  } catch (error) {
+    // If fetching fails, just show empty sections
+    console.error("Error fetching homepage content:", error);
   }
 
   // Show landing page for unauthenticated users
@@ -31,13 +66,29 @@ export default async function Home() {
       <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">TXREIGROUP</h1>
             <Link
-              href="/login"
-              className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
+              href="/"
+              className="text-2xl font-bold text-zinc-900 transition-colors hover:text-zinc-700 dark:text-zinc-50 dark:hover:text-zinc-300"
             >
-              Sign In
+              TXREIGROUP
             </Link>
+            <div className="flex items-center gap-4">
+              {isAuthenticated ? (
+                <Link
+                  href="/app"
+                  className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -70,6 +121,143 @@ export default async function Home() {
               </Link>
             </div>
           </div>
+
+          {/* Upcoming Livestreams Section */}
+          {upcomingLivestreams.length > 0 && (
+            <div className="mt-24">
+              <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mb-6">Upcoming Livestreams</h3>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {upcomingLivestreams.map((stream) => (
+                  <div
+                    key={stream.id}
+                    className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
+                  >
+                    {stream.thumbnail_url && (
+                      <img
+                        src={stream.thumbnail_url}
+                        alt={stream.title}
+                        className="w-full h-48 object-cover rounded-md mb-4"
+                      />
+                    )}
+                    <h4 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50 mb-2">
+                      {stream.title}
+                    </h4>
+                    {stream.description && (
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4 line-clamp-2">
+                        {stream.description}
+                      </p>
+                    )}
+                    <div className="text-sm text-zinc-500 dark:text-zinc-500">
+                      {new Date(stream.scheduled_at).toLocaleDateString("en-US", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </div>
+                    {stream.stream_url && (
+                      <a
+                        href={stream.stream_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-4 inline-block rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
+                      >
+                        Watch Live
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Latest Blog Posts Section */}
+          {latestBlogPosts.length > 0 && (
+            <div className="mt-24">
+              <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mb-6">Latest Blog Posts</h3>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {latestBlogPosts.map((post) => (
+                  <Link
+                    key={post.id}
+                    href={`/blog/${post.slug}`}
+                    className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
+                  >
+                    {post.featured_image_url && (
+                      <img
+                        src={post.featured_image_url}
+                        alt={post.title}
+                        className="w-full h-48 object-cover rounded-md mb-4"
+                      />
+                    )}
+                    <h4 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50 mb-2">
+                      {post.title}
+                    </h4>
+                    {post.excerpt && (
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4 line-clamp-3">
+                        {post.excerpt}
+                      </p>
+                    )}
+                    <div className="text-xs text-zinc-500 dark:text-zinc-500">
+                      {post.published_at &&
+                        new Date(post.published_at).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Community Updates Section */}
+          {communityUpdates.length > 0 && (
+            <div className="mt-24">
+              <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mb-6">Community Updates</h3>
+              <div className="space-y-4">
+                {communityUpdates.map((update) => (
+                  <div
+                    key={update.id}
+                    className={`rounded-lg border p-6 shadow-sm ${
+                      update.is_featured
+                        ? "border-zinc-300 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900"
+                        : "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+                            {update.title}
+                          </h4>
+                          {update.is_featured && (
+                            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                              Featured
+                            </span>
+                          )}
+                        </div>
+                        {update.content && (
+                          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
+                            {update.content}
+                          </p>
+                        )}
+                        <div className="text-xs text-zinc-500 dark:text-zinc-500">
+                          {new Date(update.created_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Features Grid */}
           <div className="mx-auto mt-24 max-w-2xl sm:mt-32 lg:mt-40 lg:max-w-none">
