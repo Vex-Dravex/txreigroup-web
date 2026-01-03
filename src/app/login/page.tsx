@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -8,7 +8,6 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 export const dynamic = 'force-dynamic';
 
 function LoginForm() {
-  const supabase = createSupabaseBrowserClient();
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/app";
@@ -27,6 +26,9 @@ function LoginForm() {
     setLoading(true);
 
     try {
+      // Create client only when needed (client-side only)
+      const supabase = createSupabaseBrowserClient();
+      
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
