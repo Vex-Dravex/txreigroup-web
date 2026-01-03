@@ -2,12 +2,25 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
-  const supabase = await createSupabaseServerClient();
-  const { data: authData } = await supabase.auth.getUser();
+  // Try to check auth, but don't fail if it errors (e.g., during build or if env vars missing)
+  let shouldRedirect = false;
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data: authData } = await supabase.auth.getUser();
+    if (authData?.user) {
+      shouldRedirect = true;
+    }
+  } catch (error) {
+    // If auth check fails, just show the landing page
+    console.error("Auth check failed, showing landing page:", error);
+  }
 
   // If user is authenticated, redirect to app
-  if (authData.user) {
+  if (shouldRedirect) {
     redirect("/app");
   }
 
