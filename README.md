@@ -19,14 +19,40 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 ### For Production Deployment (Vercel)
 
-1. Go to your Vercel project settings
-2. Navigate to **Environment Variables**
-3. Add the following variables:
-   - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anon/public key
-   - `NEXT_PUBLIC_SITE_URL` - Your production site URL (e.g., `https://your-domain.vercel.app`)
+**Step 1: Get your Supabase credentials**
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
+2. Select your project
+3. Navigate to **Settings** → **API**
+4. Copy:
+   - **Project URL** (for `NEXT_PUBLIC_SUPABASE_URL`)
+   - **anon/public key** (for `NEXT_PUBLIC_SUPABASE_ANON_KEY`)
 
-**Important:** Environment variables must be set in your deployment platform (Vercel) for the application to work in production.
+**Step 2: Add environment variables to Vercel**
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Select your project
+3. Go to **Settings** → **Environment Variables**
+4. Add each variable:
+   - **Name:** `NEXT_PUBLIC_SUPABASE_URL`
+     **Value:** Your Supabase project URL (from Step 1)
+     **Environment:** Select all (Production, Preview, Development)
+   - **Name:** `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+     **Value:** Your Supabase anon key (from Step 1)
+     **Environment:** Select all (Production, Preview, Development)
+   - **Name:** `NEXT_PUBLIC_SITE_URL`
+     **Value:** Your production site URL (e.g., `https://your-app.vercel.app`)
+     **Environment:** Production only
+5. Click **Save** for each variable
+
+**Step 3: Redeploy**
+1. After adding all variables, go to **Deployments** tab
+2. Click the **⋯** menu on the latest deployment
+3. Select **Redeploy** (or push a new commit to trigger a new deployment)
+4. Wait for the deployment to complete
+
+**Important:** 
+- Environment variables must be set **before** building your application
+- `NEXT_PUBLIC_*` variables are embedded at build time, so you must redeploy after adding them
+- If you see "Missing Supabase environment variables" error, the variables are not set or the app needs to be redeployed
 
 ## Getting Started
 

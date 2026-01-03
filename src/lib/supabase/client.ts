@@ -19,9 +19,13 @@ export function createSupabaseBrowserClient() {
     
     // Client-side error - provide helpful message
     const isProduction = process.env.NODE_ENV === 'production';
+    const missingVars = [];
+    if (!url) missingVars.push('NEXT_PUBLIC_SUPABASE_URL');
+    if (!key) missingVars.push('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+    
     const errorMessage = isProduction
-      ? "Missing Supabase environment variables. Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your deployment environment (e.g., Vercel dashboard)."
-      : "Missing Supabase environment variables. Please check your .env.local file and ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.";
+      ? `Missing Supabase environment variables (${missingVars.join(', ')}). To fix: 1) Go to Vercel Dashboard → Your Project → Settings → Environment Variables, 2) Add the missing variables from your Supabase Dashboard (Settings → API), 3) Redeploy. See README.md for detailed instructions.`
+      : `Missing Supabase environment variables (${missingVars.join(', ')}). Please check your .env.local file and ensure these variables are set. Get them from your Supabase Dashboard (Settings → API).`;
     
     throw new Error(errorMessage);
   }

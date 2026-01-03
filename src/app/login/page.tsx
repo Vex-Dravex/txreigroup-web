@@ -26,10 +26,14 @@ function LoginForm() {
     
     if (!url || !key) {
       const isProduction = process.env.NODE_ENV === 'production';
+      const missingVars = [];
+      if (!url) missingVars.push('NEXT_PUBLIC_SUPABASE_URL');
+      if (!key) missingVars.push('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+      
       setError(
         isProduction
-          ? "Configuration error: Supabase environment variables are missing. Please contact support or check your deployment settings."
-          : "Configuration error: Missing Supabase environment variables. Please check your .env.local file."
+          ? `Configuration Error: Missing environment variables (${missingVars.join(', ')}). To fix: 1) Go to your Vercel project dashboard → Settings → Environment Variables, 2) Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY from your Supabase dashboard, 3) Redeploy your application.`
+          : `Configuration Error: Missing environment variables (${missingVars.join(', ')}). Please create a .env.local file with NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY from your Supabase dashboard.`
       );
     }
   }, []);
