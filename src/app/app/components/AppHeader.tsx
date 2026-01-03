@@ -46,7 +46,7 @@ export default function AppHeader({
                     : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
                 }`}
               >
-                Deal Board
+                Off Market MLS
               </Link>
               <Link
                 href="/app/contractors"
@@ -56,7 +56,7 @@ export default function AppHeader({
                     : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
                 }`}
               >
-                Contractors
+                Vendors
               </Link>
               <Link
                 href="/app/courses"
@@ -66,7 +66,7 @@ export default function AppHeader({
                     : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
                 }`}
               >
-                Courses
+                Education
               </Link>
               <Link
                 href="/app/forum"
@@ -76,7 +76,7 @@ export default function AppHeader({
                     : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
                 }`}
               >
-                Forum
+                Community Forum
               </Link>
               {userRole === "admin" && (
                 <Link

@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import ProfileMenu from "./app/components/ProfileMenu";
+import AppHeader from "./app/components/AppHeader";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -9,6 +9,7 @@ export default async function Home() {
   // Check if user is authenticated (but don't redirect - homepage is public)
   let isAuthenticated = false;
   let userProfile: { avatar_url: string | null; display_name: string | null; email: string | null } | null = null;
+  let userRole: "admin" | "investor" | "wholesaler" | "contractor" = "investor";
   try {
     const supabase = await createSupabaseServerClient();
     const { data: authData } = await supabase.auth.getUser();
@@ -17,7 +18,7 @@ export default async function Home() {
       // Fetch profile for authenticated users
       const { data: profile } = await supabase
         .from("profiles")
-        .select("avatar_url, display_name")
+        .select("avatar_url, display_name, role")
         .eq("id", authData.user.id)
         .single();
       
@@ -26,6 +27,10 @@ export default async function Home() {
         display_name: profile?.display_name || null,
         email: authData.user.email || null,
       };
+      
+      if (profile?.role) {
+        userRole = profile.role;
+      }
     }
   } catch (error) {
     // If auth check fails, user is not authenticated
@@ -79,34 +84,13 @@ export default async function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-900">
       {/* Header */}
-      <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <Link
-              href="/"
-              className="text-2xl font-bold text-zinc-900 transition-colors hover:text-zinc-700 dark:text-zinc-50 dark:hover:text-zinc-300"
-            >
-              TXREIGROUP
-            </Link>
-            <div className="flex items-center gap-4">
-              {isAuthenticated && userProfile ? (
-                <ProfileMenu
-                  avatarUrl={userProfile.avatar_url}
-                  displayName={userProfile.display_name}
-                  email={userProfile.email}
-                />
-              ) : (
-                <Link
-                  href="/login"
-                  className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
-                >
-                  Sign In
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        userRole={isAuthenticated ? userRole : "investor"}
+        currentPage="home"
+        avatarUrl={userProfile?.avatar_url || null}
+        displayName={userProfile?.display_name || null}
+        email={userProfile?.email || null}
+      />
 
       {/* Hero Section */}
       <main className="flex-1">
@@ -279,7 +263,7 @@ export default async function Home() {
             <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
               <div className="flex flex-col">
                 <dt className="text-base font-semibold leading-7 text-zinc-900 dark:text-zinc-50">
-                  Private Deal Board
+                  Off Market MLS
                 </dt>
                 <dd className="mt-1 flex flex-auto flex-col text-base leading-7 text-zinc-600 dark:text-zinc-400">
                   <p className="flex-auto">
@@ -290,11 +274,11 @@ export default async function Home() {
               </div>
               <div className="flex flex-col">
                 <dt className="text-base font-semibold leading-7 text-zinc-900 dark:text-zinc-50">
-                  Contractor Marketplace
+                  Vendor Marketplace
                 </dt>
                 <dd className="mt-1 flex flex-auto flex-col text-base leading-7 text-zinc-600 dark:text-zinc-400">
                   <p className="flex-auto">
-                    Find verified contractors for your investment projects. Connect directly with
+                    Find verified vendors for your investment projects. Connect directly with
                     trusted professionals in your area.
                   </p>
                 </dd>

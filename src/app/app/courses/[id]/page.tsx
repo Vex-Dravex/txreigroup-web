@@ -132,7 +132,7 @@ export default async function CourseDetailPage({ params }: { params: { id: strin
             href="/app/courses"
             className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
           >
-            ← Back to Courses
+            ← Back to Education
           </Link>
         </div>
 
