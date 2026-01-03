@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import ProfileMenu from "./app/components/ProfileMenu";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -7,10 +8,25 @@ export const dynamic = 'force-dynamic';
 export default async function Home() {
   // Check if user is authenticated (but don't redirect - homepage is public)
   let isAuthenticated = false;
+  let userProfile: { avatar_url: string | null; display_name: string | null; email: string | null } | null = null;
   try {
     const supabase = await createSupabaseServerClient();
     const { data: authData } = await supabase.auth.getUser();
-    isAuthenticated = !!authData?.user;
+    if (authData?.user) {
+      isAuthenticated = true;
+      // Fetch profile for authenticated users
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("avatar_url, display_name")
+        .eq("id", authData.user.id)
+        .single();
+      
+      userProfile = {
+        avatar_url: profile?.avatar_url || null,
+        display_name: profile?.display_name || null,
+        email: authData.user.email || null,
+      };
+    }
   } catch (error) {
     // If auth check fails, user is not authenticated
     console.error("Auth check failed:", error);
@@ -73,13 +89,12 @@ export default async function Home() {
               TXREIGROUP
             </Link>
             <div className="flex items-center gap-4">
-              {isAuthenticated ? (
-                <Link
-                  href="/app"
-                  className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
-                >
-                  Dashboard
-                </Link>
+              {isAuthenticated && userProfile ? (
+                <ProfileMenu
+                  avatarUrl={userProfile.avatar_url}
+                  displayName={userProfile.display_name}
+                  email={userProfile.email}
+                />
               ) : (
                 <Link
                   href="/login"

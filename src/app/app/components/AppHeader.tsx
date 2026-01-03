@@ -68,6 +68,16 @@ export default function AppHeader({
               >
                 Courses
               </Link>
+              <Link
+                href="/app/forum"
+                className={`text-sm font-medium transition-colors ${
+                  currentPage === "forum"
+                    ? "text-zinc-900 dark:text-zinc-50"
+                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                }`}
+              >
+                Forum
+              </Link>
               {userRole === "admin" && (
                 <Link
                   href="/app/admin"
