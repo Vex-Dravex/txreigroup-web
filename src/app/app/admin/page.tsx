@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import AppHeader from "../components/AppHeader";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -54,8 +55,9 @@ export default async function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+      <AppHeader userRole="admin" currentPage="admin" />
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8">
           <div>
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">Admin Dashboard</h1>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Manage deals, inquiries, and users</p>

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import AppHeader from "../components/AppHeader";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -71,20 +72,13 @@ export default async function CoursesPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+      <AppHeader userRole={userRole} currentPage="courses" />
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">Education Center</h1>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              Learn real estate investing strategies and techniques
-            </p>
-          </div>
-          <Link
-            href="/app"
-            className="rounded-md bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-50 dark:hover:bg-zinc-700"
-          >
-            Dashboard
-          </Link>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">Education Center</h1>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+            Learn real estate investing strategies and techniques
+          </p>
         </div>
 
         {coursesData.length === 0 ? (
