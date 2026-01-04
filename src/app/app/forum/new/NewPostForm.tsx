@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createPost } from "../actions";
+import { FORUM_TOPICS } from "../topics";
 
 export default function NewPostForm() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [topic, setTopic] = useState(FORUM_TOPICS[0].slug);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [mentions, setMentions] = useState<string[]>([]);
   const [images, setImages] = useState<File[]>([]);
@@ -53,6 +55,7 @@ export default function NewPostForm() {
       const formData = new FormData();
       formData.append("title", title);
       formData.append("content", content);
+      formData.append("topic", topic);
       formData.append("hashtags", JSON.stringify(hashtags));
       formData.append("mentions", JSON.stringify(mentions));
       
@@ -86,6 +89,38 @@ export default function NewPostForm() {
           className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
           placeholder="Enter post title..."
         />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+          Topic
+        </label>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {FORUM_TOPICS.map((forumTopic) => (
+            <button
+              type="button"
+              key={forumTopic.slug}
+              onClick={() => setTopic(forumTopic.slug)}
+              className={`flex items-start gap-2 rounded-md border px-3 py-2 text-left text-sm transition-colors ${
+                topic === forumTopic.slug
+                  ? "border-blue-500 bg-blue-50 text-blue-900 dark:border-blue-500 dark:bg-blue-900/30 dark:text-blue-100"
+                  : "border-zinc-300 bg-white text-zinc-800 hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+              }`}
+            >
+              <div
+                className={`mt-1 h-2 w-2 rounded-full ${
+                  topic === forumTopic.slug ? "bg-blue-500" : "bg-zinc-300 dark:bg-zinc-700"
+                }`}
+              />
+              <div>
+                <div className="font-medium">{forumTopic.label}</div>
+                {forumTopic.description && (
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400">{forumTopic.description}</p>
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div>
@@ -206,4 +241,3 @@ export default function NewPostForm() {
     </form>
   );
 }
-

@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import AppHeader from "../components/AppHeader";
 import { VoteButton } from "./components/VoteButton";
+import { FORUM_TOPICS } from "./topics";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -13,6 +14,7 @@ type ForumPost = {
   title: string;
   content: string;
   image_urls: string[];
+  topic: string | null;
   upvotes: number;
   downvotes: number;
   comment_count: number;
@@ -38,7 +40,11 @@ type Profile = {
   avatar_url: string | null;
 };
 
-export default async function ForumPage() {
+type ForumPageSearchParams = {
+  topic?: string;
+};
+
+export default async function ForumPage({ searchParams }: { searchParams?: ForumPageSearchParams }) {
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
 
@@ -104,6 +110,21 @@ export default async function ForumPage() {
     return scoreB - scoreA;
   });
 
+  const topicLabelMap = FORUM_TOPICS.reduce<Record<string, string>>((acc, topic) => {
+    acc[topic.slug] = topic.label;
+    return acc;
+  }, {});
+  const topicFilter = searchParams?.topic || "all";
+  const filteredPosts =
+    topicFilter === "all"
+      ? sortedPosts
+      : sortedPosts.filter((post) => (post.topic || "uncategorized") === topicFilter);
+  const uncategorizedCount = postsData.filter((post) => !post.topic).length;
+  const topicCounts = FORUM_TOPICS.map((topic) => ({
+    ...topic,
+    count: postsData.filter((post) => post.topic === topic.slug).length,
+  }));
+
   const formatTimeAgo = (date: string) => {
     const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
     if (seconds < 60) return `${seconds}s ago`;
@@ -120,11 +141,11 @@ export default async function ForumPage() {
       <AppHeader
         userRole={userRole}
         currentPage="forum"
-        avatarUrl={profileData?.avatar_url || null}
-        displayName={profileData?.display_name || null}
-        email={authData.user.email}
-      />
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+      avatarUrl={profileData?.avatar_url || null}
+      displayName={profileData?.display_name || null}
+      email={authData.user.email}
+    />
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">Community Forum</h1>
@@ -140,149 +161,226 @@ export default async function ForumPage() {
           </Link>
         </div>
 
-        {sortedPosts.length === 0 ? (
-          <div className="rounded-lg border border-zinc-200 bg-white p-12 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-            <p className="text-zinc-600 dark:text-zinc-400 mb-4">No posts yet. Be the first to share!</p>
-            <Link
-              href="/app/forum/new"
-              className="inline-block rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
-            >
-              Create First Post
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {sortedPosts.map((post) => {
-              const score = post.upvotes - post.downvotes;
-              const authorName = post.profiles?.display_name || "Anonymous";
-              const authorInitials = authorName
-                .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .toUpperCase()
-                .slice(0, 2);
+        <div className="grid gap-8 lg:grid-cols-[280px,1fr]">
+          <aside className="h-fit rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Topics</h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Pinpoint creative finance, SubTo, and wholesale conversations.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Link
+                href="/app/forum"
+                className={`flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors ${
+                  topicFilter === "all"
+                    ? "bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900"
+                    : "text-zinc-800 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                }`}
+              >
+                <span className="font-medium">All topics</span>
+                <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold text-white dark:bg-black/10 dark:text-inherit">
+                  {postsData.length}
+                </span>
+              </Link>
 
-              return (
-                <div
-                  key={post.id}
-                  className={`rounded-lg border bg-white shadow-sm transition-shadow hover:shadow-md dark:bg-zinc-950 ${
-                    post.is_pinned
-                      ? "border-blue-300 dark:border-blue-700"
-                      : "border-zinc-200 dark:border-zinc-800"
+              {topicCounts.map((topic) => (
+                <Link
+                  key={topic.slug}
+                  href={`/app/forum?topic=${topic.slug}`}
+                  className={`block rounded-md border px-3 py-2 text-sm transition-colors ${
+                    topicFilter === topic.slug
+                      ? "border-blue-500 bg-blue-50 text-blue-900 dark:border-blue-500 dark:bg-blue-900/30 dark:text-blue-100"
+                      : "border-zinc-200 text-zinc-800 hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-200 dark:hover:border-zinc-700 dark:hover:bg-zinc-900"
                   }`}
                 >
-                  <div className="flex">
-                    {/* Voting Section */}
-                    <div className="flex flex-col items-center p-4 bg-zinc-50 dark:bg-zinc-900 rounded-l-lg">
-                      <VoteButton
-                        postId={post.id}
-                        voteType="upvote"
-                        isActive={post.user_vote?.vote_type === "upvote"}
-                      >
-                        ▲
-                      </VoteButton>
-                      <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 my-1">
-                        {score}
-                      </span>
-                      <VoteButton
-                        postId={post.id}
-                        voteType="downvote"
-                        isActive={post.user_vote?.vote_type === "downvote"}
-                      >
-                        ▼
-                      </VoteButton>
-                    </div>
-
-                    {/* Post Content */}
-                    <div className="flex-1 p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          {post.profiles?.avatar_url ? (
-                            <img
-                              src={post.profiles.avatar_url}
-                              alt={authorName}
-                              className="w-6 h-6 rounded-full"
-                            />
-                          ) : (
-                            <div className="w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                              {authorInitials}
-                            </div>
-                          )}
-                          <span className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
-                            {authorName}
-                          </span>
-                          <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                            {formatTimeAgo(post.created_at)}
-                          </span>
-                          {post.is_pinned && (
-                            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                              Pinned
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <Link href={`/app/forum/${post.id}`}>
-                        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50 mb-2 hover:text-zinc-700 dark:hover:text-zinc-300">
-                          {post.title}
-                        </h2>
-                      </Link>
-
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3 line-clamp-3">
-                        {post.content}
-                      </p>
-
-                      {/* Images Preview */}
-                      {post.image_urls && post.image_urls.length > 0 && (
-                        <div className="mb-3 flex gap-2">
-                          {post.image_urls.slice(0, 3).map((url, idx) => (
-                            <img
-                              key={idx}
-                              src={url}
-                              alt={`Post image ${idx + 1}`}
-                              className="w-20 h-20 object-cover rounded-md"
-                            />
-                          ))}
-                          {post.image_urls.length > 3 && (
-                            <div className="w-20 h-20 rounded-md bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-xs text-zinc-600 dark:text-zinc-400">
-                              +{post.image_urls.length - 3}
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Tags */}
-                      {post.forum_post_tags && post.forum_post_tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {post.forum_post_tags.map((tagObj, idx) => (
-                            <span
-                              key={idx}
-                              className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-                            >
-                              #{tagObj.tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
-                        <Link
-                          href={`/app/forum/${post.id}`}
-                          className="flex items-center gap-1 hover:text-zinc-700 dark:hover:text-zinc-300"
-                        >
-                          💬 {post.comment_count} comments
-                        </Link>
-                      </div>
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold">{topic.label}</span>
+                    <span className="rounded-full bg-white/40 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:bg-black/20 dark:text-zinc-200">
+                      {topic.count}
+                    </span>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                  {topic.description && (
+                    <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{topic.description}</p>
+                  )}
+                </Link>
+              ))}
+
+              {uncategorizedCount > 0 && (
+                <Link
+                  href="/app/forum?topic=uncategorized"
+                  className={`flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors ${
+                    topicFilter === "uncategorized"
+                      ? "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100"
+                      : "text-zinc-800 hover:bg-amber-50 dark:text-zinc-200 dark:hover:bg-amber-900/20"
+                  }`}
+                >
+                  <span className="font-medium">Uncategorized</span>
+                  <span className="rounded-full bg-white/40 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:bg-black/20 dark:text-zinc-200">
+                    {uncategorizedCount}
+                  </span>
+                </Link>
+              )}
+            </div>
+          </aside>
+
+          <main>
+            {filteredPosts.length === 0 ? (
+              <div className="rounded-lg border border-zinc-200 bg-white p-12 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                <p className="text-zinc-600 dark:text-zinc-400 mb-4">
+                  {sortedPosts.length === 0
+                    ? "No posts yet. Be the first to share!"
+                    : "No posts in this topic yet. Start the conversation."}
+                </p>
+                <Link
+                  href="/app/forum/new"
+                  className="inline-block rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
+                >
+                  Create Post
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredPosts.map((post) => {
+                  const score = post.upvotes - post.downvotes;
+                  const authorName = post.profiles?.display_name || "Anonymous";
+                  const authorInitials = authorName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()
+                    .slice(0, 2);
+
+                  return (
+                    <div
+                      key={post.id}
+                      className={`rounded-lg border bg-white shadow-sm transition-shadow hover:shadow-md dark:bg-zinc-950 ${
+                        post.is_pinned
+                          ? "border-blue-300 dark:border-blue-700"
+                          : "border-zinc-200 dark:border-zinc-800"
+                      }`}
+                    >
+                      <div className="flex">
+                        {/* Voting Section */}
+                        <div className="flex flex-col items-center p-4 bg-zinc-50 dark:bg-zinc-900 rounded-l-lg">
+                          <VoteButton
+                            postId={post.id}
+                            voteType="upvote"
+                            isActive={post.user_vote?.vote_type === "upvote"}
+                          >
+                            ▲
+                          </VoteButton>
+                          <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 my-1">
+                            {score}
+                          </span>
+                          <VoteButton
+                            postId={post.id}
+                            voteType="downvote"
+                            isActive={post.user_vote?.vote_type === "downvote"}
+                          >
+                            ▼
+                          </VoteButton>
+                        </div>
+
+                        {/* Post Content */}
+                        <div className="flex-1 p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              {post.profiles?.avatar_url ? (
+                                <img
+                                  src={post.profiles.avatar_url}
+                                  alt={authorName}
+                                  className="w-6 h-6 rounded-full"
+                                />
+                              ) : (
+                                <div className="w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                                  {authorInitials}
+                                </div>
+                              )}
+                              <span className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                                {authorName}
+                              </span>
+                              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                                {formatTimeAgo(post.created_at)}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="mb-1 flex flex-wrap items-center gap-2">
+                            {post.topic && (
+                              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
+                                {topicLabelMap[post.topic] || post.topic}
+                              </span>
+                            )}
+                            {post.is_pinned && (
+                              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                Pinned
+                              </span>
+                            )}
+                          </div>
+
+                          <Link href={`/app/forum/${post.id}`}>
+                            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50 mb-2 hover:text-zinc-700 dark:hover:text-zinc-300">
+                              {post.title}
+                            </h2>
+                          </Link>
+
+                          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3 line-clamp-3">
+                            {post.content}
+                          </p>
+
+                          {/* Images Preview */}
+                          {post.image_urls && post.image_urls.length > 0 && (
+                            <div className="mb-3 flex gap-2">
+                              {post.image_urls.slice(0, 3).map((url, idx) => (
+                                <img
+                                  key={idx}
+                                  src={url}
+                                  alt={`Post image ${idx + 1}`}
+                                  className="w-20 h-20 object-cover rounded-md"
+                                />
+                              ))}
+                              {post.image_urls.length > 3 && (
+                                <div className="w-20 h-20 rounded-md bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-xs text-zinc-600 dark:text-zinc-400">
+                                  +{post.image_urls.length - 3}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Tags */}
+                          {post.forum_post_tags && post.forum_post_tags.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-3">
+                              {post.forum_post_tags.map((tagObj, idx) => (
+                                <span
+                                  key={idx}
+                                  className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                                >
+                                  #{tagObj.tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
+                            <Link
+                              href={`/app/forum/${post.id}`}
+                              className="flex items-center gap-1 hover:text-zinc-700 dark:hover:text-zinc-300"
+                            >
+                              💬 {post.comment_count} comments
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </main>
+        </div>
       </div>
     </div>
   );
 }
-

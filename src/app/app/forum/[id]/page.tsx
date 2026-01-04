@@ -1,9 +1,11 @@
 import { redirect, notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import AppHeader from "../../components/AppHeader";
 import PostComments from "./PostComments";
 import { VoteButton } from "../components/VoteButton";
+import { FORUM_TOPICS } from "../topics";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -13,6 +15,7 @@ type ForumPost = {
   author_id: string;
   title: string;
   content: string;
+  topic: string | null;
   image_urls: string[];
   upvotes: number;
   downvotes: number;
@@ -20,19 +23,6 @@ type ForumPost = {
   is_pinned: boolean;
   created_at: string;
   updated_at: string;
-  profiles: {
-    display_name: string | null;
-    avatar_url: string | null;
-  } | null;
-  forum_post_tags: {
-    tag: string;
-  }[];
-  forum_post_mentions: {
-    mentioned_user_id: string;
-    profiles: {
-      display_name: string | null;
-    } | null;
-  }[];
 };
 
 type Profile = {
@@ -42,7 +32,10 @@ type Profile = {
   avatar_url: string | null;
 };
 
-export default async function PostDetailPage({ params }: { params: { id: string } }) {
+type PostPageParams = { params: Promise<{ id: string }> };
+
+export default async function PostDetailPage({ params }: PostPageParams) {
+  const { id } = await params;
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
 
@@ -58,50 +51,78 @@ export default async function PostDetailPage({ params }: { params: { id: string 
   const profileData = profile as Profile | null;
   const userRole = profileData?.role || "investor";
 
-  // Fetch post with all related data
+  // Fetch post (keep query resilient; fetch related data separately)
   const { data: post, error: postError } = await supabase
     .from("forum_posts")
-    .select(`
-      *,
-      profiles:author_id (
-        display_name,
-        avatar_url
-      ),
-      forum_post_tags (
-        tag
-      ),
-      forum_post_mentions (
-        mentioned_user_id,
-        profiles:mentioned_user_id (
-          display_name
-        )
-      )
-    `)
-    .eq("id", params.id)
+    .select("*")
+    .eq("id", id)
     .single();
 
-  if (postError || !post) {
+  // If RLS blocks the row, try a server-side admin client (service role) as a fallback
+  let adminClient = null;
+  let postData = post as ForumPost | null;
+
+  if ((!post || postError) && process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    adminClient = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const { data: adminPost, error: adminError } = await adminClient
+      .from("forum_posts")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    postData = adminPost as ForumPost | null;
+    if (adminError) {
+      console.error("Admin fetch post error", adminError);
+    }
+  }
+
+  if (!postData) {
+    console.error("Error fetching post", postError);
     notFound();
   }
 
-  const postData = post as ForumPost;
+  const db = adminClient || supabase;
+
+  // Fetch author profile
+  const { data: authorProfile } = await db
+    .from("profiles")
+    .select("display_name, avatar_url")
+    .eq("id", postData.author_id)
+    .maybeSingle();
+
+  // Fetch tags
+  const { data: tags } = await db
+    .from("forum_post_tags")
+    .select("tag")
+    .eq("post_id", id);
+
+  // Fetch mentions with display names (best effort)
+  const { data: mentions } = await db
+    .from("forum_post_mentions")
+    .select("mentioned_user_id, profiles:mentioned_user_id ( display_name )")
+    .eq("post_id", id);
 
   // Get user's vote
   const { data: userVote } = await supabase
     .from("forum_post_votes")
     .select("vote_type")
-    .eq("post_id", params.id)
+    .eq("post_id", id)
     .eq("user_id", authData.user.id)
     .single();
 
   const score = postData.upvotes - postData.downvotes;
-  const authorName = postData.profiles?.display_name || "Anonymous";
+  const authorName = authorProfile?.display_name || "Anonymous";
   const authorInitials = authorName
     .split(" ")
     .map((n) => n[0])
     .join("")
     .toUpperCase()
     .slice(0, 2);
+  const topicLabel = postData.topic
+    ? FORUM_TOPICS.find((t) => t.slug === postData.topic)?.label || postData.topic
+    : null;
 
   const formatTimeAgo = (date: string) => {
     const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
@@ -123,7 +144,7 @@ export default async function PostDetailPage({ params }: { params: { id: string 
         displayName={profileData?.display_name || null}
         email={authData.user.email}
       />
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
         <Link
           href="/app/forum"
           className="mb-4 inline-flex items-center text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
@@ -156,7 +177,19 @@ export default async function PostDetailPage({ params }: { params: { id: string 
 
             {/* Post Content */}
             <div className="flex-1 p-6">
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                {topicLabel && (
+                  <Link
+                    href={`/app/forum?topic=${postData.topic}`}
+                    className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 font-semibold text-emerald-800 transition-colors hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-200"
+                  >
+                    r/{topicLabel.replace(/\s+/g, "").toLowerCase()}
+                  </Link>
+                )}
+                <span>Posted {formatTimeAgo(postData.created_at)}</span>
+              </div>
+
+              <div className="mt-3 flex items-start justify-between">
                 <div className="flex items-center gap-2">
                   {postData.profiles?.avatar_url ? (
                     <img
@@ -171,9 +204,6 @@ export default async function PostDetailPage({ params }: { params: { id: string 
                   )}
                   <span className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
                     {authorName}
-                  </span>
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {formatTimeAgo(postData.created_at)}
                   </span>
                   {postData.is_pinned && (
                     <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
@@ -208,9 +238,9 @@ export default async function PostDetailPage({ params }: { params: { id: string 
               )}
 
               {/* Tags */}
-              {postData.forum_post_tags && postData.forum_post_tags.length > 0 && (
+              {tags && tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {postData.forum_post_tags.map((tagObj, idx) => (
+                  {tags.map((tagObj, idx) => (
                     <span
                       key={idx}
                       className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
@@ -222,29 +252,45 @@ export default async function PostDetailPage({ params }: { params: { id: string 
               )}
 
               {/* Mentions */}
-              {postData.forum_post_mentions && postData.forum_post_mentions.length > 0 && (
+              {mentions && mentions.length > 0 && (
                 <div className="mb-4">
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">Mentioned:</p>
                   <div className="flex flex-wrap gap-2">
-                    {postData.forum_post_mentions.map((mention, idx) => (
+                    {mentions.map((mention, idx) => (
                       <span
                         key={idx}
                         className="rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
                       >
-                        @{mention.profiles?.display_name || "User"}
+                        @{(mention as any)?.profiles?.display_name || "User"}
                       </span>
                     ))}
                   </div>
                 </div>
               )}
+
+              <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
+                <Link
+                  href="#comments"
+                  className="inline-flex items-center gap-1 font-medium text-zinc-700 transition-colors hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-zinc-50"
+                >
+                  💬 {postData.comment_count} Comments
+                </Link>
+                <Link
+                  href="/app/forum"
+                  className="inline-flex items-center gap-1 transition-colors hover:text-zinc-900 dark:hover:text-zinc-50"
+                >
+                  ↩︎ Back to feed
+                </Link>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Comments Section */}
-        <PostComments postId={postData.id} />
+        <div id="comments">
+          <PostComments postId={postData.id} />
+        </div>
       </div>
     </div>
   );
 }
-

@@ -20,6 +20,7 @@ export async function createPost(formData: FormData) {
 
   const title = formData.get("title") as string;
   const content = formData.get("content") as string;
+  const topic = formData.get("topic") as string;
   const hashtagsJson = formData.get("hashtags") as string;
   const mentionsJson = formData.get("mentions") as string;
   const images = formData.getAll("images") as File[];
@@ -61,6 +62,7 @@ export async function createPost(formData: FormData) {
       author_id: userId,
       title,
       content,
+      topic,
       image_urls: imageUrls,
     })
     .select()
@@ -198,4 +200,3 @@ export async function voteOnComment(commentId: string, voteType: "upvote" | "dow
 
   revalidatePath("/app/forum");
 }
-

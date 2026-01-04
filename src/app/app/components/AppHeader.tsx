@@ -29,14 +29,14 @@ export default function AppHeader({
             </Link>
             <nav className="hidden md:flex items-center gap-4">
               <Link
-                href="/app"
+                href="/"
                 className={`text-sm font-medium transition-colors ${
-                  currentPage === "dashboard"
+                  currentPage === "home"
                     ? "text-zinc-900 dark:text-zinc-50"
                     : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
                 }`}
               >
-                Dashboard
+                Home
               </Link>
               <Link
                 href="/app/deals"
@@ -98,4 +98,3 @@ export default function AppHeader({
     </header>
   );
 }
-
