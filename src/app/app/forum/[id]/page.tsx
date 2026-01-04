@@ -191,9 +191,9 @@ export default async function PostDetailPage({ params }: PostPageParams) {
 
               <div className="mt-3 flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                  {postData.profiles?.avatar_url ? (
+                  {authorProfile?.avatar_url ? (
                     <img
-                      src={postData.profiles.avatar_url}
+                      src={authorProfile.avatar_url}
                       alt={authorName}
                       className="w-8 h-8 rounded-full"
                     />
