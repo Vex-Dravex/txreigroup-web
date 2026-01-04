@@ -173,6 +173,7 @@ export default function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
     if (zipcode) params.set("zipcode", zipcode);
 
     router.push(`/app/deals?${params.toString()}`);
+    router.refresh(); // Force server components to refetch with new params
   };
 
   const clearFilters = () => {
@@ -190,12 +191,14 @@ export default function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
     setCity("");
     setZipcode("");
     router.push("/app/deals");
+    router.refresh(); // Ensure listings update after clearing
   };
 
   const removeFilter = (key: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete(key);
     router.push(`/app/deals?${params.toString()}`);
+    router.refresh(); // Keep results in sync when filters are removed
   };
 
   const hasActiveFilters =
@@ -424,4 +427,3 @@ export default function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
     </>
   );
 }
-

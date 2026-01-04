@@ -13,8 +13,8 @@ export default function FilterTagsDisplay() {
     // Only push if there are still params, otherwise go to base URL
     const newUrl = params.toString() ? `/app/deals?${params.toString()}` : "/app/deals";
     router.push(newUrl);
+    router.refresh(); // Ensure server-rendered listings match the updated filters
   };
 
   return <FilterTags searchParams={searchParams} onRemoveFilters={removeFilters} />;
 }
-

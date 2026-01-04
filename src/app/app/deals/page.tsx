@@ -68,8 +68,9 @@ type SearchParams = {
 export default async function DealsPage({
   searchParams,
 }: {
-  searchParams: SearchParams;
+  searchParams: Promise<SearchParams>;
 }) {
+  const resolvedSearchParams = await searchParams;
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
 
@@ -328,19 +329,19 @@ export default async function DealsPage({
 
   // Apply filters
   const filters = {
-    bedrooms: searchParams.bedrooms ? parseInt(searchParams.bedrooms) : null,
-    exactBedrooms: searchParams.exactBedrooms === "true",
-    bathrooms: searchParams.bathrooms ? parseFloat(searchParams.bathrooms) : null,
-    exactBathrooms: searchParams.exactBathrooms === "true",
-    minSqFt: searchParams.minSqFt ? parseInt(searchParams.minSqFt) : null,
-    maxSqFt: searchParams.maxSqFt ? parseInt(searchParams.maxSqFt) : null,
-    minLotSize: searchParams.minLotSize ? parseFloat(searchParams.minLotSize) : null,
-    maxLotSize: searchParams.maxLotSize ? parseFloat(searchParams.maxLotSize) : null,
-    dealType: searchParams.dealType || null,
-    minEntryPrice: searchParams.minEntryPrice ? parseInt(searchParams.minEntryPrice) : null,
-    maxEntryPrice: searchParams.maxEntryPrice ? parseInt(searchParams.maxEntryPrice) : null,
-    city: searchParams.city?.toLowerCase().trim() || null,
-    zipcode: searchParams.zipcode?.trim() || null,
+    bedrooms: resolvedSearchParams.bedrooms ? parseInt(resolvedSearchParams.bedrooms) : null,
+    exactBedrooms: resolvedSearchParams.exactBedrooms === "true",
+    bathrooms: resolvedSearchParams.bathrooms ? parseFloat(resolvedSearchParams.bathrooms) : null,
+    exactBathrooms: resolvedSearchParams.exactBathrooms === "true",
+    minSqFt: resolvedSearchParams.minSqFt ? parseInt(resolvedSearchParams.minSqFt) : null,
+    maxSqFt: resolvedSearchParams.maxSqFt ? parseInt(resolvedSearchParams.maxSqFt) : null,
+    minLotSize: resolvedSearchParams.minLotSize ? parseFloat(resolvedSearchParams.minLotSize) : null,
+    maxLotSize: resolvedSearchParams.maxLotSize ? parseFloat(resolvedSearchParams.maxLotSize) : null,
+    dealType: resolvedSearchParams.dealType || null,
+    minEntryPrice: resolvedSearchParams.minEntryPrice ? parseInt(resolvedSearchParams.minEntryPrice) : null,
+    maxEntryPrice: resolvedSearchParams.maxEntryPrice ? parseInt(resolvedSearchParams.maxEntryPrice) : null,
+    city: resolvedSearchParams.city?.toLowerCase().trim() || null,
+    zipcode: resolvedSearchParams.zipcode?.trim() || null,
   };
 
   // Filter deals based on search params
@@ -687,4 +688,3 @@ export default async function DealsPage({
     </FilterProvider>
   );
 }
-
