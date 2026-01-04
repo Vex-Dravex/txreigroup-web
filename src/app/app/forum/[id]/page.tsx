@@ -116,7 +116,7 @@ export default async function PostDetailPage({ params }: PostPageParams) {
   const authorName = authorProfile?.display_name || "Anonymous";
   const authorInitials = authorName
     .split(" ")
-    .map((n) => n[0])
+    .map((part: string) => part[0] || "")
     .join("")
     .toUpperCase()
     .slice(0, 2);
