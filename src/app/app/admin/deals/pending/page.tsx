@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getPrimaryRole, getUserRoles, hasRole } from "@/lib/roles";
-import AppHeader from "../../components/AppHeader";
+import AppHeader from "@/app/app/components/AppHeader";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
