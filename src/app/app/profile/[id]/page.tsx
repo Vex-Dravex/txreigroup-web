@@ -40,7 +40,7 @@ type Review = {
     display_name: string | null;
     avatar_url: string | null;
     role: string | null;
-  } | null;
+  }[] | null;
 };
 
 type NetworkRequest = {
@@ -387,17 +387,17 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                     <div key={review.id} className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-                          {review.reviewer?.avatar_url ? (
-                            <img src={review.reviewer.avatar_url} alt={review.reviewer.display_name || "Reviewer"} className="h-full w-full object-cover" />
+                          {review.reviewer?.[0]?.avatar_url ? (
+                            <img src={review.reviewer[0].avatar_url} alt={review.reviewer[0].display_name || "Reviewer"} className="h-full w-full object-cover" />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-zinc-500">
-                              {(review.reviewer?.display_name || "U").slice(0, 1).toUpperCase()}
+                              {(review.reviewer?.[0]?.display_name || "U").slice(0, 1).toUpperCase()}
                             </div>
                           )}
                         </div>
                         <div>
                           <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-                            {review.reviewer?.display_name || "Community member"}
+                            {review.reviewer?.[0]?.display_name || "Community member"}
                           </div>
                           <div className="text-xs text-zinc-500 dark:text-zinc-400">
                             {new Date(review.created_at).toLocaleDateString()}
