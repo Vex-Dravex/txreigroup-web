@@ -26,7 +26,7 @@ type Deal = {
   created_at: string;
   profiles: {
     display_name: string | null;
-  } | null;
+  }[] | null;
 };
 
 export default async function PendingDealsPage() {
@@ -146,9 +146,9 @@ export default async function PendingDealsPage() {
                       {deal.property_address}, {deal.property_city}, {deal.property_state}
                       {deal.property_zip && ` ${deal.property_zip}`}
                     </p>
-                    {deal.profiles?.display_name && (
+                    {deal.profiles?.[0]?.display_name && (
                       <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                        Submitted by {deal.profiles.display_name}
+                        Submitted by {deal.profiles[0].display_name}
                       </p>
                     )}
                   </div>
