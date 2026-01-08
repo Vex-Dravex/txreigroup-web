@@ -157,8 +157,8 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
     (networkConnectionsResult.data as Array<{
       requester_id: string;
       requestee_id: string;
-      requester: { id: string; display_name: string | null; avatar_url: string | null } | null;
-      requestee: { id: string; display_name: string | null; avatar_url: string | null } | null;
+      requester: { id: string; display_name: string | null; avatar_url: string | null }[] | null;
+      requestee: { id: string; display_name: string | null; avatar_url: string | null }[] | null;
     }>) || [];
 
   const portfolioCategories =
@@ -434,7 +434,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                 <div className="mt-4 grid gap-3">
                   {networkConnections.map((connection) => {
                     const isRequester = connection.requester_id === profileData.id;
-                    const otherUser = isRequester ? connection.requestee : connection.requester;
+                    const otherUser = isRequester ? connection.requestee?.[0] : connection.requester?.[0];
                     if (!otherUser) return null;
                     return (
                       <div key={`${connection.requester_id}-${connection.requestee_id}`} className="flex items-center gap-3">

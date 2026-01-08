@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getPrimaryRole, getUserRoles } from "@/lib/roles";
+import type { Role } from "@/lib/roles";
 import Link from "next/link";
 import AppHeader from "./app/components/AppHeader";
 
@@ -10,7 +11,7 @@ export default async function Home() {
   // Check if user is authenticated (but don't redirect - homepage is public)
   let isAuthenticated = false;
   let userProfile: { avatar_url: string | null; display_name: string | null; email: string | null } | null = null;
-  let userRole = "investor";
+  let userRole: Role = "investor";
   try {
     const supabase = await createSupabaseServerClient();
     const { data: authData } = await supabase.auth.getUser();
