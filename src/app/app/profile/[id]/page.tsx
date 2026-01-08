@@ -150,7 +150,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
   const networkRequest = networkRequestResult.data as NetworkRequest | null;
   const pendingRequests =
     (pendingRequestsResult.data as Array<
-      NetworkRequest & { requester: { id: string; display_name: string | null; avatar_url: string | null } | null }
+      NetworkRequest & { requester: { id: string; display_name: string | null; avatar_url: string | null }[] | null }
     >) || [];
   const networkCount = networkCountResult.count || 0;
   const networkConnections =
@@ -255,17 +255,17 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                 <div key={request.id} className="flex flex-wrap items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-                      {request.requester?.avatar_url ? (
-                        <img src={request.requester.avatar_url} alt={request.requester.display_name || "User"} className="h-full w-full object-cover" />
+                      {request.requester?.[0]?.avatar_url ? (
+                        <img src={request.requester[0].avatar_url} alt={request.requester[0].display_name || "User"} className="h-full w-full object-cover" />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-zinc-500">
-                          {(request.requester?.display_name || "U").slice(0, 1).toUpperCase()}
+                          {(request.requester?.[0]?.display_name || "U").slice(0, 1).toUpperCase()}
                         </div>
                       )}
                     </div>
                     <div>
                       <div className="font-medium text-zinc-900 dark:text-zinc-50">
-                        {request.requester?.display_name || "Community member"}
+                        {request.requester?.[0]?.display_name || "Community member"}
                       </div>
                       <div className="text-xs text-zinc-500 dark:text-zinc-400">Wants to connect</div>
                     </div>
