@@ -49,7 +49,7 @@ export default async function PendingDealsPage() {
 
   const primaryRole = getPrimaryRole(roles, profileData?.role || "investor");
 
-  const [{ data: pendingDeals }, { data: pendingCount }] = await Promise.all([
+  const [{ data: pendingDeals }, { count: pendingCount }] = await Promise.all([
     supabase
       .from("deals")
       .select(
@@ -104,7 +104,7 @@ export default async function PendingDealsPage() {
         avatarUrl={profileData?.avatar_url || null}
         displayName={profileData?.display_name || null}
         email={authData.user.email}
-        pendingDealsCount={pendingCount?.count || 0}
+        pendingDealsCount={pendingCount || 0}
       />
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
