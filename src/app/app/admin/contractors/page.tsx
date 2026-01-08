@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { verifyContractor, rejectContractor } from "../actions";
 import ContractorVerificationForm from "./ContractorVerificationForm";
+import { getUserRoles, hasRole } from "@/lib/roles";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -27,7 +28,7 @@ type ContractorProfile = {
 
 type Profile = {
   id: string;
-  role: "admin" | "investor" | "wholesaler" | "contractor";
+  role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
 };
 
 export default async function AdminContractorsPage() {
@@ -44,7 +45,8 @@ export default async function AdminContractorsPage() {
     .single();
 
   const profileData = profile as Profile | null;
-  if (profileData?.role !== "admin") {
+  const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
+  if (!hasRole(roles, "admin")) {
     redirect("/app");
   }
 
@@ -263,4 +265,3 @@ export default async function AdminContractorsPage() {
     </div>
   );
 }
-

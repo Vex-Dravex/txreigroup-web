@@ -80,6 +80,10 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Insurance Estimate (Off-Market MLS)
+
+The deal submission flow stores an **estimate only** insurance premium using a deterministic underwriting-style formula. The estimator lives in `src/lib/insurance/estimateInsurance.ts` and uses submitted inputs (sqft, year built, occupancy, roof age, construction, deductible, risk flags, and optional replacement cost override) to compute monthly and annual estimates. This is not a quote.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

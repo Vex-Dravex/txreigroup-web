@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import AppHeader from "../components/AppHeader";
+import { getPrimaryRole, getUserRoles } from "@/lib/roles";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -19,7 +20,7 @@ type Course = {
 
 type Profile = {
   id: string;
-  role: "admin" | "investor" | "wholesaler" | "contractor";
+  role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
   display_name: string | null;
   avatar_url: string | null;
 };
@@ -38,7 +39,8 @@ export default async function CoursesPage() {
     .single();
 
   const profileData = profile as Profile | null;
-  const userRole = profileData?.role || "investor";
+  const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
+  const userRole = getPrimaryRole(roles, profileData?.role || "investor");
 
   // Fetch published courses (RLS will filter by tier access)
   let coursesQuery = supabase
@@ -143,4 +145,3 @@ export default async function CoursesPage() {
     </div>
   );
 }
-

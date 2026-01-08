@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { approveDeal, rejectDeal } from "../actions";
 import DealApprovalForm from "./DealApprovalForm";
+import { getUserRoles, hasRole } from "@/lib/roles";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -23,6 +24,8 @@ type Deal = {
   square_feet: number | null;
   bedrooms: number | null;
   bathrooms: number | null;
+  insurance_estimate_annual?: number | null;
+  insurance_estimate_monthly?: number | null;
   status: "draft" | "pending" | "approved" | "rejected" | "closed";
   admin_notes: string | null;
   created_at: string;
@@ -35,7 +38,7 @@ type Deal = {
 
 type Profile = {
   id: string;
-  role: "admin" | "investor" | "wholesaler" | "contractor";
+  role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
 };
 
 export default async function AdminDealsPage() {
@@ -52,7 +55,8 @@ export default async function AdminDealsPage() {
     .single();
 
   const profileData = profile as Profile | null;
-  if (profileData?.role !== "admin") {
+  const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
+  if (!hasRole(roles, "admin")) {
     redirect("/app");
   }
 
@@ -141,7 +145,12 @@ export default async function AdminDealsPage() {
                   <div className="mb-4 flex items-start justify-between">
                     <div className="flex-1">
                       <div className="mb-2 flex items-center gap-3">
-                        <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">{deal.title}</h3>
+                        <Link
+                          href={`/app/admin/deals/${deal.id}`}
+                          className="inline-flex text-xl font-semibold text-zinc-900 transition hover:scale-[1.02] hover:text-zinc-700 dark:text-zinc-50 dark:hover:text-zinc-200"
+                        >
+                          {deal.title}
+                        </Link>
                         <span
                           className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadgeClass(deal.status)}`}
                         >
@@ -159,7 +168,7 @@ export default async function AdminDealsPage() {
                       )}
                     </div>
                     <Link
-                      href={`/app/deals/${deal.id}`}
+                      href={`/app/admin/deals/${deal.id}`}
                       className="ml-4 text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                     >
                       View Details →
@@ -173,6 +182,14 @@ export default async function AdminDealsPage() {
                         {formatPrice(deal.asking_price)}
                       </p>
                     </div>
+                    {deal.insurance_estimate_monthly !== null && deal.insurance_estimate_monthly !== undefined && (
+                      <div>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400">Est. Insurance</p>
+                        <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+                          {formatPrice(deal.insurance_estimate_monthly)} / mo
+                        </p>
+                      </div>
+                    )}
                     {deal.arv && (
                       <div>
                         <p className="text-xs text-zinc-600 dark:text-zinc-400">ARV</p>
@@ -229,6 +246,9 @@ export default async function AdminDealsPage() {
                     Price
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase text-zinc-600 dark:text-zinc-400">
+                    Est. Insurance
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-zinc-600 dark:text-zinc-400">
                     Status
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase text-zinc-600 dark:text-zinc-400">
@@ -247,13 +267,24 @@ export default async function AdminDealsPage() {
                       className="border-b border-zinc-200 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
                     >
                       <td className="px-4 py-3 text-sm font-medium text-zinc-900 dark:text-zinc-50">
-                        {deal.title}
+                        <Link
+                          href={`/app/admin/deals/${deal.id}`}
+                          className="inline-flex transition hover:scale-[1.02] hover:text-zinc-700 dark:hover:text-zinc-200"
+                        >
+                          {deal.title}
+                        </Link>
                       </td>
                       <td className="px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400">
                         {deal.property_city}, {deal.property_state}
                       </td>
                       <td className="px-4 py-3 text-sm text-zinc-900 dark:text-zinc-50">
                         {formatPrice(deal.asking_price)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-zinc-900 dark:text-zinc-50">
+                        {deal.insurance_estimate_monthly !== null &&
+                        deal.insurance_estimate_monthly !== undefined
+                          ? `${formatPrice(deal.insurance_estimate_monthly)} / mo`
+                          : "—"}
                       </td>
                       <td className="px-4 py-3">
                         <span
@@ -267,7 +298,7 @@ export default async function AdminDealsPage() {
                       </td>
                       <td className="px-4 py-3">
                         <Link
-                          href={`/app/deals/${deal.id}`}
+                          href={`/app/admin/deals/${deal.id}`}
                           className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                         >
                           View
@@ -277,7 +308,7 @@ export default async function AdminDealsPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-sm text-zinc-600 dark:text-zinc-400">
+                    <td colSpan={7} className="px-4 py-8 text-center text-sm text-zinc-600 dark:text-zinc-400">
                       No deals found
                     </td>
                   </tr>
@@ -290,4 +321,3 @@ export default async function AdminDealsPage() {
     </div>
   );
 }
-

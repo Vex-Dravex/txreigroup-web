@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { updateUserRole, updateUserStatus } from "../actions";
+import { updateUserStatus } from "../actions";
 import UserRoleForm from "./UserRoleForm";
 import UserStatusForm from "./UserStatusForm";
+import { getUserRoles, hasRole, roleDisplayNames, type Role } from "@/lib/roles";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -11,10 +12,11 @@ export const dynamic = 'force-dynamic';
 type User = {
   id: string;
   display_name: string | null;
-  role: "admin" | "investor" | "wholesaler" | "contractor";
+  role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
   status: string;
   created_at: string;
   updated_at: string;
+  roles?: Role[];
   memberships: {
     tier: string;
     status: string;
@@ -23,7 +25,7 @@ type User = {
 
 type Profile = {
   id: string;
-  role: "admin" | "investor" | "wholesaler" | "contractor";
+  role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
 };
 
 export default async function AdminUsersPage() {
@@ -40,7 +42,8 @@ export default async function AdminUsersPage() {
     .single();
 
   const profileData = profile as Profile | null;
-  if (profileData?.role !== "admin") {
+  const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
+  if (!hasRole(roles, "admin")) {
     redirect("/app");
   }
 
@@ -59,13 +62,35 @@ export default async function AdminUsersPage() {
 
   const usersData = (users as User[]) || [];
 
-  // Group by role
-  const admins = usersData.filter((u) => u.role === "admin");
-  const investors = usersData.filter((u) => u.role === "investor");
-  const wholesalers = usersData.filter((u) => u.role === "wholesaler");
-  const contractors = usersData.filter((u) => u.role === "contractor");
+  const userIds = usersData.map((user) => user.id);
+  const roleRows = userIds.length
+    ? (
+        await supabase
+          .from("user_roles")
+          .select("user_id, role")
+          .in("user_id", userIds)
+      ).data
+    : [];
 
-  const getRoleBadgeClass = (role: string) => {
+  const rolesByUser = new Map<string, Role[]>();
+  (roleRows || []).forEach((row: { user_id: string; role: Role }) => {
+    if (!rolesByUser.has(row.user_id)) {
+      rolesByUser.set(row.user_id, []);
+    }
+    rolesByUser.get(row.user_id)?.push(row.role);
+  });
+
+  usersData.forEach((user) => {
+    user.roles = rolesByUser.get(user.id) || [user.role];
+  });
+
+  // Group by role
+  const admins = usersData.filter((u) => u.roles?.includes("admin"));
+  const investors = usersData.filter((u) => u.roles?.includes("investor"));
+  const wholesalers = usersData.filter((u) => u.roles?.includes("wholesaler"));
+  const contractors = usersData.filter((u) => u.roles?.includes("contractor") || u.roles?.includes("vendor"));
+
+  const getRoleBadgeClass = (role: Role) => {
     switch (role) {
       case "admin":
         return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300";
@@ -75,6 +100,8 @@ export default async function AdminUsersPage() {
         return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
       case "contractor":
         return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300";
+      case "vendor":
+        return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300";
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
     }
@@ -102,11 +129,16 @@ export default async function AdminUsersPage() {
         </div>
       </td>
       <td className="px-4 py-3">
-        <span
-          className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${getRoleBadgeClass(user.role)}`}
-        >
-          {user.role}
-        </span>
+        <div className="flex flex-wrap gap-2">
+          {(user.roles || [user.role]).map((role) => (
+            <span
+              key={role}
+              className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${getRoleBadgeClass(role)}`}
+            >
+              {roleDisplayNames[role]}
+            </span>
+          ))}
+        </div>
       </td>
       <td className="px-4 py-3">
         <span
@@ -127,7 +159,7 @@ export default async function AdminUsersPage() {
       </td>
       <td className="px-4 py-3">
         <div className="flex flex-col gap-2">
-          <UserRoleForm userId={user.id} currentRole={user.role} />
+          <UserRoleForm userId={user.id} currentRoles={user.roles || [user.role]} />
           <UserStatusForm userId={user.id} currentStatus={user.status} />
         </div>
       </td>
@@ -213,4 +245,3 @@ export default async function AdminUsersPage() {
     </div>
   );
 }
-

@@ -6,6 +6,7 @@ import AppHeader from "../../components/AppHeader";
 import PostComments from "./PostComments";
 import { VoteButton } from "../components/VoteButton";
 import { FORUM_TOPICS } from "../topics";
+import { getPrimaryRole, getUserRoles } from "@/lib/roles";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -27,7 +28,7 @@ type ForumPost = {
 
 type Profile = {
   id: string;
-  role: "admin" | "investor" | "wholesaler" | "contractor";
+  role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
   display_name: string | null;
   avatar_url: string | null;
 };
@@ -49,7 +50,8 @@ export default async function PostDetailPage({ params }: PostPageParams) {
     .single();
 
   const profileData = profile as Profile | null;
-  const userRole = profileData?.role || "investor";
+  const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
+  const userRole = getPrimaryRole(roles, profileData?.role || "investor");
 
   // Fetch post (keep query resilient; fetch related data separately)
   const { data: post, error: postError } = await supabase

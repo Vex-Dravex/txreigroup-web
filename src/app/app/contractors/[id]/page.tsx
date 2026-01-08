@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import ContractorLeadForm from "./ContractorLeadForm";
+import { getUserRoles, hasRole } from "@/lib/roles";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -37,7 +38,7 @@ type ContractorProfile = {
 
 type Profile = {
   id: string;
-  role: "admin" | "investor" | "wholesaler" | "contractor";
+  role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
 };
 
 export default async function ContractorDetailPage({ params }: { params: { id: string } }) {
@@ -54,7 +55,7 @@ export default async function ContractorDetailPage({ params }: { params: { id: s
     .single();
 
   const profileData = profile as Profile | null;
-  const userRole = profileData?.role || "investor";
+  const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
 
   // Fetch contractor profile
   const { data: contractor, error } = await supabase
@@ -85,11 +86,11 @@ export default async function ContractorDetailPage({ params }: { params: { id: s
 
   // Check access permissions
   const isOwner = contractorData.id === authData.user.id;
-  const isAdmin = userRole === "admin";
+  const isAdmin = hasRole(roles, "admin");
   const canView =
     isAdmin ||
-    (userRole === "investor" && contractorData.verification_status === "verified") ||
-    (userRole === "contractor" && isOwner);
+    (hasRole(roles, "investor") && contractorData.verification_status === "verified") ||
+    (hasRole(roles, "contractor") && isOwner);
 
   if (!canView) {
     notFound();
@@ -252,7 +253,7 @@ export default async function ContractorDetailPage({ params }: { params: { id: s
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Contact/Lead Form */}
-            {userRole === "investor" && contractorData.verification_status === "verified" && (
+            {hasRole(roles, "investor") && contractorData.verification_status === "verified" && (
               <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
                 <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Request a Quote</h2>
                 <ContractorLeadForm contractorId={contractorData.id} />
@@ -279,4 +280,3 @@ export default async function ContractorDetailPage({ params }: { params: { id: s
     </div>
   );
 }
-

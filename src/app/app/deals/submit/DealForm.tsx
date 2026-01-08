@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 import { submitDeal } from "./actions";
+import { estimateInsurance, insuranceEstimateInputSchema } from "@/lib/insurance/estimateInsurance";
 
 type DealType = "Cash Deal" | "Seller Finance" | "Mortgage Takeover" | "Trust Acquisition";
 
@@ -29,15 +31,87 @@ export default function DealForm() {
   const contractInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction] = useFormState(submitDeal, initialState);
+  const router = useRouter();
   const isMortgageBased = dealType === "Mortgage Takeover" || dealType === "Trust Acquisition";
+  const [insuranceInputs, setInsuranceInputs] = useState({
+    sqft: "",
+    yearBuilt: "",
+    occupancy: "rental",
+    roofAgeYears: "",
+    construction: "unknown",
+    deductible: "2500",
+    replacementCostOverride: "",
+    riskFlood: false,
+    riskWildfire: false,
+    riskHurricane: false,
+    riskHail: false,
+  });
 
   useEffect(() => {
     if (state.status === "success") {
+      if (state.redirectTo) {
+        router.push(state.redirectTo);
+        return;
+      }
       formRef.current?.reset();
       setSelectedFiles([]);
       setContractFile(null);
+      setInsuranceInputs({
+        sqft: "",
+        yearBuilt: "",
+        occupancy: "rental",
+        roofAgeYears: "",
+        construction: "unknown",
+        deductible: "2500",
+        replacementCostOverride: "",
+        riskFlood: false,
+        riskWildfire: false,
+        riskHurricane: false,
+        riskHail: false,
+      });
     }
-  }, [state]);
+  }, [state, router]);
+
+  const toNumber = (value: string) => {
+    if (!value) return undefined;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  };
+
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(value);
+
+  const insuranceEstimate = useMemo(() => {
+    const sqft = toNumber(insuranceInputs.sqft);
+    if (!sqft) return null;
+    const yearBuilt = toNumber(insuranceInputs.yearBuilt);
+    const roofAgeYears = toNumber(insuranceInputs.roofAgeYears);
+    const deductible = toNumber(insuranceInputs.deductible);
+    const replacementCostOverride = toNumber(insuranceInputs.replacementCostOverride);
+
+    const parsed = insuranceEstimateInputSchema.safeParse({
+      sqft,
+      yearBuilt,
+      occupancy: insuranceInputs.occupancy as "owner" | "rental" | "vacant",
+      roofAgeYears,
+      construction: insuranceInputs.construction as "frame" | "masonry" | "unknown",
+      deductible: deductible === 1000 || deductible === 2500 || deductible === 5000 ? deductible : undefined,
+      replacementCostOverride,
+      riskFlags: {
+        flood: insuranceInputs.riskFlood,
+        wildfire: insuranceInputs.riskWildfire,
+        hurricane: insuranceInputs.riskHurricane,
+        hail: insuranceInputs.riskHail,
+      },
+    });
+
+    if (!parsed.success) return null;
+    return estimateInsurance(parsed.data);
+  }, [insuranceInputs]);
 
   const handleFiles = (files: FileList) => {
     const images = Array.from(files).filter((file) => file.type.startsWith("image/"));
@@ -197,7 +271,7 @@ export default function DealForm() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-4">
         <div className="space-y-2">
           <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200" htmlFor="dealType">
             Deal Type
@@ -241,6 +315,201 @@ export default function DealForm() {
             placeholder="e.g., 2000"
             className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-500"
           />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200" htmlFor="estimatedTaxes">
+            Estimated Taxes (monthly)
+          </label>
+          <input
+            id="estimatedTaxes"
+            name="estimatedTaxes"
+            type="number"
+            min="0"
+            step="50"
+            placeholder="e.g., 250"
+            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-500"
+          />
+        </div>
+      </div>
+
+      <div className="rounded-md border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-900/60 dark:bg-indigo-950/40">
+        <div className="mb-3 text-sm font-semibold text-indigo-900 dark:text-indigo-200">Insurance Estimate Inputs</div>
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200" htmlFor="occupancy">
+              Occupancy
+            </label>
+            <select
+              id="occupancy"
+              name="occupancy"
+              value={insuranceInputs.occupancy}
+              onChange={(event) =>
+                setInsuranceInputs((prev) => ({ ...prev, occupancy: event.target.value }))
+              }
+              className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+            >
+              <option value="owner">Owner Occupied</option>
+              <option value="rental">Rental</option>
+              <option value="vacant">Vacant</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200" htmlFor="construction">
+              Construction
+            </label>
+            <select
+              id="construction"
+              name="construction"
+              value={insuranceInputs.construction}
+              onChange={(event) =>
+                setInsuranceInputs((prev) => ({ ...prev, construction: event.target.value }))
+              }
+              className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+            >
+              <option value="unknown">Unknown</option>
+              <option value="frame">Frame</option>
+              <option value="masonry">Masonry</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200" htmlFor="deductible">
+              Deductible
+            </label>
+            <select
+              id="deductible"
+              name="deductible"
+              value={insuranceInputs.deductible}
+              onChange={(event) =>
+                setInsuranceInputs((prev) => ({ ...prev, deductible: event.target.value }))
+              }
+              className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+            >
+              <option value="1000">$1,000</option>
+              <option value="2500">$2,500</option>
+              <option value="5000">$5,000</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200" htmlFor="roofAgeYears">
+              Roof Age (years)
+            </label>
+            <input
+              id="roofAgeYears"
+              name="roofAgeYears"
+              type="number"
+              min="0"
+              step="1"
+              placeholder="e.g., 12"
+              value={insuranceInputs.roofAgeYears}
+              onChange={(event) =>
+                setInsuranceInputs((prev) => ({ ...prev, roofAgeYears: event.target.value }))
+              }
+              className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-500"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200" htmlFor="replacementCostOverride">
+              Replacement Cost Override
+            </label>
+            <input
+              id="replacementCostOverride"
+              name="replacementCostOverride"
+              type="number"
+              min="0"
+              step="1000"
+              placeholder="Optional override"
+              value={insuranceInputs.replacementCostOverride}
+              onChange={(event) =>
+                setInsuranceInputs((prev) => ({ ...prev, replacementCostOverride: event.target.value }))
+              }
+              className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-500"
+            />
+          </div>
+          <div className="space-y-2">
+            <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Risk Flags</span>
+            <div className="grid gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="riskFlood"
+                  checked={insuranceInputs.riskFlood}
+                  onChange={(event) =>
+                    setInsuranceInputs((prev) => ({ ...prev, riskFlood: event.target.checked }))
+                  }
+                />
+                Flood zone
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="riskWildfire"
+                  checked={insuranceInputs.riskWildfire}
+                  onChange={(event) =>
+                    setInsuranceInputs((prev) => ({ ...prev, riskWildfire: event.target.checked }))
+                  }
+                />
+                Wildfire risk
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="riskHurricane"
+                  checked={insuranceInputs.riskHurricane}
+                  onChange={(event) =>
+                    setInsuranceInputs((prev) => ({ ...prev, riskHurricane: event.target.checked }))
+                  }
+                />
+                Hurricane exposure
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="riskHail"
+                  checked={insuranceInputs.riskHail}
+                  onChange={(event) =>
+                    setInsuranceInputs((prev) => ({ ...prev, riskHail: event.target.checked }))
+                  }
+                />
+                Hail exposure
+              </label>
+            </div>
+          </div>
+        </div>
+        <div className="mt-4 rounded-md border border-indigo-200 bg-white p-4 shadow-sm dark:border-indigo-900/60 dark:bg-zinc-900">
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Estimated Insurance</div>
+            <span className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+              Estimate only
+            </span>
+          </div>
+          {insuranceEstimate ? (
+            <>
+              <div className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                {formatCurrency(insuranceEstimate.monthly)} / mo
+              </div>
+              <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                {formatCurrency(insuranceEstimate.annual)} / yr
+              </div>
+              <details className="mt-3 text-xs text-zinc-600 dark:text-zinc-400">
+                <summary className="cursor-pointer text-zinc-600 dark:text-zinc-400">How we calculate</summary>
+                <div className="mt-2 space-y-1">
+                  <div>Replacement cost: {formatCurrency(insuranceEstimate.breakdown.replacementCost)}</div>
+                  <div>Cost per sqft: {formatCurrency(insuranceEstimate.breakdown.costPerSqft)}</div>
+                  <div>Base rate: {(insuranceEstimate.breakdown.baseRate * 100).toFixed(2)}%</div>
+                  {insuranceEstimate.breakdown.baseRateAdjustments.length > 0 && (
+                    <div>Adjustments: {insuranceEstimate.breakdown.baseRateAdjustments.join(", ")}</div>
+                  )}
+                  <div>Occupancy multiplier: {insuranceEstimate.breakdown.occupancyMultiplier.toFixed(2)}x</div>
+                  <div>Deductible multiplier: {insuranceEstimate.breakdown.deductibleMultiplier.toFixed(2)}x</div>
+                  <div>Risk multiplier: {insuranceEstimate.breakdown.riskMultiplier.toFixed(2)}x</div>
+                </div>
+              </details>
+            </>
+          ) : (
+            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+              Add square feet below to preview the estimate.
+            </p>
+          )}
         </div>
       </div>
 
@@ -408,7 +677,7 @@ export default function DealForm() {
         </div>
       )}
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-4">
         <div className="space-y-2">
           <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200" htmlFor="squareFeet">
             Square Feet
@@ -420,6 +689,26 @@ export default function DealForm() {
             min="0"
             step="50"
             placeholder="e.g., 1850"
+            onChange={(event) =>
+              setInsuranceInputs((prev) => ({ ...prev, sqft: event.target.value }))
+            }
+            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-500"
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200" htmlFor="yearBuilt">
+            Year Built
+          </label>
+          <input
+            id="yearBuilt"
+            name="yearBuilt"
+            type="number"
+            min="1800"
+            step="1"
+            placeholder="e.g., 1995"
+            onChange={(event) =>
+              setInsuranceInputs((prev) => ({ ...prev, yearBuilt: event.target.value }))
+            }
             className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-500"
           />
         </div>

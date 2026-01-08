@@ -37,7 +37,7 @@ type LessonProgress = {
 
 type Profile = {
   id: string;
-  role: "admin" | "investor" | "wholesaler" | "contractor";
+  role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
 };
 
 export default async function LessonPage({
@@ -260,4 +260,3 @@ export default async function LessonPage({
     </div>
   );
 }
-

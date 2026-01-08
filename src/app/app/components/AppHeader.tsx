@@ -1,12 +1,14 @@
 import Link from "next/link";
 import ProfileMenu from "./ProfileMenu";
+import type { Role } from "@/lib/roles";
 
 type AppHeaderProps = {
-  userRole?: "admin" | "investor" | "wholesaler" | "contractor";
+  userRole?: Role;
   currentPage?: string;
   avatarUrl?: string | null;
   displayName?: string | null;
   email?: string | null;
+  pendingDealsCount?: number | null;
 };
 
 export default function AppHeader({
@@ -15,6 +17,7 @@ export default function AppHeader({
   avatarUrl = null,
   displayName = null,
   email = null,
+  pendingDealsCount = null,
 }: AppHeaderProps) {
   return (
     <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
@@ -92,7 +95,36 @@ export default function AppHeader({
               )}
             </nav>
           </div>
-          <ProfileMenu avatarUrl={avatarUrl} displayName={displayName} email={email} />
+          <div className="flex items-center gap-3">
+            {userRole === "admin" && (
+              <Link
+                href="/app/admin/deals/pending"
+                className="relative inline-flex h-10 w-10 items-center justify-center rounded-md border border-zinc-200 text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+                aria-label="Pending deal approvals"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.8}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M4 7.5h16a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.5a2 2 0 0 1 2-2z" />
+                  <path d="M3 8l9 6 9-6" />
+                  <path d="M7 6h10" />
+                </svg>
+                {typeof pendingDealsCount === "number" && pendingDealsCount > 0 && (
+                  <span className="absolute -right-1.5 -top-1.5 rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                    {pendingDealsCount}
+                  </span>
+                )}
+              </Link>
+            )}
+            <ProfileMenu avatarUrl={avatarUrl} displayName={displayName} email={email} />
+          </div>
         </div>
       </div>
     </header>

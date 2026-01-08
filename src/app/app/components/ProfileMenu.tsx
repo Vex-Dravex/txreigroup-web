@@ -79,6 +79,13 @@ export default function ProfileMenu({ avatarUrl, displayName, email }: ProfileMe
               Dashboard
             </Link>
             <Link
+              href="/app/profile"
+              onClick={() => setIsOpen(false)}
+              className="block px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+            >
+              My Profile
+            </Link>
+            <Link
               href="/app/account"
               onClick={() => setIsOpen(false)}
               className="block px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900"
@@ -108,4 +115,3 @@ export default function ProfileMenu({ avatarUrl, displayName, email }: ProfileMe
     </div>
   );
 }
-

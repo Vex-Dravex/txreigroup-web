@@ -2,13 +2,14 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import AppHeader from "../components/AppHeader";
+import { getPrimaryRole, getUserRoles, hasRole } from "@/lib/roles";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 type Profile = {
   id: string;
-  role: "admin" | "investor" | "wholesaler" | "contractor";
+  role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
   display_name: string | null;
   avatar_url: string | null;
 };
@@ -27,16 +28,18 @@ export default async function AdminDashboard() {
     .single();
 
   const profileData = profile as Profile | null;
-  if (profileData?.role !== "admin") {
+  const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
+  if (!hasRole(roles, "admin")) {
     redirect("/app");
   }
+  const primaryRole = getPrimaryRole(roles, profileData?.role || "investor");
 
   // Get statistics
-  const [dealsResult, inquiriesResult, usersResult, contractorsResult] = await Promise.all([
+  const [pendingDealsResult, inquiriesResult, usersResult, contractorsResult] = await Promise.all([
     supabase
       .from("deals")
-      .select("status", { count: "exact", head: true })
-      .in("status", ["pending", "approved", "rejected"]),
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
     supabase
       .from("deal_inquiries")
       .select("status", { count: "exact", head: true })
@@ -50,153 +53,93 @@ export default async function AdminDashboard() {
       .eq("verification_status", "pending"),
   ]);
 
-  const pendingDealsCount = await supabase
-    .from("deals")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "pending");
-
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
       <AppHeader
-        userRole="admin"
+        userRole={primaryRole}
         currentPage="admin"
         avatarUrl={profileData?.avatar_url || null}
         displayName={profileData?.display_name || null}
         email={authData.user.email}
+        pendingDealsCount={pendingDealsResult.count || 0}
       />
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
+        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">Admin Dashboard</h1>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Manage deals, inquiries, and users</p>
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Manage deals, inquiries, and members</p>
           </div>
           <Link
             href="/app"
-            className="rounded-md bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-50 dark:hover:bg-zinc-700"
+            className="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
           >
-            Back to Dashboard
+            Back to Member Dashboard
           </Link>
         </div>
 
-        {/* Statistics Cards */}
-        <div className="mb-8 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Link
-            href="/app/admin/deals"
-            className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
-          >
-            <div className="flex items-center justify-between">
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+            <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Admin Profile</h2>
+            <dl className="space-y-3">
               <div>
-                <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Pending Deals</p>
-                <p className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50">
-                  {pendingDealsCount.count || 0}
-                </p>
+                <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Display Name</dt>
+                <dd className="mt-1 text-sm text-zinc-900 dark:text-zinc-50">
+                  {profileData?.display_name || "Admin"}
+                </dd>
               </div>
-              <div className="rounded-full bg-yellow-100 p-3 dark:bg-yellow-900/30">
-                <svg
-                  className="h-6 w-6 text-yellow-600 dark:text-yellow-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
+              <div>
+                <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Email</dt>
+                <dd className="mt-1 text-sm text-zinc-900 dark:text-zinc-50">{authData.user.email}</dd>
               </div>
-            </div>
-          </Link>
+              <div>
+                <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Role</dt>
+                <dd className="mt-1">
+                  <span className="inline-flex rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+                    Administrator
+                  </span>
+                </dd>
+              </div>
+            </dl>
+          </div>
 
-          <Link
-            href="/app/admin/inquiries"
-            className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">New Inquiries</p>
-                <p className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50">
+          <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+            <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Admin Snapshot</h2>
+            <dl className="space-y-4">
+              <div className="flex items-center justify-between">
+                <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Pending Deals</dt>
+                <dd className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                  <Link
+                    href="/app/admin/deals/pending"
+                    className="transition-colors hover:text-zinc-700 dark:hover:text-zinc-200"
+                  >
+                    {pendingDealsResult.count || 0}
+                  </Link>
+                </dd>
+              </div>
+              <div className="flex items-center justify-between">
+                <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">New Inquiries</dt>
+                <dd className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
                   {inquiriesResult.count || 0}
-                </p>
+                </dd>
               </div>
-              <div className="rounded-full bg-blue-100 p-3 dark:bg-blue-900/30">
-                <svg
-                  className="h-6 w-6 text-blue-600 dark:text-blue-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  />
-                </svg>
+              <div className="flex items-center justify-between">
+                <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Total Users</dt>
+                <dd className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                  {usersResult.count || 0}
+                </dd>
               </div>
-            </div>
-          </Link>
-
-          <Link
-            href="/app/admin/users"
-            className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Total Users</p>
-                <p className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50">{usersResult.count || 0}</p>
-              </div>
-              <div className="rounded-full bg-green-100 p-3 dark:bg-green-900/30">
-                <svg
-                  className="h-6 w-6 text-green-600 dark:text-green-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                  />
-                </svg>
-              </div>
-            </div>
-          </Link>
-
-          <Link
-            href="/app/admin/contractors"
-            className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Pending Contractors</p>
-                <p className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50">
+              <div className="flex items-center justify-between">
+                <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Pending Contractors</dt>
+                <dd className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
                   {contractorsResult.count || 0}
-                </p>
+                </dd>
               </div>
-              <div className="rounded-full bg-orange-100 p-3 dark:bg-orange-900/30">
-                <svg
-                  className="h-6 w-6 text-orange-600 dark:text-orange-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                  />
-                </svg>
-              </div>
-            </div>
-          </Link>
+            </dl>
+          </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="mt-8 rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
           <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Quick Actions</h2>
           <div className="flex flex-wrap gap-3">
             <Link
@@ -229,4 +172,3 @@ export default async function AdminDashboard() {
     </div>
   );
 }
-

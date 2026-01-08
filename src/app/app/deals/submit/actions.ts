@@ -2,11 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getUserRoles, hasRole } from "@/lib/roles";
+import { estimateInsurance, insuranceEstimateInputSchema } from "@/lib/insurance/estimateInsurance";
 
 type ActionState = {
   status: "idle" | "success" | "error";
   message?: string;
   error?: string;
+  redirectTo?: string;
 };
 
 const STORAGE_BUCKET = "forum-media"; // Reuse existing bucket; files go under deals/ prefix
@@ -68,6 +71,12 @@ export async function submitDeal(prevState: ActionState, formData: FormData): Pr
 
   const userId = authData.user.id;
   const intent = (formData.get("intent") as string) || "submit";
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .single();
+  const roles = await getUserRoles(supabase, userId, profile?.role || "investor");
 
   const title = (formData.get("title") as string) || "Untitled Deal";
   const description = (formData.get("description") as string) || "";
@@ -85,7 +94,9 @@ export async function submitDeal(prevState: ActionState, formData: FormData): Pr
   const beds = toNumber(formData.get("beds"));
   const baths = toNumber(formData.get("baths"));
   const lotSize = toNumber(formData.get("lotSize"));
+  const yearBuilt = toNumber(formData.get("yearBuilt"));
   const estimatedRent = toNumber(formData.get("estimatedRent"));
+  const estimatedTaxes = toNumber(formData.get("estimatedTaxes"));
   const imageUrl = (formData.get("image") as string) || null;
 
   const purchasePrice = toNumber(formData.get("purchasePrice"));
@@ -97,6 +108,17 @@ export async function submitDeal(prevState: ActionState, formData: FormData): Pr
   const existingMonthlyPayment = toNumber(formData.get("existingMonthlyPayment"));
   const contactEmail = (formData.get("contactEmail") as string) || null;
   const contactPhone = (formData.get("contactPhone") as string) || null;
+  const occupancy = (formData.get("occupancy") as string) || "rental";
+  const roofAgeYears = toNumber(formData.get("roofAgeYears"));
+  const construction = (formData.get("construction") as string) || "unknown";
+  const deductible = toNumber(formData.get("deductible"));
+  const replacementCostOverride = toNumber(formData.get("replacementCostOverride"));
+  const riskFlags = {
+    flood: Boolean(formData.get("riskFlood")),
+    wildfire: Boolean(formData.get("riskWildfire")),
+    hurricane: Boolean(formData.get("riskHurricane")),
+    hail: Boolean(formData.get("riskHail")),
+  };
 
   const photos = formData.getAll("photos") as File[];
   const contract = formData.get("contract") as File | null;
@@ -120,6 +142,7 @@ export async function submitDeal(prevState: ActionState, formData: FormData): Pr
 
     const extraDetails: string[] = [];
     if (estimatedRent !== null) extraDetails.push(`Estimated Rent: ${estimatedRent}`);
+    if (estimatedTaxes !== null) extraDetails.push(`Estimated Taxes: ${estimatedTaxes}`);
     if (purchasePrice !== null) extraDetails.push(`Purchase Price: ${purchasePrice}`);
     if (downPayment !== null) extraDetails.push(`Down Payment: ${downPayment}`);
     if (monthlyPayment !== null) extraDetails.push(`Monthly Payment: ${monthlyPayment}`);
@@ -141,6 +164,20 @@ export async function submitDeal(prevState: ActionState, formData: FormData): Pr
       .filter(Boolean)
       .join("\n");
 
+    const insuranceInput = {
+      sqft: squareFeet ?? undefined,
+      yearBuilt: yearBuilt ?? undefined,
+      occupancy: occupancy as "owner" | "rental" | "vacant",
+      roofAgeYears: roofAgeYears ?? undefined,
+      construction: construction as "frame" | "masonry" | "unknown",
+      deductible: deductible === 1000 || deductible === 2500 || deductible === 5000 ? deductible : undefined,
+      riskFlags,
+      replacementCostOverride: replacementCostOverride ?? undefined,
+    };
+
+    const insuranceParsed = squareFeet ? insuranceEstimateInputSchema.safeParse(insuranceInput) : null;
+    const insuranceEstimate = insuranceParsed?.success ? estimateInsurance(insuranceParsed.data) : null;
+
     const { error: insertError } = await supabase.from("deals").insert({
       wholesaler_id: userId,
       title,
@@ -159,8 +196,14 @@ export async function submitDeal(prevState: ActionState, formData: FormData): Pr
       bedrooms: beds,
       bathrooms: baths,
       lot_size_acres: lotSize,
+      year_built: yearBuilt,
       property_image_url: imageUrl || uploadedPhotoUrls[0] || null,
       status: submissionStatus,
+      replacement_cost_override: replacementCostOverride,
+      insurance_estimate_annual: insuranceEstimate?.annual ?? null,
+      insurance_estimate_monthly: insuranceEstimate?.monthly ?? null,
+      insurance_estimate_inputs: insuranceEstimate ? insuranceParsed?.data ?? null : null,
+      insurance_estimate_updated_at: insuranceEstimate ? new Date().toISOString() : null,
     });
 
     if (insertError) {
@@ -176,6 +219,10 @@ export async function submitDeal(prevState: ActionState, formData: FormData): Pr
         submissionStatus === "draft"
           ? "Draft saved. You can submit when ready."
           : "Thank you, your deal is now under review and will be listed once approved.",
+      redirectTo:
+        submissionStatus !== "draft" && hasRole(roles, "wholesaler")
+          ? "/app/admin"
+          : undefined,
     };
   } catch (error: any) {
     return {

@@ -2,6 +2,7 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { getUserRoles, hasRole } from "@/lib/roles";
 
 // Create a contractor lead (investor inquiry)
 export async function createContractorLead(
@@ -32,7 +33,8 @@ export async function createContractorLead(
     .eq("id", authData.user.id)
     .single();
 
-  if (profile?.role !== "investor") {
+  const roles = await getUserRoles(supabase, authData.user.id, profile?.role || "investor");
+  if (!hasRole(roles, "investor")) {
     throw new Error("Only investors can create contractor leads");
   }
 
@@ -69,4 +71,3 @@ export async function createContractorLead(
 
   revalidatePath(`/app/contractors/${contractorId}`);
 }
-

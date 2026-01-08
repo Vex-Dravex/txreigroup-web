@@ -2,13 +2,14 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import AppHeader from "../../components/AppHeader";
 import NewPostForm from "./NewPostForm";
+import { getPrimaryRole, getUserRoles } from "@/lib/roles";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 type Profile = {
   id: string;
-  role: "admin" | "investor" | "wholesaler" | "contractor";
+  role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
   display_name: string | null;
   avatar_url: string | null;
 };
@@ -27,7 +28,8 @@ export default async function NewPostPage() {
     .single();
 
   const profileData = profile as Profile | null;
-  const userRole = profileData?.role || "investor";
+  const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
+  const userRole = getPrimaryRole(roles, profileData?.role || "investor");
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
@@ -51,4 +53,3 @@ export default async function NewPostPage() {
     </div>
   );
 }
-

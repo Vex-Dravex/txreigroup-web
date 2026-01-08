@@ -5,6 +5,7 @@ import AppHeader from "../components/AppHeader";
 import VendorFilters from "./VendorFilters";
 import VendorCard from "./VendorCard";
 import { VendorListing } from "./types";
+import { getPrimaryRole, getUserRoles, hasRole } from "@/lib/roles";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -31,7 +32,7 @@ type ContractorProfile = {
 
 type Profile = {
   id: string;
-  role: "admin" | "investor" | "wholesaler" | "contractor";
+  role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
   display_name: string | null;
   avatar_url: string | null;
 };
@@ -294,7 +295,9 @@ export default async function ContractorsPage({ searchParams }: { searchParams: 
     .single();
 
   const profileData = profile as Profile | null;
-  const userRole = profileData?.role || "investor";
+  const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
+  const userRole = getPrimaryRole(roles, profileData?.role || "investor");
+  const isVendor = hasRole(roles, "contractor");
 
   let contractorsData: ContractorProfile[] = [];
 
@@ -314,7 +317,7 @@ export default async function ContractorsPage({ searchParams }: { searchParams: 
       )
       .order("created_at", { ascending: false });
 
-    if (userRole === "investor") {
+    if (hasRole(roles, "investor") && !hasRole(roles, "admin") && !isVendor) {
       contractorsQuery = contractorsQuery.eq("verification_status", "verified");
     }
 
@@ -456,7 +459,7 @@ export default async function ContractorsPage({ searchParams }: { searchParams: 
                 >
                   View investor deals
                 </Link>
-                {userRole === "contractor" ? (
+                {isVendor ? (
                   <Link
                     href="/app/contractors/profile"
                     className="rounded-md border border-zinc-200 px-5 py-3 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-900"
@@ -532,7 +535,7 @@ export default async function ContractorsPage({ searchParams }: { searchParams: 
               Filter by trade, market area, verification, or keyword to find the right crew.
             </p>
           </div>
-          {userRole === "contractor" && (
+          {isVendor && (
             <Link
               href="/app/contractors/profile"
               className="inline-flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-800 shadow-sm transition hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900"

@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { updateInquiryStatus } from "../actions";
 import InquiryStatusForm from "./InquiryStatusForm";
+import { getUserRoles, hasRole } from "@/lib/roles";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -32,7 +33,7 @@ type Inquiry = {
 
 type Profile = {
   id: string;
-  role: "admin" | "investor" | "wholesaler" | "contractor";
+  role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
 };
 
 export default async function AdminInquiriesPage() {
@@ -49,7 +50,8 @@ export default async function AdminInquiriesPage() {
     .single();
 
   const profileData = profile as Profile | null;
-  if (profileData?.role !== "admin") {
+  const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
+  if (!hasRole(roles, "admin")) {
     redirect("/app");
   }
 
@@ -248,4 +250,3 @@ export default async function AdminInquiriesPage() {
     </div>
   );
 }
-

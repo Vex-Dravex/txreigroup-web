@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import AppHeader from "./components/AppHeader";
+import { getPrimaryRole, getUserRoles, hasRole, roleDisplayNames } from "@/lib/roles";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -9,7 +10,7 @@ export const dynamic = 'force-dynamic';
 type Profile = {
   id: string;
   display_name: string | null;
-  role: "admin" | "investor" | "wholesaler" | "contractor";
+  role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
   status: string;
   avatar_url: string | null;
 };
@@ -53,7 +54,8 @@ export default async function AppHome() {
   const membershipData = membership as Membership | null;
 
   const displayName = profileData?.display_name || authData.user.email?.split("@")[0] || "User";
-  const role = profileData?.role || "investor";
+  const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
+  const role = getPrimaryRole(roles, profileData?.role || "investor");
   const tier = membershipData?.tier || "free";
   const membershipStatus = membershipData?.status || "active";
 
@@ -64,13 +66,6 @@ export default async function AppHome() {
     investor_pro: "Investor Pro",
     contractor_basic: "Contractor Basic",
     contractor_featured: "Contractor Featured",
-  };
-
-  const roleDisplayNames: Record<string, string> = {
-    admin: "Administrator",
-    investor: "Investor",
-    wholesaler: "Wholesaler",
-    contractor: "Contractor",
   };
 
   return (
@@ -109,11 +104,16 @@ export default async function AppHome() {
                 <dd className="mt-1 text-sm text-zinc-900 dark:text-zinc-50">{authData.user.email}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Role</dt>
-                <dd className="mt-1">
-                  <span className="inline-flex rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                    {roleDisplayNames[role]}
-                  </span>
+                <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Roles</dt>
+                <dd className="mt-1 flex flex-wrap gap-2">
+                  {(roles.length > 0 ? roles : [role]).map((assignedRole) => (
+                    <span
+                      key={assignedRole}
+                      className="inline-flex rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                    >
+                      {roleDisplayNames[assignedRole]}
+                    </span>
+                  ))}
                 </dd>
               </div>
             </dl>
@@ -196,7 +196,7 @@ export default async function AppHome() {
             >
               Community Forum
             </Link>
-            {role === "admin" && (
+            {hasRole(roles, "admin") && (
               <Link
                 href="/app/admin"
                 className="rounded-md border border-purple-300 bg-purple-50 px-4 py-2 text-sm font-medium text-purple-900 transition-colors hover:bg-purple-100 dark:border-purple-700 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50"

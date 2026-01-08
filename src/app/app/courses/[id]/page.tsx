@@ -40,7 +40,7 @@ type UserProgress = {
 
 type Profile = {
   id: string;
-  role: "admin" | "investor" | "wholesaler" | "contractor";
+  role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
 };
 
 export default async function CourseDetailPage({ params }: { params: { id: string } }) {
@@ -278,4 +278,3 @@ export default async function CourseDetailPage({ params }: { params: { id: strin
     </div>
   );
 }
-

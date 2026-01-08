@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import AppHeader from "../components/AppHeader";
+import { getPrimaryRole, getUserRoles } from "@/lib/roles";
 import { VoteButton } from "./components/VoteButton";
 import { FORUM_TOPICS } from "./topics";
 
@@ -35,7 +36,7 @@ type ForumPost = {
 
 type Profile = {
   id: string;
-  role: "admin" | "investor" | "wholesaler" | "contractor";
+  role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
   display_name: string | null;
   avatar_url: string | null;
 };
@@ -58,7 +59,8 @@ export default async function ForumPage({ searchParams }: { searchParams?: Forum
     .single();
 
   const profileData = profile as Profile | null;
-  const userRole = profileData?.role || "investor";
+  const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
+  const userRole = getPrimaryRole(roles, profileData?.role || "investor");
 
   // Fetch forum posts with author info and tags
   const { data: posts, error } = await supabase

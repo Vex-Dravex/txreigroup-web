@@ -6,6 +6,7 @@ import AppHeader from "../components/AppHeader";
 import FilterProvider, { FilterToggleButton, FilterSidebarWrapper } from "./FilterContainer";
 import FilterTagsDisplay from "./FilterTagsDisplay";
 import DealsGrid from "./DealsGrid";
+import { getPrimaryRole, getUserRoles, hasRole } from "@/lib/roles";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -31,6 +32,8 @@ type Deal = {
   bedrooms: number | null;
   bathrooms: number | null;
   lot_size_acres: number | null;
+  insurance_estimate_annual?: number | null;
+  insurance_estimate_monthly?: number | null;
   property_image_url?: string | null; // URL for property image
   status: "draft" | "pending" | "approved" | "rejected" | "closed";
   created_at: string;
@@ -44,7 +47,7 @@ type Deal = {
 
 type Profile = {
   id: string;
-  role: "admin" | "investor" | "wholesaler" | "contractor";
+  role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
   display_name: string | null;
   avatar_url: string | null;
 };
@@ -84,7 +87,11 @@ export default async function DealsPage({
     .single();
 
   const profileData = profile as Profile | null;
-  const userRole = profileData?.role || "investor";
+  const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
+  const userRole = getPrimaryRole(roles, profileData?.role || "investor");
+  const isAdmin = hasRole(roles, "admin");
+  const isWholesaler = hasRole(roles, "wholesaler");
+  const isInvestor = hasRole(roles, "investor");
 
   // Fetch deals based on role
   let dealsQuery = supabase
@@ -100,11 +107,11 @@ export default async function DealsPage({
     .order("created_at", { ascending: false });
 
   // Investors only see approved deals
-  if (userRole === "investor") {
+  if (isInvestor && !isWholesaler && !isAdmin) {
     dealsQuery = dealsQuery.eq("status", "approved");
   }
   // Wholesalers see their own deals
-  else if (userRole === "wholesaler") {
+  else if (isWholesaler && !isAdmin) {
     dealsQuery = dealsQuery.eq("wholesaler_id", authData.user.id);
   }
   // Admins see all deals
@@ -521,11 +528,11 @@ export default async function DealsPage({
             <div>
               <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">Off Market MLS</h1>
               <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                {userRole === "investor"
-                  ? "Browse approved wholesale deals"
-                  : userRole === "wholesaler"
+                {isAdmin
+                  ? "All deals"
+                  : isWholesaler
                     ? "Manage your deals"
-                    : "All deals"}
+                    : "Browse approved wholesale deals"}
                 {displayDeals.length > 0 && (
                   <span className="ml-2">({displayDeals.length} {displayDeals.length === 1 ? "listing" : "listings"})</span>
                 )}
@@ -556,11 +563,11 @@ export default async function DealsPage({
                 <p className="text-zinc-600 dark:text-zinc-400">
                   {Object.values(filters).some((v) => v !== null)
                     ? "No deals match your current filters. Try adjusting your search criteria."
-                    : userRole === "investor"
-                      ? "No approved deals available at this time."
-                      : userRole === "wholesaler"
+                    : isAdmin
+                      ? "No deals found."
+                      : isWholesaler
                         ? "You haven't created any deals yet."
-                        : "No deals found."}
+                        : "No approved deals available at this time."}
                 </p>
                 {Object.values(filters).some((v) => v !== null) && (
                   <Link
@@ -653,6 +660,14 @@ export default async function DealsPage({
                               <div className="text-xs text-zinc-500 dark:text-zinc-400">Sq Ft</div>
                               <div className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
                                 {deal.square_feet.toLocaleString()}
+                              </div>
+                            </div>
+                          )}
+                          {deal.insurance_estimate_monthly !== null && deal.insurance_estimate_monthly !== undefined && (
+                            <div>
+                              <div className="text-xs text-zinc-500 dark:text-zinc-400">Est. Insurance</div>
+                              <div className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                                {formatPrice(deal.insurance_estimate_monthly)} / mo
                               </div>
                             </div>
                           )}
