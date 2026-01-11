@@ -4,6 +4,7 @@ import { VendorListing } from "./types";
 
 type VendorCardProps = {
   vendor: VendorListing;
+  verifiedLabel?: string;
 };
 
 function initialsFromName(name: string) {
@@ -13,7 +14,7 @@ function initialsFromName(name: string) {
   return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
-export default function VendorCard({ vendor }: VendorCardProps) {
+export default function VendorCard({ vendor, verifiedLabel = "Verified Vendor" }: VendorCardProps) {
   const pastProjects = vendor.pastProjects.slice(0, 3);
 
   return (
@@ -38,7 +39,7 @@ export default function VendorCard({ vendor }: VendorCardProps) {
                     clipRule="evenodd"
                   />
                 </svg>
-                Verified Vendor
+                {verifiedLabel}
               </span>
             )}
           </div>

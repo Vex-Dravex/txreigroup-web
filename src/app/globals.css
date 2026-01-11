@@ -12,8 +12,13 @@
   --font-mono: var(--font-geist-mono);
 }
 
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light) {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
@@ -23,4 +28,52 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Ensure dark mode works with class strategy */
+html.dark {
+  color-scheme: dark;
+}
+
+html.light {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+html.player-theater .education-video-layout {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "main"
+    "related";
+}
+
+html.player-theater .education-related {
+  grid-area: related;
+}
+
+html.player-theater .education-main {
+  grid-area: main;
+}
+
+@media (min-width: 1024px) {
+  .education-video-layout {
+    grid-template-areas: "main related";
+  }
+
+  .education-related {
+    grid-area: related;
+  }
+
+  .education-main {
+    grid-area: main;
+  }
 }

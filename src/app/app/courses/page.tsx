@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import Link from "next/link";
 import AppHeader from "../components/AppHeader";
 import { getPrimaryRole, getUserRoles } from "@/lib/roles";
+import EducationCenterClient from "./EducationCenterClient";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -15,6 +15,16 @@ type Course = {
   required_tier: "free" | "investor_basic" | "investor_pro" | "contractor_basic" | "contractor_featured";
   estimated_duration_minutes: number | null;
   instructor_name: string | null;
+  created_at: string;
+};
+
+type EducationVideo = {
+  id: string;
+  title: string;
+  description: string | null;
+  topics: string[];
+  level: string;
+  video_url: string;
   created_at: string;
 };
 
@@ -58,6 +68,18 @@ export default async function CoursesPage() {
 
   const coursesData = (courses as Course[]) || [];
 
+  const { data: educationVideos, error: educationError } = await supabase
+    .from("education_videos")
+    .select("id, title, description, topics, level, video_url, created_at")
+    .eq("is_published", true)
+    .order("created_at", { ascending: false });
+
+  if (educationError) {
+    console.error("Error fetching education videos:", educationError);
+  }
+
+  const educationVideosData = (educationVideos as EducationVideo[]) || [];
+
   const tierDisplayNames: Record<string, string> = {
     free: "Free",
     investor_basic: "Investor Basic",
@@ -74,6 +96,17 @@ export default async function CoursesPage() {
     return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
   };
 
+  const courseVideos = coursesData.map((course) => ({
+    id: course.id,
+    title: course.title,
+    description: course.description,
+    duration: formatDuration(course.estimated_duration_minutes),
+    topics: ["Wholesale Real Estate"],
+    thumbnailUrl: course.thumbnail_url,
+    href: `/app/courses/${course.id}`,
+    badge: tierDisplayNames[course.required_tier],
+  }));
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
       <AppHeader
@@ -83,65 +116,10 @@ export default async function CoursesPage() {
         displayName={profileData?.display_name || null}
         email={authData.user.email}
       />
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">Education Center</h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Learn real estate investing strategies and techniques
-          </p>
-        </div>
-
-        {coursesData.length === 0 ? (
-          <div className="rounded-lg border border-zinc-200 bg-white p-12 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-            <p className="text-zinc-600 dark:text-zinc-400">No courses available at this time.</p>
-          </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {coursesData.map((course) => (
-              <Link
-                key={course.id}
-                href={`/app/courses/${course.id}`}
-                className="group rounded-lg border border-zinc-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
-              >
-                {course.thumbnail_url && (
-                  <div className="aspect-video w-full overflow-hidden rounded-t-lg bg-zinc-200 dark:bg-zinc-800">
-                    <img
-                      src={course.thumbnail_url}
-                      alt={course.title}
-                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                    />
-                  </div>
-                )}
-                <div className="p-6">
-                  <div className="mb-2 flex items-start justify-between">
-                    <h2 className="text-lg font-semibold text-zinc-900 group-hover:text-zinc-700 dark:text-zinc-50 dark:group-hover:text-zinc-200">
-                      {course.title}
-                    </h2>
-                    <span className="ml-2 inline-flex rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                      {tierDisplayNames[course.required_tier]}
-                    </span>
-                  </div>
-
-                  {course.description && (
-                    <p className="mb-4 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">
-                      {course.description}
-                    </p>
-                  )}
-
-                  <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
-                    {course.instructor_name && (
-                      <span>By {course.instructor_name}</span>
-                    )}
-                    {course.estimated_duration_minutes && (
-                      <span>{formatDuration(course.estimated_duration_minutes)}</span>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
+      <EducationCenterClient
+        courseVideos={courseVideos}
+        educationVideos={educationVideosData}
+      />
     </div>
   );
 }

@@ -15,19 +15,17 @@ export function CommentVoteButton({ commentId, voteType, isActive, children }: C
     window.location.reload();
   };
 
+  const activeClass = voteType === "upvote" ? "text-sky-600" : "text-rose-500";
+  const hoverClass = voteType === "upvote" ? "hover:text-sky-600" : "hover:text-rose-500";
+
   return (
     <button
       onClick={handleVote}
       className={`text-lg transition-colors ${
-        isActive
-          ? voteType === "upvote"
-            ? "text-orange-500"
-            : "text-blue-500"
-          : "text-zinc-400 hover:text-orange-500"
+        isActive ? activeClass : `text-zinc-400 ${hoverClass}`
       }`}
     >
       {children}
     </button>
   );
 }
-

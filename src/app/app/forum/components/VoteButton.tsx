@@ -15,19 +15,17 @@ export function VoteButton({ postId, voteType, isActive, children }: VoteButtonP
     window.location.reload();
   };
 
+  const activeClass = voteType === "upvote" ? "text-sky-600" : "text-rose-500";
+  const hoverClass = voteType === "upvote" ? "hover:text-sky-600" : "hover:text-rose-500";
+
   return (
     <button
       onClick={handleVote}
-      className={`text-2xl transition-colors ${
-        isActive
-          ? voteType === "upvote"
-            ? "text-orange-500"
-            : "text-blue-500"
-          : "text-zinc-400 hover:text-orange-500"
+      className={`text-lg transition-colors ${
+        isActive ? activeClass : `text-zinc-400 ${hoverClass}`
       }`}
     >
       {children}
     </button>
   );
 }
-

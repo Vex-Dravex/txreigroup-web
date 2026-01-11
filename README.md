@@ -1,4 +1,4 @@
-# TXREIGROUP Web Platform
+# HTXREIGROUP Web Platform
 
 A production-grade full-stack web platform for the Texas real estate investor community, built with Next.js, Supabase, and Tailwind CSS.
 

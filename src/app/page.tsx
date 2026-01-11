@@ -2,7 +2,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getPrimaryRole, getUserRoles } from "@/lib/roles";
 import type { Role } from "@/lib/roles";
 import Link from "next/link";
+import Image from "next/image";
 import AppHeader from "./app/components/AppHeader";
+import FeatureCarousel from "./components/FeatureCarousel";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -39,50 +41,6 @@ export default async function Home() {
     console.error("Auth check failed:", error);
   }
 
-  // Fetch homepage content (public, no auth required)
-  let upcomingLivestreams: any[] = [];
-  let latestBlogPosts: any[] = [];
-  let communityUpdates: any[] = [];
-
-  try {
-    const supabase = await createSupabaseServerClient();
-    
-    // Fetch upcoming livestreams (next 3)
-    const { data: livestreams } = await supabase
-      .from("livestreams")
-      .select("*")
-      .eq("is_upcoming", true)
-      .gte("scheduled_at", new Date().toISOString())
-      .order("scheduled_at", { ascending: true })
-      .limit(3);
-    
-    upcomingLivestreams = livestreams || [];
-
-    // Fetch latest published blog posts (3 most recent)
-    const { data: blogPosts } = await supabase
-      .from("blog_posts")
-      .select("*")
-      .eq("is_published", true)
-      .order("published_at", { ascending: false })
-      .limit(3);
-    
-    latestBlogPosts = blogPosts || [];
-
-    // Fetch latest community updates (5 most recent, prioritize featured)
-    const { data: updates } = await supabase
-      .from("community_updates")
-      .select("*")
-      .order("is_featured", { ascending: false })
-      .order("created_at", { ascending: false })
-      .limit(5);
-    
-    communityUpdates = updates || [];
-  } catch (error) {
-    // If fetching fails, just show empty sections
-    console.error("Error fetching homepage content:", error);
-  }
-
-  // Show landing page for unauthenticated users
   return (
     <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-900">
       {/* Header */}
@@ -94,218 +52,204 @@ export default async function Home() {
         email={userProfile?.email || null}
       />
 
-      {/* Hero Section */}
+      {/* Pre-Launch Landing Page */}
       <main className="flex-1">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-5xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-6xl">
-              Texas Real Estate
-              <br />
-              Investor Community
-            </h2>
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-              Connect with investors, access exclusive wholesale deals, find trusted contractors, and
-              grow your real estate investment portfolio.
-            </p>
-            <div className="mt-10 flex items-center justify-center gap-x-6">
-              <Link
-                href="/login"
-                className="rounded-md bg-zinc-900 px-6 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-zinc-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
-              >
-                Get Started
-              </Link>
-              <Link
-                href="/login"
-                className="text-base font-semibold leading-6 text-zinc-900 dark:text-zinc-50"
-              >
-                Learn more <span aria-hidden="true">→</span>
-              </Link>
+        {/* Hero Section with Logo */}
+        <section className="relative min-h-screen overflow-hidden bg-gradient-to-b from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-950">
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="relative h-full w-full opacity-25 brightness-50">
+              <Image
+                src="/logo.png"
+                alt=""
+                fill
+                className="object-contain scale-150"
+                priority
+              />
             </div>
           </div>
+          <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8 lg:py-36">
+            <div className="relative z-10 flex flex-col items-center justify-center pt-10 text-center sm:pt-14 lg:pt-16">
+              {/* Hero Content */}
+              <h1 className="text-4xl font-bold tracking-tight text-zinc-950 drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)] dark:text-zinc-50 sm:text-5xl md:text-6xl lg:text-7xl">
+                All-In-One Real Estate
+                <br />
+                <span className="text-blue-600 dark:text-blue-400">Investing Community</span>
+              </h1>
+              <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-zinc-700 drop-shadow-[0_4px_14px_rgba(0,0,0,0.2)] dark:text-zinc-300 sm:text-xl">
+                The premier platform for <strong>Investors</strong>, <strong>Wholesalers</strong>, <strong>Vendors</strong>, and <strong>Transaction Services</strong>. Connect, collaborate, and grow your real estate investment business all in one place.
+              </p>
 
-          {/* Upcoming Livestreams Section */}
-          {upcomingLivestreams.length > 0 && (
-            <div className="mt-24">
-              <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mb-6">Upcoming Livestreams</h3>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {upcomingLivestreams.map((stream) => (
-                  <div
-                    key={stream.id}
-                    className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
-                  >
-                    {stream.thumbnail_url && (
-                      <img
-                        src={stream.thumbnail_url}
-                        alt={stream.title}
-                        className="w-full h-48 object-cover rounded-md mb-4"
-                      />
-                    )}
-                    <h4 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50 mb-2">
-                      {stream.title}
-                    </h4>
-                    {stream.description && (
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4 line-clamp-2">
-                        {stream.description}
-                      </p>
-                    )}
-                    <div className="text-sm text-zinc-500 dark:text-zinc-500">
-                      {new Date(stream.scheduled_at).toLocaleDateString("en-US", {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "2-digit",
-                      })}
-                    </div>
-                    {stream.stream_url && (
-                      <a
-                        href={stream.stream_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-4 inline-block rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
-                      >
-                        Watch Live
-                      </a>
-                    )}
-                  </div>
-                ))}
+              {/* CTA Buttons */}
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
+                <Link
+                  href="/login?mode=signup"
+                  className="rounded-md bg-zinc-900 px-9 py-4 text-base font-semibold text-white shadow-2xl transition-all hover:bg-zinc-800 hover:shadow-[0_20px_40px_rgba(0,0,0,0.25)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
+                >
+                  Get Early Access
+                </Link>
+                <a
+                  href="#features"
+                  className="text-base font-semibold leading-6 text-zinc-900 underline decoration-zinc-400/60 decoration-2 underline-offset-8 transition-colors hover:text-zinc-700 dark:text-zinc-50 dark:decoration-zinc-200/40 dark:hover:text-zinc-300"
+                >
+                  Explore Features <span aria-hidden="true">→</span>
+                </a>
               </div>
             </div>
-          )}
-
-          {/* Latest Blog Posts Section */}
-          {latestBlogPosts.length > 0 && (
-            <div className="mt-24">
-              <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mb-6">Latest Blog Posts</h3>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {latestBlogPosts.map((post) => (
-                  <Link
-                    key={post.id}
-                    href={`/blog/${post.slug}`}
-                    className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
-                  >
-                    {post.featured_image_url && (
-                      <img
-                        src={post.featured_image_url}
-                        alt={post.title}
-                        className="w-full h-48 object-cover rounded-md mb-4"
-                      />
-                    )}
-                    <h4 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50 mb-2">
-                      {post.title}
-                    </h4>
-                    {post.excerpt && (
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4 line-clamp-3">
-                        {post.excerpt}
-                      </p>
-                    )}
-                    <div className="text-xs text-zinc-500 dark:text-zinc-500">
-                      {post.published_at &&
-                        new Date(post.published_at).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Community Updates Section */}
-          {communityUpdates.length > 0 && (
-            <div className="mt-24">
-              <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mb-6">Community Updates</h3>
-              <div className="space-y-4">
-                {communityUpdates.map((update) => (
-                  <div
-                    key={update.id}
-                    className={`rounded-lg border p-6 shadow-sm ${
-                      update.is_featured
-                        ? "border-zinc-300 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900"
-                        : "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h4 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-                            {update.title}
-                          </h4>
-                          {update.is_featured && (
-                            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                              Featured
-                            </span>
-                          )}
-                        </div>
-                        {update.content && (
-                          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
-                            {update.content}
-                          </p>
-                        )}
-                        <div className="text-xs text-zinc-500 dark:text-zinc-500">
-                          {new Date(update.created_at).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Features Grid */}
-          <div className="mx-auto mt-24 max-w-2xl sm:mt-32 lg:mt-40 lg:max-w-none">
-            <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
-              <div className="flex flex-col">
-                <dt className="text-base font-semibold leading-7 text-zinc-900 dark:text-zinc-50">
-                  Off Market MLS
-                </dt>
-                <dd className="mt-1 flex flex-auto flex-col text-base leading-7 text-zinc-600 dark:text-zinc-400">
-                  <p className="flex-auto">
-                    Access exclusive off-market wholesale deals vetted by our team. Only approved
-                    deals are visible to verified investors.
-                  </p>
-                </dd>
-              </div>
-              <div className="flex flex-col">
-                <dt className="text-base font-semibold leading-7 text-zinc-900 dark:text-zinc-50">
-                  Vendor Marketplace
-                </dt>
-                <dd className="mt-1 flex flex-auto flex-col text-base leading-7 text-zinc-600 dark:text-zinc-400">
-                  <p className="flex-auto">
-                    Find verified vendors for your investment projects. Connect directly with
-                    trusted professionals in your area.
-                  </p>
-                </dd>
-              </div>
-              <div className="flex flex-col">
-                <dt className="text-base font-semibold leading-7 text-zinc-900 dark:text-zinc-50">
-                  Education Center
-                </dt>
-                <dd className="mt-1 flex flex-auto flex-col text-base leading-7 text-zinc-600 dark:text-zinc-400">
-                  <p className="flex-auto">
-                    Learn real estate investing strategies through our comprehensive course library.
-                    Track your progress and advance your skills.
-                  </p>
-                </dd>
-              </div>
-            </dl>
           </div>
-        </div>
+        </section>
+
+        {/* Feature Carousel Section */}
+        <section id="features" className="scroll-mt-[-100px] bg-white py-20 dark:bg-zinc-900 sm:py-24 lg:py-32">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl">
+                Powerful Features for Your Success
+              </h2>
+              <p className="mt-4 text-lg leading-8 text-zinc-600 dark:text-zinc-400">
+                Discover the tools and features designed to streamline your real estate investing workflow
+              </p>
+            </div>
+            <div className="mt-16">
+              <FeatureCarousel />
+            </div>
+          </div>
+        </section>
+
+        {/* Target Audiences Section */}
+        <section className="bg-zinc-50 py-20 dark:bg-zinc-950 sm:py-24 lg:py-32">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl">
+                Built for Everyone in Real Estate
+              </h2>
+              <p className="mt-4 text-lg leading-8 text-zinc-600 dark:text-zinc-400">
+                Whether you're buying, selling, providing services, or managing transactions, we have tools for you
+              </p>
+            </div>
+            <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-4">
+              {/* Investors */}
+              <div className="flex flex-col rounded-2xl bg-white p-8 shadow-lg transition-all hover:shadow-xl dark:bg-zinc-900">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                  <svg
+                    className="h-6 w-6 text-blue-600 dark:text-blue-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">Investors</h3>
+                <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
+                  Access exclusive off-market deals, connect with wholesalers, and manage your investment portfolio with powerful analytics and tools.
+                </p>
+              </div>
+
+              {/* Wholesalers */}
+              <div className="flex flex-col rounded-2xl bg-white p-8 shadow-lg transition-all hover:shadow-xl dark:bg-zinc-900">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
+                  <svg
+                    className="h-6 w-6 text-green-600 dark:text-green-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">Wholesalers</h3>
+                <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
+                  Submit deals quickly, get instant insurance estimates, and connect with verified investors ready to close on your properties.
+                </p>
+              </div>
+
+              {/* Vendors */}
+              <div className="flex flex-col rounded-2xl bg-white p-8 shadow-lg transition-all hover:shadow-xl dark:bg-zinc-900">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30">
+                  <svg
+                    className="h-6 w-6 text-purple-600 dark:text-purple-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">Vendors</h3>
+                <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
+                  Showcase your services, build your portfolio, and connect with investors looking for trusted contractors and service providers.
+                </p>
+              </div>
+
+              {/* Transaction Services */}
+              <div className="flex flex-col rounded-2xl bg-white p-8 shadow-lg transition-all hover:shadow-xl dark:bg-zinc-900">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                  <svg
+                    className="h-6 w-6 text-orange-600 dark:text-orange-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">Transaction Services</h3>
+                <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
+                  Streamline your transaction workflow with comprehensive tools for managing deals, documentation, and closing processes.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Final CTA Section */}
+        <section className="bg-gradient-to-b from-zinc-900 to-zinc-950 py-20 dark:from-zinc-950 dark:to-black sm:py-24 lg:py-32">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                Ready to Transform Your Real Estate Business?
+              </h2>
+              <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-zinc-300">
+                Join the community and get access to exclusive deals, trusted vendors, and powerful tools designed for real estate professionals.
+              </p>
+              <div className="mt-10 flex items-center justify-center gap-x-6">
+                <Link
+                  href="/login?mode=signup"
+                  className="rounded-md bg-white px-8 py-4 text-base font-semibold text-zinc-900 shadow-lg transition-all hover:bg-zinc-100 hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                >
+                  Get Started Today
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
       {/* Footer */}
       <footer className="border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
-            © {new Date().getFullYear()} TXREIGROUP. All rights reserved.
+            © {new Date().getFullYear()} HTXREIGROUP. All rights reserved.
           </p>
         </div>
       </footer>

@@ -37,16 +37,19 @@ export default async function PostComments({ postId }: { postId: string }) {
         Comments {comments && comments.length > 0 && `(${comments.length})`}
       </h2>
 
-      {authData.user && <CommentForm postId={postId} />}
-
-      <div className="mt-6">
+      <div>
         {comments && comments.length > 0 ? (
           <CommentList comments={comments} votesMap={votesMap} currentUserId={authData.user?.id} />
         ) : (
           <p className="text-sm text-zinc-500 dark:text-zinc-400">No comments yet. Be the first to comment!</p>
         )}
       </div>
+
+      {authData.user && (
+        <div className="mt-6">
+          <CommentForm postId={postId} />
+        </div>
+      )}
     </div>
   );
 }
-
