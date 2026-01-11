@@ -37,6 +37,13 @@ type VideoComment = {
   profiles: { display_name: string | null; avatar_url: string | null } | null;
 };
 
+type VideoCommentRow = {
+  id: string;
+  body: string;
+  created_at: string;
+  profiles: { display_name: string | null; avatar_url: string | null }[] | null;
+};
+
 export default async function EducationVideoPage({
   params,
 }: {
@@ -134,7 +141,11 @@ export default async function EducationVideoPage({
       .eq("video_id", params.id)
       .order("created_at", { ascending: false });
 
-    commentsData = (comments as VideoComment[]) || [];
+    const commentRows = (comments as VideoCommentRow[]) || [];
+    commentsData = commentRows.map((comment) => ({
+      ...comment,
+      profiles: comment.profiles?.[0] ?? null,
+    }));
 
     const { data: watchLater } = await supabase
       .from("education_watch_later")
