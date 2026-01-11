@@ -25,6 +25,18 @@ type WatchLaterItem = {
   } | null;
 };
 
+type WatchLaterRow = {
+  id: string;
+  created_at: string;
+  education_videos: {
+    id: string;
+    title: string;
+    description: string | null;
+    level: string;
+    topics: string[];
+  }[] | null;
+};
+
 export default async function WatchLaterPage() {
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
@@ -57,7 +69,11 @@ export default async function WatchLaterPage() {
     console.error("Error fetching watch later list:", error);
   }
 
-  const watchLaterData = (watchLater as WatchLaterItem[]) || [];
+  const watchLaterRows = (watchLater as WatchLaterRow[]) || [];
+  const watchLaterData: WatchLaterItem[] = watchLaterRows.map((item) => ({
+    ...item,
+    education_videos: item.education_videos?.[0] ?? null,
+  }));
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
