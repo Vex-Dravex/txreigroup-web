@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import ProfileMenu from "./ProfileMenu";
 import type { Role } from "@/lib/roles";
 
@@ -26,9 +27,16 @@ export default function AppHeader({
           <div className="flex items-center gap-8">
             <Link
               href="/"
-              className="text-2xl font-bold text-zinc-900 transition-colors hover:text-zinc-700 dark:text-zinc-50 dark:hover:text-zinc-300"
+              className="flex items-center transition-opacity hover:opacity-80"
             >
-              TXREIGROUP
+              <Image
+                src="/Header Logo.png"
+                alt="Houston Real Estate Investment Group Header Logo"
+                width={180}
+                height={60}
+                className="h-10 w-auto object-contain"
+                priority
+              />
             </Link>
             <nav className="hidden md:flex items-center gap-4">
               <Link
@@ -60,6 +68,16 @@ export default function AppHeader({
                 }`}
               >
                 Vendors
+              </Link>
+              <Link
+                href="/app/transaction-services"
+                className={`text-sm font-medium transition-colors ${
+                  currentPage === "transaction-services"
+                    ? "text-zinc-900 dark:text-zinc-50"
+                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                }`}
+              >
+                Transaction Services
               </Link>
               <Link
                 href="/app/courses"

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import ThemeToggle from "@/app/components/ThemeToggle";
 
 type ProfileMenuProps = {
   avatarUrl: string | null;
@@ -99,6 +100,7 @@ export default function ProfileMenu({ avatarUrl, displayName, email }: ProfileMe
             >
               Support
             </Link>
+            <ThemeToggle />
             <div className="border-t border-zinc-200 dark:border-zinc-800">
               <form action="/logout" method="POST">
                 <button
