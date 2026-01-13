@@ -152,14 +152,22 @@ export async function createReview(reviewedUserId: string, formData: FormData) {
   }
 
   const comment = String(formData.get("comment") || "").trim();
+  const ratingStr = String(formData.get("rating") || "");
+  const rating = parseInt(ratingStr, 10);
+
   if (!comment) {
     throw new Error("Comment is required");
+  }
+
+  if (!rating || rating < 1 || rating > 5) {
+    throw new Error("Please select a star rating between 1 and 5");
   }
 
   const { error } = await supabase.from("user_reviews").insert({
     reviewer_id: authData.user.id,
     reviewed_user_id: reviewedUserId,
     comment,
+    rating,
   });
 
   if (error) {

@@ -36,77 +36,71 @@ export default function AppHeader({
                 height={60}
                 className="h-10 w-auto object-contain"
                 priority
+                unoptimized
               />
             </Link>
             <nav className="hidden md:flex items-center gap-4">
               <Link
                 href="/"
-                className={`text-sm font-medium transition-colors ${
-                  currentPage === "home"
-                    ? "text-zinc-900 dark:text-zinc-50"
-                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
-                }`}
+                className={`text-sm font-medium transition-colors ${currentPage === "home"
+                  ? "text-zinc-900 dark:text-zinc-50"
+                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                  }`}
               >
                 Home
               </Link>
               <Link
                 href="/app/deals"
-                className={`text-sm font-medium transition-colors ${
-                  currentPage === "deals"
-                    ? "text-zinc-900 dark:text-zinc-50"
-                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
-                }`}
+                className={`text-sm font-medium transition-colors ${currentPage === "deals"
+                  ? "text-zinc-900 dark:text-zinc-50"
+                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                  }`}
               >
                 Off Market MLS
               </Link>
               <Link
                 href="/app/contractors"
-                className={`text-sm font-medium transition-colors ${
-                  currentPage === "contractors"
-                    ? "text-zinc-900 dark:text-zinc-50"
-                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
-                }`}
+                className={`text-sm font-medium transition-colors ${currentPage === "contractors"
+                  ? "text-zinc-900 dark:text-zinc-50"
+                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                  }`}
               >
                 Vendors
               </Link>
               <Link
                 href="/app/transaction-services"
-                className={`text-sm font-medium transition-colors ${
-                  currentPage === "transaction-services"
-                    ? "text-zinc-900 dark:text-zinc-50"
-                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
-                }`}
+                className={`text-sm font-medium transition-colors ${currentPage === "transaction-services"
+                  ? "text-zinc-900 dark:text-zinc-50"
+                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                  }`}
               >
                 Transaction Services
               </Link>
               <Link
                 href="/app/courses"
-                className={`text-sm font-medium transition-colors ${
-                  currentPage === "courses"
-                    ? "text-zinc-900 dark:text-zinc-50"
-                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
-                }`}
+                className={`text-sm font-medium transition-colors ${currentPage === "courses"
+                  ? "text-zinc-900 dark:text-zinc-50"
+                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                  }`}
               >
                 Education
               </Link>
               <Link
                 href="/app/forum"
-                className={`text-sm font-medium transition-colors ${
-                  currentPage === "forum"
-                    ? "text-zinc-900 dark:text-zinc-50"
-                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
-                }`}
+                className={`text-sm font-medium transition-colors ${currentPage === "forum"
+                  ? "text-zinc-900 dark:text-zinc-50"
+                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                  }`}
               >
                 Community Forum
               </Link>
               {userRole === "admin" && (
                 <Link
                   href="/app/admin"
-                  className={`text-sm font-medium transition-colors ${
-                    currentPage === "admin"
-                      ? "text-purple-600 dark:text-purple-400"
-                      : "text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
-                  }`}
+                  className={`text-sm font-medium transition-colors ${currentPage === "admin"
+                    ? "text-purple-600 dark:text-purple-400"
+                    : "text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
+                    }`}
                 >
                   Admin
                 </Link>

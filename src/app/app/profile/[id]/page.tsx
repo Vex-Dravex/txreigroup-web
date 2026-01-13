@@ -10,6 +10,10 @@ import {
   requestNetwork,
   respondNetworkRequest,
 } from "./actions";
+import { exampleVendors } from "../../contractors/sampleVendors";
+import { exampleTransactionServices } from "../../transaction-services/sampleTransactionServices";
+import { VendorListing } from "../../contractors/types";
+import { StarRating, StarDisplay } from "./StarRating";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +38,7 @@ type PortfolioItem = {
 type Review = {
   id: string;
   comment: string;
+  rating: number;
   created_at: string;
   reviewer: {
     id: string;
@@ -75,7 +80,23 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
   const viewerPrimaryRole = getPrimaryRole(viewerRoles, viewerProfileData?.role || "investor");
 
   const isOwner = authData.user.id === profileId;
-  if (!profile && !isOwner) {
+
+  // Check if this is a sample vendor or transaction service BEFORE checking database profile
+  const isSampleVendor = profileId.startsWith("sample-");
+  const isSampleTransactionService = profileId.startsWith("ts-");
+  let sampleVendorData: VendorListing | null = null;
+
+  if (isSampleVendor) {
+    sampleVendorData = exampleVendors.find(v => v.id === profileId) || null;
+    if (!sampleVendorData) {
+      notFound();
+    }
+  } else if (isSampleTransactionService) {
+    sampleVendorData = exampleTransactionServices.find(v => v.id === profileId) || null;
+    if (!sampleVendorData) {
+      notFound();
+    }
+  } else if (!profile && !isOwner) {
     notFound();
   }
 
@@ -100,6 +121,37 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
     bio: null,
   }) as Profile;
 
+  // Check if this is a sample vendor or transaction service and merge data
+  if (profileId.startsWith("sample-")) {
+    sampleVendorData = exampleVendors.find(v => v.id === profileId) || null;
+
+    if (sampleVendorData) {
+      // Merge sample vendor data with profile
+      profileData.display_name = sampleVendorData.name;
+      profileData.avatar_url = sampleVendorData.avatarUrl || sampleVendorData.logoUrl || null;
+      profileData.banner_url = sampleVendorData.bannerUrl || null;
+      profileData.bio = sampleVendorData.description || null;
+      profileData.role = "contractor";
+    } else if (!profile) {
+      // Sample vendor ID but not found
+      notFound();
+    }
+  } else if (profileId.startsWith("ts-")) {
+    sampleVendorData = exampleTransactionServices.find(v => v.id === profileId) || null;
+
+    if (sampleVendorData) {
+      // Merge transaction service data with profile
+      profileData.display_name = sampleVendorData.name;
+      profileData.avatar_url = sampleVendorData.avatarUrl || sampleVendorData.logoUrl || null;
+      profileData.banner_url = sampleVendorData.bannerUrl || null;
+      profileData.bio = sampleVendorData.description || null;
+      profileData.role = "contractor";
+    } else if (!profile) {
+      // Transaction service ID but not found
+      notFound();
+    }
+  }
+
   const [
     portfolioResult,
     reviewsResult,
@@ -116,7 +168,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
         .order("created_at", { ascending: false }),
       supabase
         .from("user_reviews")
-        .select("id, comment, created_at, reviewer:reviewer_id ( id, display_name, avatar_url, role )")
+        .select("id, comment, rating, created_at, reviewer:reviewer_id ( id, display_name, avatar_url, role )")
         .eq("reviewed_user_id", profileData.id)
         .order("created_at", { ascending: false }),
       supabase
@@ -164,13 +216,13 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
   const portfolioCategories =
     profileData.role === "vendor" || profileData.role === "contractor"
       ? [
-          { value: "work", label: "Work Portfolio" },
-        ]
+        { value: "work", label: "Work Portfolio" },
+      ]
       : [
-          { value: "deal_bought", label: "Deals Bought" },
-          { value: "deal_sold", label: "Deals Sold" },
-          { value: "deal_renovated", label: "Renovations" },
-        ];
+        { value: "deal_bought", label: "Deals Bought" },
+        { value: "deal_sold", label: "Deals Sold" },
+        { value: "deal_renovated", label: "Renovations" },
+      ];
 
   const formatRoleLabel = (role: string) => role.replace("_", " ");
 
@@ -195,7 +247,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
         <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
           <div
             className={`relative h-56 w-full ${profileData.banner_url ? "" : "bg-gradient-to-r from-amber-200 via-orange-200 to-rose-200 dark:from-amber-900 dark:via-orange-900 dark:to-rose-900"}`}
-            style={profileData.banner_url ? { backgroundImage: `url(${profileData.banner_url})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
+            style={profileData.banner_url ? { backgroundImage: `url(${profileData.banner_url})`, backgroundSize: "125%", backgroundPosition: "center" } : undefined}
           >
             <div className="absolute inset-0 bg-black/15" />
             {isOwner && <ProfileEditBanner profileId={profileData.id} currentUrl={profileData.banner_url || null} />}
@@ -361,28 +413,49 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
               )}
             </div>
 
+            {/* Vendor Past Projects */}
+            {sampleVendorData && sampleVendorData.pastProjects.length > 0 && (
+              <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Past Projects & References</h2>
+                <div className="space-y-4">
+                  {sampleVendorData.pastProjects.map((project, idx) => (
+                    <div key={idx} className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+                      <div className="mb-2 flex items-start justify-between">
+                        <h3 className="font-semibold text-zinc-900 dark:text-zinc-50">{project.title}</h3>
+                        {project.budget && (
+                          <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                            {project.budget}
+                          </span>
+                        )}
+                      </div>
+                      {project.location && (
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400">{project.location}</p>
+                      )}
+                      {project.description && (
+                        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{project.description}</p>
+                      )}
+                      {project.referenceName && (
+                        <div className="mt-3 rounded-md bg-zinc-50 px-3 py-2 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
+                          <span className="font-medium">Reference:</span> {project.referenceName}
+                          {project.referenceContact && ` • ${project.referenceContact}`}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
               <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Community Reviews</h2>
-              {!isOwner && (
-                <form action={createReview.bind(null, profileData.id)} className="mb-6 space-y-3">
-                  <textarea
-                    name="comment"
-                    rows={3}
-                    placeholder="Share what it was like working with this member..."
-                    className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
-                  />
-                  <button
-                    type="submit"
-                    className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
-                  >
-                    Post Review
-                  </button>
-                </form>
-              )}
+
+              {/* Posted Reviews Section */}
               {reviews.length === 0 ? (
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">No reviews yet.</p>
+                <div className="mb-6 rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-6 text-center dark:border-zinc-700 dark:bg-zinc-900/50">
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">No reviews yet. Be the first to share your experience!</p>
+                </div>
               ) : (
-                <div className="space-y-4">
+                <div className="mb-6 space-y-4">
                   {reviews.map((review) => (
                     <div key={review.id} className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
                       <div className="flex items-center gap-3">
@@ -395,12 +468,17 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                             </div>
                           )}
                         </div>
-                        <div>
-                          <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-                            {review.reviewer?.[0]?.display_name || "Community member"}
-                          </div>
-                          <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                            {new Date(review.created_at).toLocaleDateString()}
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+                                {review.reviewer?.[0]?.display_name || "Community member"}
+                              </div>
+                              <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                                {new Date(review.created_at).toLocaleDateString()}
+                              </div>
+                            </div>
+                            <StarDisplay rating={review.rating || 5} size="sm" />
                           </div>
                         </div>
                       </div>
@@ -409,10 +487,126 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                   ))}
                 </div>
               )}
+
+              {/* Review Form Section */}
+              {!isOwner && (
+                <div className="border-t border-zinc-200 pt-6 dark:border-zinc-800">
+                  <h3 className="mb-4 text-base font-semibold text-zinc-900 dark:text-zinc-50">Write a Review</h3>
+                  <form action={createReview.bind(null, profileData.id)} className="space-y-3">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        Your Rating
+                      </label>
+                      <StarRating name="rating" required size="lg" />
+                    </div>
+                    <textarea
+                      name="comment"
+                      rows={3}
+                      placeholder="Share what it was like working with this member..."
+                      className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+                      required
+                    />
+                    <button
+                      type="submit"
+                      className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
+                    >
+                      Post Review
+                    </button>
+                  </form>
+                </div>
+              )}
             </div>
           </div>
 
           <div className="space-y-6">
+            {/* Vendor Contact Information */}
+            {sampleVendorData && (
+              <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Contact Information</h2>
+                <dl className="space-y-3">
+                  {sampleVendorData.contact.name && (
+                    <>
+                      <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Contact</dt>
+                      <dd className="text-sm text-zinc-900 dark:text-zinc-50">{sampleVendorData.contact.name}</dd>
+                    </>
+                  )}
+                  {sampleVendorData.contact.phone && (
+                    <>
+                      <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Phone</dt>
+                      <dd className="text-sm text-zinc-900 dark:text-zinc-50">
+                        <a href={`tel:${sampleVendorData.contact.phone}`} className="hover:underline">
+                          {sampleVendorData.contact.phone}
+                        </a>
+                      </dd>
+                    </>
+                  )}
+                  {sampleVendorData.contact.email && (
+                    <>
+                      <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Email</dt>
+                      <dd className="text-sm text-zinc-900 dark:text-zinc-50">
+                        <a href={`mailto:${sampleVendorData.contact.email}`} className="hover:underline">
+                          {sampleVendorData.contact.email}
+                        </a>
+                      </dd>
+                    </>
+                  )}
+                  {sampleVendorData.contact.website && (
+                    <>
+                      <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Website</dt>
+                      <dd className="text-sm text-zinc-900 dark:text-zinc-50">
+                        <a
+                          href={sampleVendorData.contact.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline dark:text-blue-400"
+                        >
+                          Visit Website →
+                        </a>
+                      </dd>
+                    </>
+                  )}
+                  {sampleVendorData.location && (
+                    <>
+                      <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Location</dt>
+                      <dd className="text-sm text-zinc-900 dark:text-zinc-50">{sampleVendorData.location}</dd>
+                    </>
+                  )}
+                </dl>
+              </div>
+            )}
+
+            {/* Vendor Services */}
+            {sampleVendorData && sampleVendorData.workTypes.length > 0 && (
+              <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Services Offered</h2>
+                <div className="flex flex-wrap gap-2">
+                  {sampleVendorData.workTypes.map((type) => (
+                    <span
+                      key={type}
+                      className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-sm text-blue-700 ring-1 ring-inset ring-blue-100 dark:bg-blue-900/30 dark:text-blue-200 dark:ring-blue-900/40"
+                    >
+                      {type}
+                    </span>
+                  ))}
+                </div>
+                {sampleVendorData.marketAreas.length > 0 && (
+                  <>
+                    <h3 className="mb-2 mt-4 text-sm font-semibold text-zinc-900 dark:text-zinc-50">Service Areas</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {sampleVendorData.marketAreas.map((area, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex rounded-full bg-zinc-100 px-3 py-1 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                        >
+                          {area}
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
             <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Bio</h2>

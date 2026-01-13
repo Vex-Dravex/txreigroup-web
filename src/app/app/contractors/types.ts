@@ -23,6 +23,8 @@ export type VendorListing = {
     website?: string | null;
   };
   logoUrl?: string | null;
+  avatarUrl?: string | null;
+  bannerUrl?: string | null;
   serviceAreasNote?: string | null;
   pastProjects: PastProject[];
 };

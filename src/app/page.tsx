@@ -27,7 +27,7 @@ export default async function Home() {
         .single();
 
       const roles = await getUserRoles(supabase, authData.user.id, profile?.role || "investor");
-      
+
       userProfile = {
         avatar_url: profile?.avatar_url || null,
         display_name: profile?.display_name || null,
@@ -62,7 +62,7 @@ export default async function Home() {
                 src="/logo.png"
                 alt=""
                 fill
-                className="object-contain scale-150"
+                className="object-contain scale-110"
                 priority
               />
             </div>

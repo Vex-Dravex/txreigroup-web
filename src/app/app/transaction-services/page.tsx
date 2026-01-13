@@ -6,6 +6,7 @@ import ServiceFilters from "./ServiceFilters";
 import VendorCard from "../contractors/VendorCard";
 import { VendorListing } from "../contractors/types";
 import { getPrimaryRole, getUserRoles } from "@/lib/roles";
+import { exampleTransactionServices } from "./sampleTransactionServices";
 
 export const dynamic = "force-dynamic";
 
@@ -32,142 +33,6 @@ const BASE_MARKET_AREAS = [
   "Texas Hill Country",
   "Coastal Texas",
   "West Texas",
-];
-
-const exampleServices: VendorListing[] = [
-  {
-    id: "ts-1",
-    name: "Bayou Title Partners",
-    tagline: "Investor-first title team with fast turn commitments",
-    description:
-      "Investor-focused title searches, mobile notary coordination, and weekly closing windows for high-volume portfolios.",
-    location: "Houston, TX",
-    marketAreas: ["Houston", "Coastal Texas"],
-    workTypes: ["Title Company"],
-    verificationStatus: "verified",
-    contact: {
-      name: "Alyssa Kim",
-      phone: "(713) 555-0145",
-      email: "investors@bayoutitle.com",
-      website: "https://bayoutitle.com",
-    },
-    logoUrl: "https://images.unsplash.com/photo-1519241047957-be31d7379a5d?auto=format&fit=crop&w=200&q=80",
-    pastProjects: [
-      {
-        title: "20-door portfolio closings",
-        location: "Houston Metro",
-        budget: "$1.3M",
-        referenceName: "Harbor Lane Capital",
-        description: "Handled sequential cash-out refis and coordinated title curatives across five counties.",
-      },
-    ],
-  },
-  {
-    id: "ts-2",
-    name: "Lone Star Escrow Co.",
-    tagline: "Escrow officers who keep assignment deals moving",
-    description:
-      "Experienced in wholesale assignments, double closes, and investor-friendly escrow workflows with transparent timelines.",
-    location: "Dallas, TX",
-    marketAreas: ["Dallas-Fort Worth", "Austin"],
-    workTypes: ["Escrow Officer"],
-    verificationStatus: "verified",
-    contact: {
-      name: "Derrick Fuentes",
-      phone: "(214) 555-0179",
-      email: "derick@lsescrow.com",
-      website: "https://lsescrow.com",
-    },
-    logoUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=200&q=80",
-    pastProjects: [
-      {
-        title: "Assignment-friendly closings",
-        location: "DFW Metroplex",
-        budget: "$620k",
-        referenceName: "Peak Wholesale Group",
-        description: "Coordinated simultaneous closes for 12 wholesale assignments in under 60 days.",
-      },
-    ],
-  },
-  {
-    id: "ts-3",
-    name: "Cedar Capital Private Money",
-    tagline: "Fast approvals for buy-and-hold investors",
-    description:
-      "Bridge and private money options for acquisitions, rehab, and portfolio refinances with 48-hour term sheets.",
-    location: "Austin, TX",
-    marketAreas: ["Austin", "Texas Hill Country", "San Antonio"],
-    workTypes: ["Private Money Lender"],
-    verificationStatus: "verified",
-    contact: {
-      name: "Monica Perez",
-      phone: "(512) 555-0122",
-      email: "monica@cedarcapital.com",
-      website: "https://cedarcapital.com",
-    },
-    logoUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=200&q=80",
-    pastProjects: [
-      {
-        title: "Bridge lending for STR renovation",
-        location: "Fredericksburg, TX",
-        budget: "$410k",
-        referenceName: "Vista REI Holdings",
-        description: "Funded in 10 days with rehab draws structured for short-term rental timelines.",
-      },
-    ],
-  },
-  {
-    id: "ts-4",
-    name: "Sunset Gator Buyers",
-    tagline: "Close-ready cash buyers across Texas metros",
-    description:
-      "Cash buyer network with clear criteria, quick inspections, and reliable closing timelines for wholesalers.",
-    location: "San Antonio, TX",
-    marketAreas: ["San Antonio", "Austin", "Houston"],
-    workTypes: ["Gator"],
-    verificationStatus: "pending",
-    contact: {
-      name: "Bryce Alvarado",
-      phone: "(210) 555-0199",
-      email: "acquisitions@sunsetgator.com",
-    },
-    logoUrl: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=200&q=80",
-    pastProjects: [
-      {
-        title: "Wholesale disposition pipeline",
-        location: "San Antonio",
-        referenceName: "Main Street Wholesale",
-        description: "Consistently purchased 4-6 deals monthly with 10-day average close.",
-      },
-    ],
-  },
-  {
-    id: "ts-5",
-    name: "Bluebonnet Transaction Ops",
-    tagline: "Coordinators who manage docs and deadlines",
-    description:
-      "Transaction coordinators who keep rehab and wholesale paperwork on track with weekly status updates.",
-    location: "Dallas, TX",
-    marketAreas: ["Dallas-Fort Worth", "Houston"],
-    workTypes: ["Transaction Coordinator"],
-    verificationStatus: "verified",
-    contact: {
-      name: "Leah Porter",
-      phone: "(972) 555-0107",
-      email: "leah@bbtxops.com",
-      website: "https://bbtxops.com",
-    },
-    logoUrl: "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=200&q=80",
-    pastProjects: [
-      {
-        title: "Multi-deal closing coordination",
-        location: "Dallas Metro",
-        budget: "$980k",
-        referenceName: "BrightPath Investments",
-        description: "Managed 18 closings across 4 title companies with shared checklists.",
-      },
-    ],
-  },
 ];
 
 function parseListParam(value?: string) {
@@ -203,7 +68,7 @@ export default async function TransactionServicesPage({
   const verifiedOnly = resolvedSearchParams.verified === "true";
   const keyword = (resolvedSearchParams.q || "").toLowerCase().trim();
 
-  const filteredServices = exampleServices
+  const filteredServices = exampleTransactionServices
     .filter((service) => {
       const matchesWorkType =
         selectedWorkTypes.length === 0 ||
@@ -243,13 +108,13 @@ export default async function TransactionServicesPage({
     });
 
   const availableWorkTypes = Array.from(
-    new Set([...BASE_SERVICE_TYPES, ...exampleServices.flatMap((service) => service.workTypes)])
+    new Set([...BASE_SERVICE_TYPES, ...exampleTransactionServices.flatMap((service) => service.workTypes)])
   ).sort();
   const availableMarkets = Array.from(
-    new Set([...BASE_MARKET_AREAS, ...exampleServices.flatMap((service) => service.marketAreas)])
+    new Set([...BASE_MARKET_AREAS, ...exampleTransactionServices.flatMap((service) => service.marketAreas)])
   ).sort();
 
-  const verifiedCount = exampleServices.filter((service) => service.verificationStatus === "verified").length;
+  const verifiedCount = exampleTransactionServices.filter((service) => service.verificationStatus === "verified").length;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900">

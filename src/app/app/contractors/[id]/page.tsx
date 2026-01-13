@@ -3,6 +3,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import ContractorLeadForm from "./ContractorLeadForm";
 import { getUserRoles, hasRole } from "@/lib/roles";
+import { exampleVendors } from "../sampleVendors";
+import { VendorListing } from "../types";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -41,7 +43,8 @@ type Profile = {
   role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
 };
 
-export default async function ContractorDetailPage({ params }: { params: { id: string } }) {
+export default async function ContractorDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
 
@@ -57,7 +60,207 @@ export default async function ContractorDetailPage({ params }: { params: { id: s
   const profileData = profile as Profile | null;
   const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
 
-  // Fetch contractor profile
+  // Check if this is a sample vendor
+  const isSampleVendor = resolvedParams.id.startsWith("sample-");
+
+  if (isSampleVendor) {
+    // Handle sample vendor
+    const sampleVendor = exampleVendors.find(v => v.id === resolvedParams.id);
+
+    if (!sampleVendor) {
+      notFound();
+    }
+
+    // Render sample vendor profile
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+        <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="mb-6">
+            <Link
+              href="/app/contractors"
+              className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+            >
+              ← Back to Contractors
+            </Link>
+          </div>
+
+          <div className="mb-6 flex items-start justify-between">
+            <div className="flex-1">
+              <div className="mb-2 flex items-center gap-3">
+                <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
+                  {sampleVendor.name}
+                </h1>
+                {sampleVendor.verificationStatus === "verified" && (
+                  <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                    ✓ Verified
+                  </span>
+                )}
+              </div>
+              {sampleVendor.location && (
+                <p className="text-lg text-zinc-600 dark:text-zinc-400">
+                  {sampleVendor.location}
+                </p>
+              )}
+              {sampleVendor.tagline && (
+                <p className="mt-2 text-sm italic text-zinc-500 dark:text-zinc-400">
+                  {sampleVendor.tagline}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Bio */}
+              {sampleVendor.description && (
+                <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                  <h2 className="mb-3 text-lg font-semibold text-zinc-900 dark:text-zinc-50">About</h2>
+                  <p className="whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">{sampleVendor.description}</p>
+                </div>
+              )}
+
+              {/* Services */}
+              {sampleVendor.workTypes.length > 0 && (
+                <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                  <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Services Offered</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {sampleVendor.workTypes.map((type) => (
+                      <span
+                        key={type}
+                        className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-sm text-blue-700 ring-1 ring-inset ring-blue-100 dark:bg-blue-900/30 dark:text-blue-200 dark:ring-blue-900/40"
+                      >
+                        {type}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Past Projects */}
+              {sampleVendor.pastProjects.length > 0 && (
+                <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                  <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Past Projects & References</h2>
+                  <div className="space-y-4">
+                    {sampleVendor.pastProjects.map((project, idx) => (
+                      <div key={idx} className="border-b border-zinc-200 pb-4 last:border-0 last:pb-0 dark:border-zinc-800">
+                        <div className="mb-2 flex items-start justify-between">
+                          <h3 className="font-semibold text-zinc-900 dark:text-zinc-50">{project.title}</h3>
+                          {project.budget && (
+                            <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                              {project.budget}
+                            </span>
+                          )}
+                        </div>
+                        {project.location && (
+                          <p className="text-sm text-zinc-500 dark:text-zinc-400">{project.location}</p>
+                        )}
+                        {project.description && (
+                          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{project.description}</p>
+                        )}
+                        {project.referenceName && (
+                          <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                            Reference: {project.referenceName}
+                            {project.referenceContact && ` (${project.referenceContact})`}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Service Areas */}
+              {sampleVendor.marketAreas.length > 0 && (
+                <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                  <h2 className="mb-3 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Service Areas</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {sampleVendor.marketAreas.map((area, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                      >
+                        {area}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Contact Information */}
+              <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Contact Information</h2>
+                <dl className="space-y-3">
+                  {sampleVendor.contact.name && (
+                    <>
+                      <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Contact</dt>
+                      <dd className="text-sm text-zinc-900 dark:text-zinc-50">{sampleVendor.contact.name}</dd>
+                    </>
+                  )}
+                  {sampleVendor.contact.phone && (
+                    <>
+                      <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Phone</dt>
+                      <dd className="text-sm text-zinc-900 dark:text-zinc-50">
+                        <a href={`tel:${sampleVendor.contact.phone}`} className="hover:underline">
+                          {sampleVendor.contact.phone}
+                        </a>
+                      </dd>
+                    </>
+                  )}
+                  {sampleVendor.contact.email && (
+                    <>
+                      <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Email</dt>
+                      <dd className="text-sm text-zinc-900 dark:text-zinc-50">
+                        <a href={`mailto:${sampleVendor.contact.email}`} className="hover:underline">
+                          {sampleVendor.contact.email}
+                        </a>
+                      </dd>
+                    </>
+                  )}
+                  {sampleVendor.contact.website && (
+                    <>
+                      <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Website</dt>
+                      <dd className="text-sm text-zinc-900 dark:text-zinc-50">
+                        <a
+                          href={sampleVendor.contact.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline dark:text-blue-400"
+                        >
+                          Visit Website →
+                        </a>
+                      </dd>
+                    </>
+                  )}
+                </dl>
+              </div>
+
+              {/* Request Quote (for investors) */}
+              {hasRole(roles, "investor") && sampleVendor.verificationStatus === "verified" && (
+                <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                  <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Request a Quote</h2>
+                  <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+                    This is a sample vendor profile. In production, you would be able to request a quote here.
+                  </p>
+                  <button
+                    disabled
+                    className="w-full rounded-md bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-500 cursor-not-allowed dark:bg-zinc-800 dark:text-zinc-400"
+                  >
+                    Contact Vendor
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fetch contractor profile from database
   const { data: contractor, error } = await supabase
     .from("contractor_profiles")
     .select(`
@@ -75,7 +278,7 @@ export default async function ContractorDetailPage({ params }: { params: { id: s
         is_active
       )
     `)
-    .eq("id", params.id)
+    .eq("id", resolvedParams.id)
     .single();
 
   if (error || !contractor) {
