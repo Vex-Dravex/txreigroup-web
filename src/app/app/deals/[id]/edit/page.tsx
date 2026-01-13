@@ -1,6 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import AppHeader from "../../../../components/AppHeader";
+import AppHeader from "../../../components/AppHeader";
 import { getPrimaryRole, getUserRoles, hasRole } from "@/lib/roles";
 
 export default async function EditDealPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
