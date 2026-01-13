@@ -1,0 +1,428 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { sampleVideos, topicOptions } from "./educationData";
+
+type Video = {
+  id: string;
+  title: string;
+  description: string;
+  duration: string;
+  level: string;
+  topics: string[];
+  type: "video" | "live" | "course";
+  thumbnailUrl?: string | null;
+  href?: string;
+  badge?: string;
+  createdAt?: string;
+};
+
+type CourseVideo = {
+  id: string;
+  title: string;
+  description: string | null;
+  duration: string | null;
+  topics: string[];
+  thumbnailUrl: string | null;
+  href: string;
+  badge: string;
+};
+
+type EducationVideo = {
+  id: string;
+  title: string;
+  description: string | null;
+  topics: string[];
+  level: string;
+  video_url: string;
+  thumbnail_url?: string | null;
+  created_at: string;
+};
+
+const sampleVideoCards: Video[] = sampleVideos.map((video) => ({
+  ...video,
+  href: video.href,
+  createdAt: "2023-01-01T00:00:00Z", // Treat samples as old
+}));
+
+const formatCourseVideos = (courseVideos: CourseVideo[]): Video[] =>
+  courseVideos.map((course) => ({
+    id: `course-${course.id}`,
+    title: course.title,
+    description: course.description ?? "Course overview coming soon.",
+    duration: course.duration ?? "Self-paced",
+    level: "Members",
+    topics: course.topics,
+    type: "course",
+    thumbnailUrl: course.thumbnailUrl,
+    href: course.href,
+    badge: course.badge,
+    createdAt: "2023-01-01T00:00:00Z", // Courses date logic could be improved if provided
+  }));
+
+const formatEducationVideos = (educationVideos: EducationVideo[]): Video[] =>
+  educationVideos.map((video) => ({
+    id: `edu-${video.id}`,
+    title: video.title,
+    description: video.description ?? "Video overview coming soon.",
+    duration: "On-demand",
+    level: video.level,
+    topics: video.topics,
+    type: "video",
+    href: `/app/courses/videos/${video.id}`,
+    thumbnailUrl: video.thumbnail_url,
+    createdAt: video.created_at,
+  }));
+
+const getVideoIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    className="h-10 w-10 text-white/90"
+  >
+    <path
+      fill="currentColor"
+      d="M8.25 6.75h6.5A2.5 2.5 0 0 1 17.25 9.25v5.5a2.5 2.5 0 0 1-2.5 2.5h-6.5a2.5 2.5 0 0 1-2.5-2.5v-5.5a2.5 2.5 0 0 1 2.5-2.5Zm8.1 1.65 2.35-1.46a.75.75 0 0 1 1.15.64v8.86a.75.75 0 0 1-1.15.64l-2.35-1.46V8.4Z"
+    />
+  </svg>
+);
+
+export default function EducationCenterClient({
+  courseVideos,
+  educationVideos,
+}: {
+  courseVideos: CourseVideo[];
+  educationVideos: EducationVideo[];
+}) {
+  const [searchValue, setSearchValue] = useState("");
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [showLiveOnly, setShowLiveOnly] = useState(false);
+  const [viewFilter, setViewFilter] = useState<"all" | "watch-later">("all");
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const topicParam = searchParams.get("topic");
+    const viewParam = searchParams.get("view");
+
+    if (topicParam && topicOptions.includes(topicParam)) {
+      setSelectedTopics([topicParam]);
+    }
+
+    if (viewParam === "watch-later") {
+      setViewFilter("watch-later");
+    } else {
+      setViewFilter("all");
+    }
+  }, [searchParams]);
+
+  const combinedVideos = useMemo(() => {
+    const mappedCourses = formatCourseVideos(courseVideos);
+    const mappedEducation = formatEducationVideos(educationVideos);
+    // Sort all videos by creation date desc
+    return [...sampleVideoCards, ...mappedEducation, ...mappedCourses].sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateB - dateA;
+    });
+  }, [courseVideos, educationVideos]);
+
+  const filteredVideos = useMemo(() => {
+    const normalizedSearch = searchValue.trim().toLowerCase();
+    return combinedVideos.filter((video) => {
+      if (showLiveOnly && video.type !== "live") return false;
+      if (
+        selectedTopics.length > 0 &&
+        !video.topics.some((topic) => selectedTopics.includes(topic))
+      ) {
+        return false;
+      }
+      if (!normalizedSearch) return true;
+      return (
+        video.title.toLowerCase().includes(normalizedSearch) ||
+        video.description.toLowerCase().includes(normalizedSearch) ||
+        video.topics.some((topic) =>
+          topic.toLowerCase().includes(normalizedSearch)
+        )
+      );
+    });
+  }, [combinedVideos, searchValue, selectedTopics, showLiveOnly]);
+
+  const toggleTopic = (topic: string) => {
+    setSelectedTopics((prev) =>
+      prev.includes(topic)
+        ? prev.filter((item) => item !== topic)
+        : [...prev, topic]
+    );
+  };
+
+  const liveVideo = combinedVideos.find((video) => video.type === "live");
+
+  return (
+    <div className="relative overflow-hidden bg-gradient-to-br from-zinc-50 via-white to-amber-50/40 dark:from-zinc-950 dark:via-zinc-900 dark:to-amber-900/20">
+      <div className="absolute -left-24 top-20 h-80 w-80 rounded-full bg-amber-200/40 blur-3xl dark:bg-amber-500/10" />
+      <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-sky-200/40 blur-3xl dark:bg-sky-500/10" />
+
+      <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700 dark:text-amber-300">
+              Education Center
+            </p>
+            <h1 className="mt-3 text-3xl font-semibold text-zinc-900 dark:text-zinc-100 sm:text-4xl">
+              Build wholesale mastery with videos, live sessions, and weekly
+              playbooks.
+            </h1>
+            <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">
+              Curated for wholesalers, investors, and gators. Search, filter by
+              topic, and join the live room each week.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-zinc-200 bg-white/90 p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80">
+            <p className="text-xs font-semibold uppercase text-zinc-500 dark:text-zinc-400">
+              Next live stream
+            </p>
+            <p className="mt-2 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+              Wednesdays at 7:00 PM CST
+            </p>
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+              Weekly live coaching, Q&amp;A, and deal reviews.
+            </p>
+            <button
+              type="button"
+              className="mt-3 w-full rounded-full border border-zinc-900 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-900 transition hover:bg-zinc-900 hover:text-white dark:border-white/70 dark:text-white dark:hover:bg-white dark:hover:text-zinc-900"
+            >
+              Remind me
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-10 grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
+          <aside className="rounded-2xl border border-zinc-200 bg-white/90 p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Topics</p>
+              {selectedTopics.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedTopics([])}
+                  className="text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <div className="mt-4 space-y-3">
+              {topicOptions.map((topic) => {
+                const isSelected = selectedTopics.includes(topic);
+                return (
+                  <label
+                    key={topic}
+                    className="flex cursor-pointer items-center gap-3 text-sm text-zinc-700 dark:text-zinc-300"
+                  >
+                    <span
+                      className={`flex h-5 w-5 items-center justify-center rounded-full border ${isSelected
+                        ? "border-amber-600 bg-amber-500"
+                        : "border-zinc-300 bg-white dark:border-zinc-600 dark:bg-zinc-900"
+                        }`}
+                    >
+                      {isSelected && (
+                        <span className="h-2.5 w-2.5 rounded-full bg-white" />
+                      )}
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleTopic(topic)}
+                      className="sr-only"
+                    />
+                    {topic}
+                  </label>
+                );
+              })}
+            </div>
+            <div className="mt-6 border-t border-zinc-200 pt-4 dark:border-zinc-700">
+              <p className="text-xs font-semibold uppercase text-zinc-500 dark:text-zinc-400">
+                Format
+              </p>
+              <label className="mt-3 flex items-center gap-3 text-sm text-zinc-700 dark:text-zinc-300">
+                <input
+                  type="checkbox"
+                  checked={showLiveOnly}
+                  onChange={(event) => setShowLiveOnly(event.target.checked)}
+                  className="h-4 w-4 rounded border-zinc-300 text-amber-600 focus:ring-amber-500 dark:border-zinc-600 dark:bg-zinc-900"
+                />
+                Live sessions only
+              </label>
+            </div>
+          </aside>
+
+          <section>
+            <div className="rounded-2xl border border-zinc-200 bg-white/90 p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex-1">
+                  <label className="text-xs font-semibold uppercase text-zinc-500 dark:text-zinc-400">
+                    Search videos
+                  </label>
+                  <div className="mt-2 flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 shadow-inner dark:border-zinc-700 dark:bg-zinc-950/60">
+                    <svg
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                      className="h-4 w-4 text-zinc-400 dark:text-zinc-500"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M10.5 3.75a6.75 6.75 0 1 0 4.21 12.02l3.26 3.26a.75.75 0 1 0 1.06-1.06l-3.26-3.26A6.75 6.75 0 0 0 10.5 3.75Zm0 1.5a5.25 5.25 0 1 1 0 10.5a5.25 5.25 0 0 1 0-10.5Z"
+                      />
+                    </svg>
+                    <input
+                      value={searchValue}
+                      onChange={(event) => setSearchValue(event.target.value)}
+                      placeholder="Search by title, topic, or strategy"
+                      className="w-full bg-transparent text-sm text-zinc-700 outline-none placeholder:text-zinc-400 dark:text-zinc-200 dark:placeholder:text-zinc-500"
+                    />
+                  </div>
+                </div>
+                <div className="rounded-xl bg-zinc-900 px-4 py-3 text-center text-sm text-white dark:bg-zinc-950">
+                  <p className="text-xs uppercase text-white/70">Results</p>
+                  <p className="text-lg font-semibold">{filteredVideos.length}</p>
+                </div>
+              </div>
+            </div>
+        </div>
+
+        {liveVideo && (
+          <div className="mt-6 grid gap-4 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 via-white to-amber-50 p-6 shadow-sm md:grid-cols-[1.2fr_1fr] dark:border-amber-500/40 dark:from-amber-900/20 dark:via-zinc-900 dark:to-amber-900/10">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700 dark:text-amber-300">
+                Live weekly room
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
+                {liveVideo.title}
+              </h2>
+              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+                {liveVideo.description}
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {liveVideo.topics.map((topic) => (
+                  <span
+                    key={topic}
+                    className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-500/20 dark:text-amber-200"
+                  >
+                    {topic}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center justify-center rounded-2xl bg-zinc-900/95 p-6 text-center text-white">
+              <div>
+                <p className="text-xs uppercase text-white/60">
+                  Live player
+                </p>
+                <div className="mt-4 flex items-center justify-center">
+                  {getVideoIcon()}
+                </div>
+                <p className="mt-4 text-sm text-white/80">
+                  Streaming window opens 15 minutes before start time.
+                </p>
+                <button
+                  type="button"
+                  className="mt-4 w-full rounded-full border border-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-white hover:text-zinc-900"
+                >
+                  Enter live room
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {filteredVideos.map((video) => {
+            const isNew =
+              video.createdAt &&
+              Date.now() - new Date(video.createdAt).getTime() < 24 * 60 * 60 * 1000;
+
+            const card = (
+              <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
+                <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700">
+                  {video.thumbnailUrl ? (
+                    <img
+                      src={video.thumbnailUrl}
+                      alt={video.title}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      {getVideoIcon()}
+                    </div>
+                  )}
+
+                  {isNew ? (
+                    <span className="absolute left-4 top-4 rounded-full bg-green-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+                      New
+                    </span>
+                  ) : video.badge ? (
+                    <span className="absolute left-4 top-4 rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+                      {video.badge}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="flex flex-1 flex-col p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                      {video.title}
+                    </h3>
+                    <span className="rounded-full bg-zinc-900 px-3 py-1 text-xs font-semibold text-white dark:bg-zinc-800">
+                      {video.level}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+                    {video.description}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {video.topics.map((topic) => (
+                      <span
+                        key={topic}
+                        className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+                      >
+                        {topic}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-4 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                    <span>{video.duration}</span>
+                    <span>{video.type === "live" ? "Live" : "On-demand"}</span>
+                  </div>
+                </div>
+              </div>
+            );
+
+            if (video.href) {
+              return (
+                <Link
+                  key={video.id}
+                  href={video.href}
+                  className="block"
+                  onClick={() => {
+                    // Save scroll position before navigating
+                    sessionStorage.setItem("courses-scroll-position", window.scrollY.toString());
+                  }}
+                >
+                  {card}
+                </Link>
+              );
+            }
+
+            return (
+              <div key={video.id} className="block">
+                {card}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    </div>
+      </div >
+    </div >
+  );
+}

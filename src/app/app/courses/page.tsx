@@ -3,6 +3,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import AppHeader from "../components/AppHeader";
 import { getPrimaryRole, getUserRoles } from "@/lib/roles";
 import EducationCenterClient from "./EducationCenterClient";
+import { CoursesScrollRestorationProvider } from "@/lib/scrollRestoration";
+import { getWatchLaterVideos } from "./watchLaterActions";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -108,19 +110,25 @@ export default async function CoursesPage() {
     badge: tierDisplayNames[course.required_tier],
   }));
 
+  // Fetch watch later videos
+  const watchLaterVideos = await getWatchLaterVideos();
+
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
-      <AppHeader
-        userRole={userRole}
-        currentPage="courses"
-        avatarUrl={profileData?.avatar_url || null}
-        displayName={profileData?.display_name || null}
-        email={authData.user.email}
-      />
-      <EducationCenterClient
-        courseVideos={courseVideos}
-        educationVideos={educationVideosData}
-      />
-    </div>
+    <CoursesScrollRestorationProvider>
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+        <AppHeader
+          userRole={userRole}
+          currentPage="courses"
+          avatarUrl={profileData?.avatar_url || null}
+          displayName={profileData?.display_name || null}
+          email={authData.user.email}
+        />
+        <EducationCenterClient
+          courseVideos={courseVideos}
+          educationVideos={educationVideosData}
+          watchLaterVideos={watchLaterVideos}
+        />
+      </div>
+    </CoursesScrollRestorationProvider>
   );
 }

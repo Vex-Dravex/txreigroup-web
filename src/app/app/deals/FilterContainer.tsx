@@ -26,18 +26,18 @@ export function useFilterIsOpen() {
 }
 
 function FilterProvider({ children }: { children: React.ReactNode }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   return <FilterContext.Provider value={{ isOpen, setIsOpen }}>{children}</FilterContext.Provider>;
 }
 
 export function FilterToggleButton() {
   const searchParams = useSearchParams();
   const context = useContext(FilterContext);
-  
+
   if (!context) {
     throw new Error("FilterToggleButton must be used within FilterProvider");
   }
-  
+
   const { isOpen, setIsOpen } = context;
 
   // Count active filters
@@ -54,11 +54,11 @@ export function FilterToggleButton() {
 
 export function FilterSidebarWrapper() {
   const context = useContext(FilterContext);
-  
+
   if (!context) {
     throw new Error("FilterSidebarWrapper must be used within FilterProvider");
   }
-  
+
   const { isOpen, setIsOpen } = context;
 
   return (
@@ -69,7 +69,9 @@ export function FilterSidebarWrapper() {
         </div>
       }
     >
-      <FilterSidebar isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      <div className={isOpen ? "block" : "hidden"}>
+        <FilterSidebar isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      </div>
     </Suspense>
   );
 }

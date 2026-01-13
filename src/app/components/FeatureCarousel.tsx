@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 interface FeatureSlide {
   id: number;
@@ -15,21 +16,21 @@ const features: FeatureSlide[] = [
     id: 1,
     title: 'Off Market MLS',
     description: 'Access exclusive wholesale deals vetted by our team. Browse verified properties with detailed analytics, insurance estimates, and comprehensive property information.',
-    image: '/screenshots/deals.png', // Placeholder - user needs to add actual screenshot
+    image: '/off-market-mls.png',
     category: 'investors',
   },
   {
     id: 2,
     title: 'Vendor Marketplace',
     description: 'Connect with verified contractors and vendors. Find trusted professionals for your investment projects with detailed portfolios and verification status.',
-    image: '/screenshots/vendors.png', // Placeholder - user needs to add actual screenshot
+    image: '/vendor-page.png',
     category: 'vendors',
   },
   {
     id: 3,
     title: 'Deal Submission',
     description: 'Wholesalers can easily submit deals for approval. Streamlined process with automated insurance estimates and comprehensive deal management tools.',
-    image: '/screenshots/submit-deal.png', // Placeholder - user needs to add actual screenshot
+    image: '/deal-submission-page.png',
     category: 'wholesalers',
   },
   {
@@ -64,7 +65,7 @@ export default function FeatureCarousel() {
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % features.length);
-    }, 5000); // Change slide every 5 seconds
+    }, 10000); // Change slide every 10 seconds
 
     return () => clearInterval(interval);
   }, [isAutoPlaying]);
@@ -109,27 +110,36 @@ export default function FeatureCarousel() {
                   {/* Image Side */}
                   <div className="relative flex items-center justify-center overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900">
                     <div className="relative h-full w-full min-h-[300px]">
-                      {/* Placeholder for screenshot - user should replace with actual images */}
-                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-200 to-zinc-300 dark:from-zinc-800 dark:to-zinc-900">
-                        <div className="text-center">
-                          <svg
-                            className="mx-auto h-24 w-24 text-zinc-400 dark:text-zinc-600"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={1.5}
-                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                            />
-                          </svg>
-                          <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
-                            Screenshot: {feature.title}
-                          </p>
+                      {feature.image.startsWith('/screenshots/') ? (
+                        /* Placeholder for screenshot - user should replace with actual images */
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-200 to-zinc-300 dark:from-zinc-800 dark:to-zinc-900">
+                          <div className="text-center">
+                            <svg
+                              className="mx-auto h-24 w-24 text-zinc-400 dark:text-zinc-600"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.5}
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                              />
+                            </svg>
+                            <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
+                              Screenshot: {feature.title}
+                            </p>
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        <Image
+                          src={feature.image}
+                          alt={feature.title}
+                          fill
+                          className="object-contain"
+                        />
+                      )}
                     </div>
                   </div>
 
@@ -187,11 +197,10 @@ export default function FeatureCarousel() {
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`h-2 rounded-full transition-all ${
-                index === currentIndex
-                  ? 'w-8 bg-zinc-900 dark:bg-zinc-50'
-                  : 'w-2 bg-zinc-400 hover:bg-zinc-600 dark:bg-zinc-600 dark:hover:bg-zinc-400'
-              }`}
+              className={`h-2 rounded-full transition-all ${index === currentIndex
+                ? 'w-8 bg-zinc-900 dark:bg-zinc-50'
+                : 'w-2 bg-zinc-400 hover:bg-zinc-600 dark:bg-zinc-600 dark:hover:bg-zinc-400'
+                }`}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}

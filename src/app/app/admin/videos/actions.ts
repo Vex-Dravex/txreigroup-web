@@ -8,6 +8,11 @@ import { redirect } from "next/navigation";
 const STORAGE_BUCKET = "education-videos";
 const LEVELS = new Set(["Beginner", "Intermediate", "Advanced"]);
 
+// Supabase standard upload limit is 5GB, but we'll set a reasonable limit
+// Increased to 2GB to support longer educational videos
+const MAX_VIDEO_SIZE = 2 * 1024 * 1024 * 1024; // 2GB in bytes
+const MAX_THUMBNAIL_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+
 async function verifyAdmin() {
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
@@ -38,7 +43,13 @@ function sanitizeFileName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]+/g, "_");
 }
 
-export async function createEducationVideo(formData: FormData) {
+// Define response type
+type ActionState = {
+  message?: string;
+  success?: boolean;
+};
+
+export async function createEducationVideo(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const adminId = await verifyAdmin();
   const supabase = await createSupabaseServerClient();
 
@@ -49,83 +60,108 @@ export async function createEducationVideo(formData: FormData) {
   const file = formData.get("file");
   const thumbnailFile = formData.get("thumbnail");
 
-  if (!title) {
-    throw new Error("Title is required");
-  }
-  if (!LEVELS.has(level)) {
-    throw new Error("Invalid level");
-  }
-  if (!(file instanceof File) || file.size === 0) {
-    throw new Error("Video file is required");
-  }
-  if (!file.type.startsWith("video/")) {
-    throw new Error("File must be a video");
-  }
-
-  const fileName = sanitizeFileName(file.name || "video");
-  const storagePath = `${adminId}/${crypto.randomUUID()}-${fileName}`;
-
-  const { error: uploadError } = await supabase.storage
-    .from(STORAGE_BUCKET)
-    .upload(storagePath, file, {
-      contentType: file.type,
-    });
-
-  if (uploadError) {
-    throw new Error(`Failed to upload video: ${uploadError.message}`);
-  }
-
-  const { data: publicUrl } = supabase.storage
-    .from(STORAGE_BUCKET)
-    .getPublicUrl(storagePath);
-
-  let thumbnailStoragePath: string | null = null;
-  let thumbnailUrl: string | null = null;
-
-  if (thumbnailFile instanceof File && thumbnailFile.size > 0) {
-    if (!thumbnailFile.type.startsWith("image/")) {
-      throw new Error("Thumbnail must be an image");
+  try {
+    if (!title) {
+      return { message: "Title is required", success: false };
+    }
+    if (!LEVELS.has(level)) {
+      return { message: "Invalid level", success: false };
+    }
+    if (!(file instanceof File) || file.size === 0) {
+      return { message: "Video file is required", success: false };
+    }
+    if (!file.type.startsWith("video/")) {
+      return { message: "File must be a video", success: false };
     }
 
-    const thumbName = sanitizeFileName(thumbnailFile.name || "thumbnail");
-    thumbnailStoragePath = `${adminId}/thumbs/${crypto.randomUUID()}-${thumbName}`;
+    // Check file size
+    if (file.size > MAX_VIDEO_SIZE) {
+      const sizeMB = Math.round(file.size / (1024 * 1024));
+      const maxSizeMB = Math.round(MAX_VIDEO_SIZE / (1024 * 1024));
+      return {
+        message: `Video file is too large (${sizeMB}MB). Maximum allowed size is ${maxSizeMB}MB. Please compress your video or use a smaller file.`,
+        success: false
+      };
+    }
 
-    const { error: thumbUploadError } = await supabase.storage
+    const fileName = sanitizeFileName(file.name || "video");
+    const storagePath = `${adminId}/${crypto.randomUUID()}-${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
       .from(STORAGE_BUCKET)
-      .upload(thumbnailStoragePath, thumbnailFile, {
-        contentType: thumbnailFile.type,
+      .upload(storagePath, file, {
+        contentType: file.type,
       });
 
-    if (thumbUploadError) {
-      console.warn("Failed to upload thumbnail:", thumbUploadError);
-      // Don't fail the whole request, just log it
-    } else {
-      const { data: thumbPublicUrl } = supabase.storage
-        .from(STORAGE_BUCKET)
-        .getPublicUrl(thumbnailStoragePath);
-      thumbnailUrl = thumbPublicUrl.publicUrl;
+    if (uploadError) {
+      return { message: `Failed to upload video: ${uploadError.message}`, success: false };
     }
-  }
 
-  const { error: insertError } = await supabase
-    .from("education_videos")
-    .insert({
-      title,
-      description: descriptionRaw || null,
-      level,
-      topics,
-      video_url: publicUrl.publicUrl,
-      storage_path: storagePath,
-      thumbnail_url: thumbnailUrl,
-      thumbnail_storage_path: thumbnailStoragePath,
-      mime_type: file.type,
-      file_size: file.size,
-      created_by: adminId,
-      updated_at: new Date().toISOString(),
-    });
+    const { data: publicUrl } = supabase.storage
+      .from(STORAGE_BUCKET)
+      .getPublicUrl(storagePath);
 
-  if (insertError) {
-    throw new Error(`Failed to save video: ${insertError.message}`);
+    let thumbnailStoragePath: string | null = null;
+    let thumbnailUrl: string | null = null;
+
+    if (thumbnailFile instanceof File && thumbnailFile.size > 0) {
+      if (!thumbnailFile.type.startsWith("image/")) {
+        return { message: "Thumbnail must be an image", success: false };
+      }
+
+      // Check thumbnail size
+      if (thumbnailFile.size > MAX_THUMBNAIL_SIZE) {
+        const sizeMB = Math.round(thumbnailFile.size / (1024 * 1024));
+        const maxSizeMB = Math.round(MAX_THUMBNAIL_SIZE / (1024 * 1024));
+        return {
+          message: `Thumbnail file is too large (${sizeMB}MB). Maximum allowed size is ${maxSizeMB}MB.`,
+          success: false
+        };
+      }
+
+      const thumbName = sanitizeFileName(thumbnailFile.name || "thumbnail");
+      thumbnailStoragePath = `${adminId}/thumbs/${crypto.randomUUID()}-${thumbName}`;
+
+      const { error: thumbUploadError } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(thumbnailStoragePath, thumbnailFile, {
+          contentType: thumbnailFile.type,
+        });
+
+      if (thumbUploadError) {
+        console.warn("Failed to upload thumbnail:", thumbUploadError);
+        // Don't fail the whole request, just log it
+      } else {
+        const { data: thumbPublicUrl } = supabase.storage
+          .from(STORAGE_BUCKET)
+          .getPublicUrl(thumbnailStoragePath);
+        thumbnailUrl = thumbPublicUrl.publicUrl;
+      }
+    }
+
+    const { error: insertError } = await supabase
+      .from("education_videos")
+      .insert({
+        title,
+        description: descriptionRaw || null,
+        level,
+        topics,
+        video_url: publicUrl.publicUrl,
+        storage_path: storagePath,
+        thumbnail_url: thumbnailUrl,
+        thumbnail_storage_path: thumbnailStoragePath,
+        mime_type: file.type,
+        file_size: file.size,
+        created_by: adminId,
+        updated_at: new Date().toISOString(),
+      });
+
+    if (insertError) {
+      return { message: `Failed to save video: ${insertError.message}`, success: false };
+    }
+
+  } catch (error) {
+    return { message: error instanceof Error ? error.message : "An unexpected error occurred", success: false };
   }
 
   revalidatePath("/app/admin/videos");
@@ -175,6 +211,16 @@ export async function updateEducationVideo(formData: FormData) {
   if (file instanceof File && file.size > 0) {
     if (!file.type.startsWith("video/")) {
       throw new Error("File must be a video");
+    }
+
+    // Check file size
+    if (file.size > MAX_VIDEO_SIZE) {
+      const sizeMB = Math.round(file.size / (1024 * 1024));
+      const maxSizeMB = Math.round(MAX_VIDEO_SIZE / (1024 * 1024));
+      throw new Error(
+        `Video file is too large (${sizeMB}MB). Maximum allowed size is ${maxSizeMB}MB. ` +
+        `Please compress your video or use a smaller file.`
+      );
     }
 
     const fileName = sanitizeFileName(file.name || "video");

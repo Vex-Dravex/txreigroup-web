@@ -172,6 +172,18 @@ export default async function AdminDashboard() {
             >
               Verify Contractors
             </Link>
+            <Link
+              href="/app/admin/contractors"
+              className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:hover:bg-zinc-800"
+            >
+              Verify Contractors
+            </Link>
+            <Link
+              href="/app/admin/blog"
+              className="rounded-md border border-purple-200 bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700 transition-colors hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-900/20 dark:text-purple-300"
+            >
+              Manage Blog
+            </Link>
           </div>
         </div>
       </div>

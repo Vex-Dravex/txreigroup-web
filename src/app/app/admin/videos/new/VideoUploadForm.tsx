@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useFormState } from "react-dom";
 import { createEducationVideo } from "../actions";
 import { topicOptions } from "../../../courses/educationData";
 
@@ -24,6 +25,11 @@ export default function VideoUploadForm() {
   const [description, setDescription] = useState("");
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [level, setLevel] = useState("Beginner");
+
+  const [state, formAction] = useFormState(createEducationVideo, {
+    message: "",
+    success: false,
+  });
 
   const isReadyToSave = useMemo(() => {
     return Boolean(selectedFile && title.trim().length > 0);
@@ -73,8 +79,14 @@ export default function VideoUploadForm() {
   return (
     <form
       className="space-y-8"
-      action={createEducationVideo}
+      action={formAction}
     >
+      {state?.message && !state.success && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400">
+          <p className="font-semibold">Upload Failed</p>
+          <p>{state.message}</p>
+        </div>
+      )}
       <div
         className={`relative rounded-2xl border-2 border-dashed p-8 text-center transition ${dragActive
           ? "border-amber-500 bg-amber-50 dark:bg-amber-500/10"

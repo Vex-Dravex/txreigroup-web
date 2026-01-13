@@ -7,11 +7,11 @@ import { revalidatePath } from "next/cache";
 async function verifyAuth() {
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
-  
+
   if (!authData.user) {
     redirect("/login");
   }
-  
+
   return { supabase, userId: authData.user.id };
 }
 
@@ -198,5 +198,34 @@ export async function voteOnComment(commentId: string, voteType: "upvote" | "dow
     });
   }
 
+  revalidatePath("/app/forum");
+}
+
+export async function toggleSavePost(postId: string) {
+  const { supabase, userId } = await verifyAuth();
+
+  // Check if already saved
+  const { data: existingSave } = await supabase
+    .from("forum_saved_posts")
+    .select("id")
+    .eq("post_id", postId)
+    .eq("user_id", userId)
+    .single();
+
+  if (existingSave) {
+    // Unsave
+    await supabase
+      .from("forum_saved_posts")
+      .delete()
+      .eq("id", existingSave.id);
+  } else {
+    // Save
+    await supabase.from("forum_saved_posts").insert({
+      post_id: postId,
+      user_id: userId,
+    });
+  }
+
+  revalidatePath(`/app/forum/${postId}`);
   revalidatePath("/app/forum");
 }

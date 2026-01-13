@@ -92,19 +92,30 @@ const getVideoIcon = () => (
 export default function EducationCenterClient({
   courseVideos,
   educationVideos,
+  watchLaterVideos,
 }: {
   courseVideos: CourseVideo[];
   educationVideos: EducationVideo[];
+  watchLaterVideos: { video_id: string; video_type: string }[];
 }) {
   const [searchValue, setSearchValue] = useState("");
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [showLiveOnly, setShowLiveOnly] = useState(false);
+  const [viewFilter, setViewFilter] = useState<"all" | "watch-later">("all");
   const searchParams = useSearchParams();
 
   useEffect(() => {
     const topicParam = searchParams.get("topic");
+    const viewParam = searchParams.get("view");
+
     if (topicParam && topicOptions.includes(topicParam)) {
       setSelectedTopics([topicParam]);
+    }
+
+    if (viewParam === "watch-later") {
+      setViewFilter("watch-later");
+    } else {
+      setViewFilter("all");
     }
   }, [searchParams]);
 
@@ -121,7 +132,34 @@ export default function EducationCenterClient({
 
   const filteredVideos = useMemo(() => {
     const normalizedSearch = searchValue.trim().toLowerCase();
-    return combinedVideos.filter((video) => {
+    let videos = combinedVideos;
+
+    // Filter by watch later if viewing watch later list
+    if (viewFilter === "watch-later") {
+      videos = videos.filter((video) => {
+        // Determine video type and clean ID from video.id
+        let videoType: string;
+        let cleanVideoId: string;
+
+        if (video.id.startsWith("course-")) {
+          videoType = "course";
+          cleanVideoId = video.id.replace("course-", "");
+        } else if (video.id.startsWith("edu-")) {
+          videoType = "education";
+          cleanVideoId = video.id.replace("edu-", "");
+        } else {
+          videoType = "sample";
+          cleanVideoId = video.id; // Sample IDs like "sample-1" stay as-is
+        }
+
+        // Check if this video is in the watch later list
+        return watchLaterVideos.some(
+          (wl) => wl.video_type === videoType && wl.video_id === cleanVideoId
+        );
+      });
+    }
+
+    return videos.filter((video) => {
       if (showLiveOnly && video.type !== "live") return false;
       if (
         selectedTopics.length > 0 &&
@@ -138,7 +176,7 @@ export default function EducationCenterClient({
         )
       );
     });
-  }, [combinedVideos, searchValue, selectedTopics, showLiveOnly]);
+  }, [combinedVideos, searchValue, selectedTopics, showLiveOnly, viewFilter, watchLaterVideos]);
 
   const toggleTopic = (topic: string) => {
     setSelectedTopics((prev) =>
@@ -190,61 +228,94 @@ export default function EducationCenterClient({
         </div>
 
         <div className="mt-10 grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
-          <aside className="rounded-2xl border border-zinc-200 bg-white/90 p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Topics</p>
-              {selectedTopics.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedTopics([])}
-                  className="text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-            <div className="mt-4 space-y-3">
-              {topicOptions.map((topic) => {
-                const isSelected = selectedTopics.includes(topic);
-                return (
-                  <label
-                    key={topic}
-                    className="flex cursor-pointer items-center gap-3 text-sm text-zinc-700 dark:text-zinc-300"
+          <aside className="hidden lg:block">
+            <div className="sticky top-24 space-y-8">
+              {/* Feeds */}
+              <div>
+                <h3 className="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">
+                  Feeds
+                </h3>
+                <nav className="space-y-1">
+                  <Link
+                    href="/app/courses"
+                    className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${viewFilter === "all"
+                      ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50"
+                      : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-200"
+                      }`}
                   >
-                    <span
-                      className={`flex h-5 w-5 items-center justify-center rounded-full border ${isSelected
-                          ? "border-amber-600 bg-amber-500"
-                          : "border-zinc-300 bg-white dark:border-zinc-600 dark:bg-zinc-900"
-                        }`}
+                    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${viewFilter === "all" ? "text-zinc-900 dark:text-zinc-50" : "text-zinc-400 group-hover:text-zinc-500 dark:text-zinc-500 dark:group-hover:text-zinc-400"}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    All Videos
+                  </Link>
+                  <Link
+                    href="/app/courses?view=watch-later"
+                    className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${viewFilter === "watch-later"
+                      ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50"
+                      : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-200"
+                      }`}
+                  >
+                    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${viewFilter === "watch-later" ? "text-zinc-900 dark:text-zinc-50" : "text-zinc-400 group-hover:text-zinc-500 dark:text-zinc-500 dark:group-hover:text-zinc-400"}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                    Watch Later
+                  </Link>
+                </nav>
+              </div>
+
+              {/* Topics */}
+              <div>
+                <div className="flex items-center justify-between px-3 mb-2">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">
+                    Topics
+                  </h3>
+                  {selectedTopics.length > 0 && (
+                    <Link
+                      href="/app/courses"
+                      className="text-[10px] font-bold uppercase text-blue-600 hover:underline dark:text-blue-400"
+                      onClick={() => setSelectedTopics([])}
                     >
-                      {isSelected && (
-                        <span className="h-2.5 w-2.5 rounded-full bg-white" />
-                      )}
-                    </span>
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => toggleTopic(topic)}
-                      className="sr-only"
-                    />
-                    {topic}
-                  </label>
-                );
-              })}
-            </div>
-            <div className="mt-6 border-t border-zinc-200 pt-4 dark:border-zinc-700">
-              <p className="text-xs font-semibold uppercase text-zinc-500 dark:text-zinc-400">
-                Format
-              </p>
-              <label className="mt-3 flex items-center gap-3 text-sm text-zinc-700 dark:text-zinc-300">
-                <input
-                  type="checkbox"
-                  checked={showLiveOnly}
-                  onChange={(event) => setShowLiveOnly(event.target.checked)}
-                  className="h-4 w-4 rounded border-zinc-300 text-amber-600 focus:ring-amber-500 dark:border-zinc-600 dark:bg-zinc-900"
-                />
-                Live sessions only
-              </label>
+                      Clear
+                    </Link>
+                  )}
+                </div>
+                <nav className="space-y-1">
+                  {topicOptions.map((topic) => {
+                    const isSelected = selectedTopics.includes(topic);
+                    return (
+                      <Link
+                        key={topic}
+                        href={`/app/courses?topic=${topic}`}
+                        className={`group flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isSelected
+                          ? "bg-amber-50 text-amber-900 dark:bg-amber-900/20 dark:text-amber-100"
+                          : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-200"
+                          }`}
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedTopics([]);
+                          } else {
+                            setSelectedTopics([topic]);
+                          }
+                        }}
+                      >
+                        <span className="break-words">{topic}</span>
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
+
+              {/* Format Filter */}
+              <div>
+                <h3 className="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">
+                  Format
+                </h3>
+                <label className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                  <input
+                    type="checkbox"
+                    checked={showLiveOnly}
+                    onChange={(event) => setShowLiveOnly(event.target.checked)}
+                    className="h-4 w-4 rounded border-zinc-300 text-amber-600 focus:ring-amber-500 dark:border-zinc-600 dark:bg-zinc-900"
+                  />
+                  Live sessions only
+                </label>
+              </div>
             </div>
           </aside>
 
@@ -274,17 +345,9 @@ export default function EducationCenterClient({
                     />
                   </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <Link
-                    href="/app/courses/watch-later"
-                    className="rounded-full border border-zinc-300 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                  >
-                    Watch Later List
-                  </Link>
-                  <div className="rounded-xl bg-zinc-900 px-4 py-3 text-center text-sm text-white dark:bg-zinc-950">
-                    <p className="text-xs uppercase text-white/70">Results</p>
-                    <p className="text-lg font-semibold">{filteredVideos.length}</p>
-                  </div>
+                <div className="rounded-xl bg-zinc-900 px-4 py-3 text-center text-sm text-white dark:bg-zinc-950">
+                  <p className="text-xs uppercase text-white/70">Results</p>
+                  <p className="text-lg font-semibold">{filteredVideos.length}</p>
                 </div>
               </div>
             </div>
@@ -340,79 +403,97 @@ export default function EducationCenterClient({
                   video.createdAt &&
                   Date.now() - new Date(video.createdAt).getTime() < 24 * 60 * 60 * 1000;
 
-                const card = (
-                  <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
-                    <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700">
-                      {video.thumbnailUrl ? (
-                        <img
-                          src={video.thumbnailUrl}
-                          alt={video.title}
-                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center">
-                          {getVideoIcon()}
-                        </div>
-                      )}
+                // Determine video type and clean ID from the video.id
+                let videoType: "course" | "education" | "sample";
+                let cleanVideoId: string;
 
-                      {isNew ? (
-                        <span className="absolute left-4 top-4 rounded-full bg-green-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
-                          New
-                        </span>
-                      ) : video.badge ? (
-                        <span className="absolute left-4 top-4 rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
-                          {video.badge}
-                        </span>
-                      ) : null}
-                    </div>
-                    <div className="flex flex-1 flex-col p-5">
-                      <div className="flex items-start justify-between gap-3">
-                        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                          {video.title}
-                        </h3>
-                        <span className="rounded-full bg-zinc-900 px-3 py-1 text-xs font-semibold text-white dark:bg-zinc-800">
-                          {video.level}
-                        </span>
-                      </div>
-                      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
-                        {video.description}
-                      </p>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {video.topics.map((topic) => (
-                          <span
-                            key={topic}
-                            className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
-                          >
-                            {topic}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="mt-4 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                        <span>{video.duration}</span>
-                        <span>{video.type === "live" ? "Live" : "On-demand"}</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-
-                if (video.href) {
-                  return (
-                    <Link key={video.id} href={video.href} className="block">
-                      {card}
-                    </Link>
-                  );
+                if (video.id.startsWith("course-")) {
+                  videoType = "course";
+                  cleanVideoId = video.id.replace("course-", "");
+                } else if (video.id.startsWith("edu-")) {
+                  videoType = "education";
+                  cleanVideoId = video.id.replace("edu-", "");
+                } else {
+                  videoType = "sample";
+                  cleanVideoId = video.id;
                 }
 
+                const isSaved = watchLaterVideos.some(
+                  (wl) => wl.video_type === videoType && wl.video_id === cleanVideoId
+                );
+
                 return (
-                  <div key={video.id} className="block">
-                    {card}
+                  <div key={video.id} className="flex flex-col">
+                    <Link
+                      href={video.href || "#"}
+                      className="block flex-1"
+                      onClick={() => {
+                        if (video.href) {
+                          // Save scroll position before navigating
+                          sessionStorage.setItem("courses-scroll-position", window.scrollY.toString());
+                        }
+                      }}
+                    >
+                      <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
+                        <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700">
+                          {video.thumbnailUrl ? (
+                            <img
+                              src={video.thumbnailUrl}
+                              alt={video.title}
+                              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center">
+                              {getVideoIcon()}
+                            </div>
+                          )}
+
+                          {isNew ? (
+                            <span className="absolute left-4 top-4 rounded-full bg-green-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+                              New
+                            </span>
+                          ) : video.badge ? (
+                            <span className="absolute left-4 top-4 rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+                              {video.badge}
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="flex flex-1 flex-col p-5">
+                          <div className="flex items-start justify-between gap-3">
+                            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                              {video.title}
+                            </h3>
+                            <span className="rounded-full bg-zinc-900 px-3 py-1 text-xs font-semibold text-white dark:bg-zinc-800">
+                              {video.level}
+                            </span>
+                          </div>
+                          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+                            {video.description}
+                          </p>
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {video.topics.map((topic) => (
+                              <span
+                                key={topic}
+                                className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+                              >
+                                {topic}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="mt-4 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                            <span>{video.duration}</span>
+                            <span>{video.type === "live" ? "Live" : "On-demand"}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
                   </div>
                 );
               })}
             </div>
           </section>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

@@ -3,7 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import AppHeader from "../../components/AppHeader";
 import { getPrimaryRole, getUserRoles, hasRole } from "@/lib/roles";
-import { estimateInsurance, insuranceEstimateInputSchema } from "@/lib/insurance/estimateInsurance";
+
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -372,12 +372,7 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
 
   const dealTypeInfo = getDealTypeInfo(dealData.deal_type);
   const buyerEntryCost = dealData.buyer_entry_cost || dealData.asking_price * 0.2;
-  const insuranceParsed = dealData.insurance_estimate_inputs
-    ? insuranceEstimateInputSchema.safeParse(dealData.insurance_estimate_inputs)
-    : null;
-  const insuranceEstimate = insuranceParsed?.success ? estimateInsurance(insuranceParsed.data) : null;
-  const insuranceMonthly = dealData.insurance_estimate_monthly ?? insuranceEstimate?.monthly ?? null;
-  const insuranceAnnual = dealData.insurance_estimate_annual ?? insuranceEstimate?.annual ?? null;
+
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
@@ -441,14 +436,7 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
               </span>
             </div>
           </div>
-          {isOwner && dealData.status !== "approved" && dealId && !dealId.startsWith("example-") && (
-            <Link
-              href={`/app/deals/${dealData.id}/edit`}
-              className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
-            >
-              Edit Deal
-            </Link>
-          )}
+
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -534,40 +522,7 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
               </div>
             </div>
 
-            <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-6 shadow-sm dark:border-indigo-900/60 dark:bg-indigo-950/30">
-              <div className="mb-1 text-sm font-semibold text-indigo-900 dark:text-indigo-200">Estimated Insurance</div>
-              <div className="text-xs font-medium uppercase tracking-wide text-indigo-600 dark:text-indigo-300">
-                Estimate only
-              </div>
-              {insuranceMonthly !== null && insuranceAnnual !== null ? (
-                <>
-                  <div className="mt-2 text-2xl font-bold text-indigo-900 dark:text-indigo-100">
-                    {formatPrice(insuranceMonthly)} / mo
-                  </div>
-                  <div className="text-sm text-indigo-700 dark:text-indigo-200">
-                    {formatPrice(insuranceAnnual)} / yr
-                  </div>
-                </>
-              ) : (
-                <p className="mt-2 text-sm text-indigo-700 dark:text-indigo-200">Not provided</p>
-              )}
-              {insuranceEstimate && (
-                <details className="mt-3 text-xs text-indigo-700 dark:text-indigo-200">
-                  <summary className="cursor-pointer">How we calculate</summary>
-                  <div className="mt-2 space-y-1">
-                    <div>Replacement cost: {formatPrice(insuranceEstimate.replacementCost)}</div>
-                    <div>Cost per sqft: {formatPrice(insuranceEstimate.breakdown.costPerSqft)}</div>
-                    <div>Base rate: {(insuranceEstimate.breakdown.baseRate * 100).toFixed(2)}%</div>
-                    {insuranceEstimate.breakdown.baseRateAdjustments.length > 0 && (
-                      <div>Adjustments: {insuranceEstimate.breakdown.baseRateAdjustments.join(", ")}</div>
-                    )}
-                    <div>Occupancy multiplier: {insuranceEstimate.breakdown.occupancyMultiplier.toFixed(2)}x</div>
-                    <div>Deductible multiplier: {insuranceEstimate.breakdown.deductibleMultiplier.toFixed(2)}x</div>
-                    <div>Risk multiplier: {insuranceEstimate.breakdown.riskMultiplier.toFixed(2)}x</div>
-                  </div>
-                </details>
-              )}
-            </div>
+
 
             {/* Financial Summary */}
             <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">

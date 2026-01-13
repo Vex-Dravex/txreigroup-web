@@ -255,12 +255,20 @@ export default async function AdminDealReviewPage({ params }: { params: Promise<
           >
             ← Back to Deal Management
           </Link>
-          <Link
-            href="/app/deals"
-            className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-          >
-            View Off Market MLS
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href={`/app/deals/${dealId}/edit`}
+              className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
+            >
+              Edit Deal
+            </Link>
+            <Link
+              href="/app/deals"
+              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+            >
+              View Off Market MLS
+            </Link>
+          </div>
         </div>
 
         <div className="mb-6 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
@@ -383,15 +391,14 @@ export default async function AdminDealReviewPage({ params }: { params: Promise<
             </div>
 
             <div
-              className={`rounded-lg border p-6 shadow-sm ${
-                dealData.deal_type === "seller_finance"
+              className={`rounded-lg border p-6 shadow-sm ${dealData.deal_type === "seller_finance"
                   ? "border-emerald-200 bg-emerald-50/70 dark:border-emerald-900/60 dark:bg-emerald-950/30"
                   : dealData.deal_type === "mortgage_takeover"
                     ? "border-purple-200 bg-purple-50/70 dark:border-purple-900/60 dark:bg-purple-950/30"
                     : dealData.deal_type === "trust_acquisition"
                       ? "border-orange-200 bg-orange-50/70 dark:border-orange-900/60 dark:bg-orange-950/30"
                       : "border-blue-200 bg-blue-50/70 dark:border-blue-900/60 dark:bg-blue-950/30"
-              }`}
+                }`}
             >
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Deal Summary</h2>

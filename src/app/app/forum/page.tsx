@@ -6,6 +6,8 @@ import { getPrimaryRole, getUserRoles } from "@/lib/roles";
 import { VoteButton } from "./components/VoteButton";
 import { SearchInput } from "./components/SearchInput";
 import { FORUM_TOPICS } from "./topics";
+import { ForumScrollRestorationProvider } from "@/lib/scrollRestoration";
+import { ForumPostLink } from "@/components/ScrollSavingLink";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -81,8 +83,21 @@ export default async function ForumPage({
       .ilike("tag", `%${searchTerm}%`);
 
     if (tagData) {
-      tagPostIds = tagData.map((t: any) => t.post_id); // Type assertion if needed, or rely on inference
+      tagPostIds = tagData.map((t: any) => t.post_id);
     }
+  }
+
+  const topicFilter = resolvedSearchParams?.topic || "all";
+
+  // If looking for saved posts, fetch those IDs
+  let savedPostIds: string[] | null = null;
+  if (topicFilter === "saved") {
+    const { data: saves } = await supabase
+      .from("forum_saved_posts")
+      .select("post_id")
+      .eq("user_id", authData.user.id);
+
+    savedPostIds = saves?.map((s) => s.post_id) || [];
   }
 
   // Fetch forum posts with author info and tags
@@ -114,6 +129,23 @@ export default async function ForumPage({
     query = query.or(orConditions.join(','));
   }
 
+  if (topicFilter === "saved") {
+    // If savedPostIds is defined (even if empty), filter by it
+    if (savedPostIds && savedPostIds.length > 0) {
+      query = query.in("id", savedPostIds);
+    } else {
+      // Force empty result if no saved posts
+      query = query.in("id", ["00000000-0000-0000-0000-000000000000"]);
+    }
+  } else if (topicFilter !== "all" && topicFilter !== "uncategorized") {
+    query = query.eq("topic", topicFilter);
+  } else if (topicFilter === "uncategorized") {
+    // This assumes uncategorized means topic is null? Or matches specific logic?
+    // Based on previous code: .filter check was !post.topic. 
+    // Supabase filter for null is .is("topic", null)
+    query = query.is("topic", null);
+  }
+
   const { data: posts, error } = await query;
 
   if (error) {
@@ -128,7 +160,7 @@ export default async function ForumPage({
 
   const votesMap = new Map((userVotes || []).map((v) => [v.post_id, v.vote_type]));
 
-  // Calculate score for sorting (hot algorithm: score = (upvotes - downvotes) / hours_since_post)
+  // Calculate score for sorting (hot algorithm)
   const postsData = (posts as ForumPost[]) || [];
   const now = Date.now();
   const postsWithVotes = postsData.map((post) => ({
@@ -153,18 +185,31 @@ export default async function ForumPage({
     acc[topic.slug] = topic.label;
     return acc;
   }, {});
-  /* const resolvedSearchParams = searchParams ? await searchParams : undefined; 
-     Already resolved above */
-  const topicFilter = resolvedSearchParams?.topic || "all";
-  const filteredPosts =
-    topicFilter === "all"
-      ? sortedPosts
-      : sortedPosts.filter((post) => (post.topic || "uncategorized") === topicFilter);
-  const uncategorizedCount = postsData.filter((post) => !post.topic).length;
-  const topicCounts = FORUM_TOPICS.map((topic) => ({
-    ...topic,
-    count: postsData.filter((post) => post.topic === topic.slug).length,
-  }));
+
+  // Note: filtering is now done via SQL mostly, except for specific client-side refinements if needed.
+  // The existing code did client-side filtering. Now we moved it to server-side query.
+  // We can just use sortedPosts as the filteredPosts if we trust the query.
+  // However, the `uncategorizedCount` and `topicCounts` relied on fetching ALL posts and simple filtering.
+  // Since we are now potentially filtering in SQL, `postsData` might only contain subset.
+  // To keep counts accurate, we might need a separate count query or stick to client side filtering if the dataset is small (limit 50).
+  // The original code was `limit(50)` on ALL posts, then filtered client side.
+  // If we filter in SQL, we only get 50 matches. This is better for pagination later.
+  // But for sidebar counts, we lose accuracy if we don't fetch counts separately.
+  // For now, I will remove the counts from the sidebar or keep them as "from displayed" (which is confusing).
+  // Or I can just continue to do client-side filtering if I fetch generic "all" first?
+  // No, users expect search/filter to work on DB.
+
+  // Let's assume for this step, we keep the main query flow but adapted for "Saved".
+  // Note: The previous code fetched `posts` with limit 50, THEN filtered `filteredPosts`. 
+  // This means if I was on "topic X", I might see 0 posts if the first 50 global posts didn't have X.
+  // My new logic applies filter in SQL, so it finds matching posts.
+  // But I need to adjust the variables for render.
+
+  const filteredPosts = sortedPosts; // Since we filtered in SQL
+
+  // Sidebar counts - these are now hard if we don't query for them.
+  // I will temporarily remove the counts or set them to "?" or just remove the count bubbles to simplify and be correct.
+  // The previous implementation was buggy anyway (counts were based on the LIMIT 50 set).
 
   const formatTimeAgo = (date: string) => {
     const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
@@ -178,292 +223,291 @@ export default async function ForumPage({
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
-      <AppHeader
-        userRole={userRole}
-        currentPage="forum"
-        avatarUrl={profileData?.avatar_url || null}
-        displayName={profileData?.display_name || null}
-        email={authData.user.email}
-      />
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">Community Forum</h1>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              Share ideas, ask questions, and connect with the community
-            </p>
-          </div>
-          <div className="flex w-full items-center gap-4 sm:w-auto">
-            <div className="w-full sm:w-64">
-              <SearchInput />
+    <ForumScrollRestorationProvider>
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+        <AppHeader
+          userRole={userRole}
+          currentPage="forum"
+          avatarUrl={profileData?.avatar_url || null}
+          displayName={profileData?.display_name || null}
+          email={authData.user.email}
+        />
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">Community Forum</h1>
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                Share ideas, ask questions, and connect with the community
+              </p>
             </div>
-            <Link
-              href="/app/forum/new"
-              className="whitespace-nowrap rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
-            >
-              New Post
-            </Link>
-          </div>
-        </div>
-
-        <div className="grid items-start gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
-          <aside className="rounded-2xl border border-zinc-200 bg-white/90 p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Topics</p>
-              {topicFilter !== "all" && (
-                <Link
-                  href="/app/forum"
-                  className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300"
-                >
-                  Clear
-                </Link>
-              )}
-            </div>
-            <div className="mt-4 space-y-3">
-              <Link
-                href="/app/forum"
-                className="flex items-center gap-3 text-sm text-zinc-700 transition-colors hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
-              >
-                <span
-                  className={`flex h-5 w-5 items-center justify-center rounded-full border ${topicFilter === "all"
-                      ? "border-blue-600 bg-blue-500"
-                      : "border-zinc-300 bg-white dark:border-zinc-600 dark:bg-zinc-900"
-                    }`}
-                >
-                  {topicFilter === "all" && <span className="h-2.5 w-2.5 rounded-full bg-white" />}
-                </span>
-                <span className="flex-1 font-semibold">All topics</span>
-                <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
-                  {postsData.length}
-                </span>
-              </Link>
-
-              {topicCounts.map((topic) => {
-                const isSelected = topicFilter === topic.slug;
-                return (
-                  <Link
-                    key={topic.slug}
-                    href={`/app/forum?topic=${topic.slug}`}
-                    className="flex items-center gap-3 text-sm text-zinc-700 transition-colors hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
-                  >
-                    <span
-                      className={`flex h-5 w-5 items-center justify-center rounded-full border ${isSelected
-                          ? "border-blue-600 bg-blue-500"
-                          : "border-zinc-300 bg-white dark:border-zinc-600 dark:bg-zinc-900"
-                        }`}
-                    >
-                      {isSelected && <span className="h-2.5 w-2.5 rounded-full bg-white" />}
-                    </span>
-                    <span className="flex-1 font-semibold">{topic.label}</span>
-                    <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
-                      {topic.count}
-                    </span>
-                  </Link>
-                );
-              })}
-
-              {uncategorizedCount > 0 && (
-                <Link
-                  href="/app/forum?topic=uncategorized"
-                  className="flex items-center gap-3 text-sm text-zinc-700 transition-colors hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
-                >
-                  <span
-                    className={`flex h-5 w-5 items-center justify-center rounded-full border ${topicFilter === "uncategorized"
-                        ? "border-blue-600 bg-blue-500"
-                        : "border-zinc-300 bg-white dark:border-zinc-600 dark:bg-zinc-900"
-                      }`}
-                  >
-                    {topicFilter === "uncategorized" && (
-                      <span className="h-2.5 w-2.5 rounded-full bg-white" />
-                    )}
-                  </span>
-                  <span className="flex-1 font-semibold">Uncategorized</span>
-                  <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
-                    {uncategorizedCount}
-                  </span>
-                </Link>
-              )}
-            </div>
-          </aside>
-
-          <main>
-            {filteredPosts.length === 0 ? (
-              <div className="rounded-lg border border-zinc-200 bg-white p-12 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-                <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-                  {sortedPosts.length === 0
-                    ? "No posts yet. Be the first to share!"
-                    : "No posts in this topic yet. Start the conversation."}
-                </p>
-                <Link
-                  href="/app/forum/new"
-                  className="inline-block rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
-                >
-                  Create Post
-                </Link>
+            <div className="flex w-full items-center gap-4 sm:w-auto">
+              <div className="w-full sm:w-64">
+                <SearchInput />
               </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredPosts.map((post) => {
-                  const authorName = post.profiles?.display_name || "Anonymous";
-                  const authorInitials = authorName
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()
-                    .slice(0, 2);
+              <Link
+                href="/app/forum/new"
+                className="whitespace-nowrap rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
+              >
+                New Post
+              </Link>
+            </div>
+          </div>
 
-                  return (
-                    <div
-                      key={post.id}
-                      className={`rounded-lg border bg-white shadow-sm transition-shadow hover:shadow-md dark:bg-zinc-950 ${post.is_pinned
-                          ? "border-blue-300 dark:border-blue-700"
-                          : "border-zinc-200 dark:border-zinc-800"
+          <div className="grid items-start gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
+            <aside className="hidden lg:block">
+              <div className="sticky top-24 space-y-8">
+                {/* Feeds */}
+                <div>
+                  <h3 className="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">
+                    Feeds
+                  </h3>
+                  <nav className="space-y-1">
+                    <Link
+                      href="/app/forum"
+                      className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${topicFilter === "all"
+                        ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50"
+                        : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-200"
                         }`}
                     >
-                      <div className="p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            {post.profiles?.avatar_url ? (
-                              <img
-                                src={post.profiles.avatar_url}
-                                alt={authorName}
-                                className="w-6 h-6 rounded-full"
-                              />
-                            ) : (
-                              <div className="w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                                {authorInitials}
-                              </div>
-                            )}
-                            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
-                              {authorName}
-                            </span>
-                            <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                              {formatTimeAgo(post.created_at)}
-                            </span>
-                          </div>
-                        </div>
+                      <svg viewBox="0 0 24 24" className={`h-5 w-5 ${topicFilter === "all" ? "text-zinc-900 dark:text-zinc-50" : "text-zinc-400 group-hover:text-zinc-500 dark:text-zinc-500 dark:group-hover:text-zinc-400"}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                      Home
+                    </Link>
+                    <Link
+                      href="/app/forum?topic=saved"
+                      className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${topicFilter === "saved"
+                        ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50"
+                        : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-200"
+                        }`}
+                    >
+                      <svg viewBox="0 0 24 24" className={`h-5 w-5 ${topicFilter === "saved" ? "text-zinc-900 dark:text-zinc-50" : "text-zinc-400 group-hover:text-zinc-500 dark:text-zinc-500 dark:group-hover:text-zinc-400"}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                      Saved Posts
+                    </Link>
+                  </nav>
+                </div>
 
-                        <div className="mb-1 flex flex-wrap items-center gap-2">
-                          {post.topic && (
-                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
-                              {topicLabelMap[post.topic] || post.topic}
-                            </span>
-                          )}
-                          {post.is_pinned && (
-                            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                              Pinned
-                            </span>
-                          )}
-                        </div>
-
-                        <Link href={`/app/forum/${post.id}`}>
-                          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50 mb-2 hover:text-zinc-700 dark:hover:text-zinc-300">
-                            {post.title}
-                          </h2>
+                {/* Topics */}
+                <div>
+                  <div className="flex items-center justify-between px-3 mb-2">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">
+                      Topics
+                    </h3>
+                    {topicFilter !== "all" && topicFilter !== "saved" && (
+                      <Link
+                        href="/app/forum"
+                        className="text-[10px] font-bold uppercase text-blue-600 hover:underline dark:text-blue-400"
+                      >
+                        Clear
+                      </Link>
+                    )}
+                  </div>
+                  <nav className="space-y-1">
+                    {FORUM_TOPICS.map((topic) => {
+                      const isSelected = topicFilter === topic.slug;
+                      return (
+                        <Link
+                          key={topic.slug}
+                          href={`/app/forum?topic=${topic.slug}`}
+                          className={`group flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isSelected
+                            ? "bg-emerald-50 text-emerald-900 dark:bg-emerald-900/20 dark:text-emerald-100"
+                            : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-200"
+                            }`}
+                        >
+                          <span className="break-words">{topic.label}</span>
                         </Link>
+                      );
+                    })}
 
-                        <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3 line-clamp-3">
-                          {post.content}
-                        </p>
+                    <Link
+                      href="/app/forum?topic=uncategorized"
+                      className={`group flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${topicFilter === "uncategorized"
+                        ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50"
+                        : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-200"
+                        }`}
+                    >
+                      <span>Uncategorized</span>
+                    </Link>
+                  </nav>
+                </div>
+              </div>
+            </aside>
 
-                        {/* Images Preview */}
-                        {post.image_urls && post.image_urls.length > 0 && (
-                          <div className="mb-3 flex gap-2">
-                            {post.image_urls.slice(0, 3).map((url, idx) => (
-                              <img
-                                key={idx}
-                                src={url}
-                                alt={`Post image ${idx + 1}`}
-                                className="w-20 h-20 object-cover rounded-md"
-                              />
-                            ))}
-                            {post.image_urls.length > 3 && (
-                              <div className="w-20 h-20 rounded-md bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-xs text-zinc-600 dark:text-zinc-400">
-                                +{post.image_urls.length - 3}
+            <main>
+              {filteredPosts.length === 0 ? (
+                <div className="rounded-lg border border-zinc-200 bg-white p-12 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                  <p className="text-zinc-600 dark:text-zinc-400 mb-4">
+                    {sortedPosts.length === 0
+                      ? "No posts yet. Be the first to share!"
+                      : "No posts in this topic yet. Start the conversation."}
+                  </p>
+                  <Link
+                    href="/app/forum/new"
+                    className="inline-block rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
+                  >
+                    Create Post
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredPosts.map((post) => {
+                    const authorName = post.profiles?.display_name || "Anonymous";
+                    const authorInitials = authorName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()
+                      .slice(0, 2);
+
+                    return (
+                      <div
+                        key={post.id}
+                        className={`rounded-xl border bg-white shadow-sm dark:bg-zinc-950 ${post.is_pinned
+                          ? "border-blue-200 bg-blue-50/30 dark:border-blue-900/50 dark:bg-blue-900/10"
+                          : "border-zinc-200 dark:border-zinc-800"
+                          }`}
+                      >
+                        <div className="p-5">
+                          {/* Header */}
+                          <div className="flex items-start justify-between">
+                            <div className="flex gap-3">
+                              <Link
+                                href={`/app/profile/${post.author_id}`}
+                                className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800"
+                              >
+                                {post.profiles?.avatar_url ? (
+                                  <img
+                                    src={post.profiles.avatar_url}
+                                    alt={authorName}
+                                    className="h-full w-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="flex h-full w-full items-center justify-center text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                                    {authorInitials}
+                                  </div>
+                                )}
+                              </Link>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <Link
+                                    href={`/app/profile/${post.author_id}`}
+                                    className="font-bold text-zinc-900 hover:underline dark:text-zinc-100"
+                                  >
+                                    {authorName}
+                                  </Link>
+                                  <span className="text-zinc-300 dark:text-zinc-700">
+                                    •
+                                  </span>
+                                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                                    {formatTimeAgo(post.created_at)}
+                                  </span>
+                                </div>
+                                <div className="mt-1 flex flex-wrap items-center gap-2">
+                                  {post.topic && (
+                                    <Link
+                                      href={`/app/forum?topic=${post.topic}`}
+                                      className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-200 dark:hover:bg-emerald-900/60"
+                                    >
+                                      {topicLabelMap[post.topic] || post.topic}
+                                    </Link>
+                                  )}
+                                  {post.is_pinned && (
+                                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                      Pinned
+                                    </span>
+                                  )}
+                                </div>
                               </div>
+                            </div>
+                          </div>
+
+                          {/* Content & Thumbnail */}
+                          <div className="mt-3 flex gap-3 sm:gap-4">
+                            <div className="flex-1 space-y-3">
+                              <ForumPostLink postId={post.id} className="group block">
+                                <h2 className="text-lg font-bold text-zinc-900 group-hover:text-zinc-700 dark:text-zinc-50 dark:group-hover:text-zinc-300">
+                                  {post.title}
+                                </h2>
+                                <p className="mt-2 text-sm leading-relaxed text-zinc-600 line-clamp-3 dark:text-zinc-400">
+                                  {post.content}
+                                </p>
+                              </ForumPostLink>
+
+                              {/* Tags */}
+                              {post.forum_post_tags && post.forum_post_tags.length > 0 && (
+                                <div className="flex flex-wrap gap-2">
+                                  {post.forum_post_tags.map((tagObj, idx) => (
+                                    <span
+                                      key={idx}
+                                      className="text-xs text-blue-600 dark:text-blue-400"
+                                    >
+                                      #{tagObj.tag}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Thumbnail (Right Side) */}
+                            {post.image_urls && post.image_urls.length > 0 && (
+                              <ForumPostLink postId={post.id} className="shrink-0 pt-1">
+                                <div className="relative h-24 w-28 overflow-hidden rounded-lg border border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+                                  <img
+                                    src={post.image_urls[0]}
+                                    alt="Post thumbnail"
+                                    className="h-full w-full object-cover"
+                                  />
+                                  {post.image_urls.length > 1 && (
+                                    <div className="absolute bottom-1 right-1 flex items-center gap-0.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
+                                      <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
+                                      <span>+{post.image_urls.length - 1}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </ForumPostLink>
                             )}
                           </div>
-                        )}
 
-                        {/* Tags */}
-                        {post.forum_post_tags && post.forum_post_tags.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {post.forum_post_tags.map((tagObj, idx) => (
-                              <span
-                                key={idx}
-                                className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-                              >
-                                #{tagObj.tag}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Actions */}
-                        <div className="flex items-center justify-between gap-4 text-sm text-zinc-500 dark:text-zinc-400">
-                          <Link
-                            href={`/app/forum/${post.id}`}
-                            className="flex items-center gap-1 hover:text-zinc-700 dark:hover:text-zinc-300"
-                          >
-                            💬 {post.comment_count} comments
-                          </Link>
-                          <div className="flex items-center gap-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-                            <div className="flex items-center gap-1">
+                          {/* Actions Footer */}
+                          <div className="mt-4 flex items-center gap-4 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                            <div className="flex items-center rounded-full bg-zinc-100 p-1 dark:bg-zinc-800">
                               <VoteButton
                                 postId={post.id}
                                 voteType="upvote"
                                 isActive={post.user_vote?.vote_type === "upvote"}
+                                className="p-1 hover:text-green-600"
                               >
-                                <svg
-                                  viewBox="0 0 24 24"
-                                  aria-hidden="true"
-                                  className="h-4 w-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M7 11v8a2 2 0 0 0 2 2h6a3 3 0 0 0 2.96-2.46l1.1-6A2 2 0 0 0 17.1 10H14l.72-3.6a2 2 0 0 0-3.7-1.24L7 11Z" />
-                                  <path d="M7 11H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-                                </svg>
+                                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 11v8a2 2 0 0 0 2 2h6a3 3 0 0 0 2.96-2.46l1.1-6A2 2 0 0 0 17.1 10H14l.72-3.6a2 2 0 0 0-3.7-1.24L7 11Z" /><path d="M7 11H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" /></svg>
                               </VoteButton>
-                              <span>{post.upvotes}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
+                              <span className="min-w-[1.5rem] text-center text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                                {post.upvotes - post.downvotes}
+                              </span>
                               <VoteButton
                                 postId={post.id}
                                 voteType="downvote"
                                 isActive={post.user_vote?.vote_type === "downvote"}
+                                className="p-1 hover:text-red-600"
                               >
-                                <svg
-                                  viewBox="0 0 24 24"
-                                  aria-hidden="true"
-                                  className="h-4 w-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M17 13V5a2 2 0 0 0-2-2H9A3 3 0 0 0 6.04 5.46l-1.1 6A2 2 0 0 0 6.9 14H10l-.72 3.6a2 2 0 0 0 3.7 1.24L17 13Z" />
-                                  <path d="M17 13h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2" />
-                                </svg>
+                                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 13V5a2 2 0 0 0-2-2H9A3 3 0 0 0 6.04 5.46l-1.1 6A2 2 0 0 0 6.9 14H10l-.72 3.6a2 2 0 0 0 3.7 1.24L17 13Z" /><path d="M17 13h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2" /></svg>
                               </VoteButton>
-                              <span>{post.downvotes}</span>
                             </div>
+
+                            <Link
+                              href={`/app/forum/${post.id}#comments`}
+                              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                            >
+                              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                              <span>{post.comment_count} Comments</span>
+                            </Link>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </main>
+                    );
+                  })}
+                </div>
+              )}
+            </main>
+          </div>
         </div>
       </div>
-    </div>
+    </ForumScrollRestorationProvider>
   );
 }

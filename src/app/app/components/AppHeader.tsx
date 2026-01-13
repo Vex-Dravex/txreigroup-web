@@ -30,7 +30,7 @@ export default function AppHeader({
               className="flex items-center transition-opacity hover:opacity-80"
             >
               <Image
-                src="/Header Logo.png"
+                src="/Header Logo 2.png"
                 alt="Houston Real Estate Investment Group Header Logo"
                 width={300}
                 height={100}
@@ -93,6 +93,15 @@ export default function AppHeader({
                   }`}
               >
                 Community Forum
+              </Link>
+              <Link
+                href="/app/blog"
+                className={`text-sm font-medium transition-colors ${currentPage === "blog"
+                  ? "text-zinc-900 dark:text-zinc-50"
+                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                  }`}
+              >
+                Blog
               </Link>
               {userRole === "admin" && (
                 <Link

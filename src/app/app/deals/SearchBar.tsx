@@ -19,7 +19,10 @@ export default function SearchBar() {
                 params.delete('search');
             }
 
-            router.push(`/app/deals?${params.toString()}`, { scroll: false });
+            // Only push if params have actually changed
+            if (params.toString() !== searchParams.toString()) {
+                router.push(`/app/deals?${params.toString()}`, { scroll: false });
+            }
         }, 300);
 
         return () => clearTimeout(timeoutId);

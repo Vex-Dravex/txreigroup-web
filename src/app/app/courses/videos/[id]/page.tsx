@@ -5,12 +5,10 @@ import AppHeader from "../../../components/AppHeader";
 import { getPrimaryRole, getUserRoles } from "@/lib/roles";
 import VideoPlayerClient from "../VideoPlayerClient";
 import CommentForm from "../CommentForm";
-import {
-  addEducationComment,
-  addToWatchLater,
-  removeFromWatchLater,
-} from "../actions";
+import { addEducationComment } from "../actions";
 import { sampleVideoMap, sampleVideos } from "../../educationData";
+import { getWatchLaterVideos, toggleWatchLater } from "../../watchLaterActions";
+import YouTubeWatchLaterButton from "../../YouTubeWatchLaterButton";
 
 export const dynamic = "force-dynamic";
 
@@ -158,14 +156,17 @@ export default async function EducationVideoPage({
       };
     });
 
-    const { data: watchLater } = await supabase
-      .from("education_watch_later")
-      .select("id")
-      .eq("user_id", authData.user.id)
-      .eq("video_id", id)
-      .maybeSingle();
-
-    isSaved = Boolean(watchLater);
+    // Check if video is saved to watch later using new table
+    const watchLaterVideos = await getWatchLaterVideos();
+    isSaved = watchLaterVideos.some(
+      (wl) => wl.video_type === "education" && wl.video_id === id
+    );
+  } else if (isSample) {
+    // Check if sample video is saved
+    const watchLaterVideos = await getWatchLaterVideos();
+    isSaved = watchLaterVideos.some(
+      (wl) => wl.video_type === "sample" && wl.video_id === id
+    );
   }
 
   return (
@@ -183,22 +184,8 @@ export default async function EducationVideoPage({
             href="/app/courses"
             className="text-sm font-semibold uppercase tracking-wide text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
           >
-            Back to Education Center
+            ← Back to Education Center
           </Link>
-          {!isSample && (
-            <form action={isSaved ? removeFromWatchLater : addToWatchLater}>
-              <input type="hidden" name="videoId" value={id} />
-              <button
-                type="submit"
-                className={`rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-wide ${isSaved
-                  ? "border border-zinc-300 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                  : "bg-amber-600 text-white hover:bg-amber-500"
-                  }`}
-              >
-                {isSaved ? "Saved to Watch Later" : "Save to Watch Later"}
-              </button>
-            </form>
-          )}
         </div>
 
         <div className="education-video-layout grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
@@ -208,6 +195,16 @@ export default async function EducationVideoPage({
                 videoUrl={isSample ? null : videoData?.video_url}
                 poster={isSample ? null : videoData?.thumbnail_url}
                 title={currentTitle}
+              />
+            </div>
+
+            {/* YouTube-style Watch Later Button */}
+            <div className="flex items-center gap-3">
+              <YouTubeWatchLaterButton
+                videoId={id}
+                videoType={isSample ? "sample" : "education"}
+                initialSaved={isSaved}
+                onToggle={toggleWatchLater}
               />
             </div>
 

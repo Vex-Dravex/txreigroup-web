@@ -7,9 +7,10 @@ type VoteButtonProps = {
   voteType: "upvote" | "downvote";
   isActive: boolean;
   children: React.ReactNode;
+  className?: string;
 };
 
-export function VoteButton({ postId, voteType, isActive, children }: VoteButtonProps) {
+export function VoteButton({ postId, voteType, isActive, children, className = "" }: VoteButtonProps) {
   const handleVote = async () => {
     await voteOnPost(postId, voteType);
     window.location.reload();
@@ -21,9 +22,8 @@ export function VoteButton({ postId, voteType, isActive, children }: VoteButtonP
   return (
     <button
       onClick={handleVote}
-      className={`text-lg transition-colors ${
-        isActive ? activeClass : `text-zinc-400 ${hoverClass}`
-      }`}
+      className={`transition-colors ${isActive ? activeClass : `text-zinc-400 ${hoverClass}`
+        } ${className}`}
     >
       {children}
     </button>
