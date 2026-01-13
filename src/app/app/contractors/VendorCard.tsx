@@ -19,13 +19,15 @@ export default function VendorCard({ vendor, verifiedLabel = "Verified Vendor" }
   const pastProjects = vendor.pastProjects.slice(0, 3);
 
   return (
-    <Link
-      href={`/app/profile/${vendor.id}`}
-      className="block h-full transition-transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-xl"
-    >
-      <div className="flex h-full flex-col rounded-xl border border-zinc-200 bg-white/60 p-5 shadow-sm ring-1 ring-inset ring-white/40 backdrop-blur transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950/60 dark:ring-black/40">
-
-        <div className="flex items-start gap-4">
+    <div className="group relative block h-full">
+      <div className="flex h-full flex-col rounded-xl border border-zinc-200 bg-white/60 p-5 shadow-sm ring-1 ring-inset ring-white/40 backdrop-blur transition-all duration-200 hover:scale-[1.02] hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950/60 dark:ring-black/40">
+        <Link
+          href={`/app/profile/${vendor.id}`}
+          className="absolute inset-0 z-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          <span className="sr-only">View profile for {vendor.name}</span>
+        </Link>
+        <div className="relative z-10 flex items-start gap-4 pointer-events-none">
           <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-zinc-200 bg-gradient-to-br from-blue-50 to-emerald-50 text-lg font-semibold text-zinc-900 dark:border-zinc-800 dark:from-blue-900/40 dark:to-emerald-900/40 dark:text-zinc-50">
             {vendor.logoUrl ? (
               <img src={vendor.logoUrl} alt={vendor.name} className="h-full w-full object-cover" />
@@ -86,10 +88,10 @@ export default function VendorCard({ vendor, verifiedLabel = "Verified Vendor" }
         </div>
 
         {vendor.description && (
-          <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">{vendor.description}</p>
+          <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400 pointer-events-none">{vendor.description}</p>
         )}
 
-        <div className="mt-4 grid gap-3 rounded-lg border border-zinc-200 bg-white/80 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-950/60">
+        <div className="mt-4 grid gap-3 rounded-lg border border-zinc-200 bg-white/80 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-950/60 pointer-events-auto relative z-20">
           <p className="font-medium text-zinc-900 dark:text-zinc-50">Contact</p>
           <div className="flex flex-wrap gap-3 text-zinc-600 dark:text-zinc-400">
             {vendor.contact.name && (
@@ -129,7 +131,7 @@ export default function VendorCard({ vendor, verifiedLabel = "Verified Vendor" }
                   href={vendor.contact.website}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-blue-600 hover:underline dark:text-blue-300"
+                  className="text-blue-600 hover:underline dark:text-blue-300 relative z-30"
                 >
                   Website
                 </a>
@@ -144,7 +146,7 @@ export default function VendorCard({ vendor, verifiedLabel = "Verified Vendor" }
         </div>
 
         {pastProjects.length > 0 && (
-          <div className="mt-4 rounded-lg border border-zinc-200 bg-gradient-to-br from-zinc-50 to-white p-4 dark:from-zinc-900 dark:to-zinc-950 dark:border-zinc-800">
+          <div className="mt-4 rounded-lg border border-zinc-200 bg-gradient-to-br from-zinc-50 to-white p-4 dark:from-zinc-900 dark:to-zinc-950 dark:border-zinc-800 pointer-events-none">
             <p className="mb-3 text-sm font-semibold text-zinc-900 dark:text-zinc-50">Recent work & references</p>
             <div className="space-y-3">
               {pastProjects.map((project, idx) => (
@@ -171,6 +173,6 @@ export default function VendorCard({ vendor, verifiedLabel = "Verified Vendor" }
           </div>
         )}
       </div>
-    </Link>
+    </div>
   );
 }

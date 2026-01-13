@@ -16,6 +16,7 @@ type Video = {
   thumbnailUrl?: string | null;
   href?: string;
   badge?: string;
+  createdAt?: string;
 };
 
 type CourseVideo = {
@@ -36,11 +37,14 @@ type EducationVideo = {
   topics: string[];
   level: string;
   video_url: string;
+  thumbnail_url?: string | null;
+  created_at: string;
 };
 
 const sampleVideoCards: Video[] = sampleVideos.map((video) => ({
   ...video,
   href: video.href,
+  createdAt: "2023-01-01T00:00:00Z", // Treat samples as old
 }));
 
 const formatCourseVideos = (courseVideos: CourseVideo[]): Video[] =>
@@ -55,6 +59,7 @@ const formatCourseVideos = (courseVideos: CourseVideo[]): Video[] =>
     thumbnailUrl: course.thumbnailUrl,
     href: course.href,
     badge: course.badge,
+    createdAt: "2023-01-01T00:00:00Z", // Courses date logic could be improved if provided
   }));
 
 const formatEducationVideos = (educationVideos: EducationVideo[]): Video[] =>
@@ -67,6 +72,8 @@ const formatEducationVideos = (educationVideos: EducationVideo[]): Video[] =>
     topics: video.topics,
     type: "video",
     href: `/app/courses/videos/${video.id}`,
+    thumbnailUrl: video.thumbnail_url,
+    createdAt: video.created_at,
   }));
 
 const getVideoIcon = () => (
@@ -104,7 +111,12 @@ export default function EducationCenterClient({
   const combinedVideos = useMemo(() => {
     const mappedCourses = formatCourseVideos(courseVideos);
     const mappedEducation = formatEducationVideos(educationVideos);
-    return [...sampleVideoCards, ...mappedEducation, ...mappedCourses];
+    // Sort all videos by creation date desc
+    return [...sampleVideoCards, ...mappedEducation, ...mappedCourses].sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateB - dateA;
+    });
   }, [courseVideos, educationVideos]);
 
   const filteredVideos = useMemo(() => {
@@ -200,11 +212,10 @@ export default function EducationCenterClient({
                     className="flex cursor-pointer items-center gap-3 text-sm text-zinc-700 dark:text-zinc-300"
                   >
                     <span
-                      className={`flex h-5 w-5 items-center justify-center rounded-full border ${
-                        isSelected
+                      className={`flex h-5 w-5 items-center justify-center rounded-full border ${isSelected
                           ? "border-amber-600 bg-amber-500"
                           : "border-zinc-300 bg-white dark:border-zinc-600 dark:bg-zinc-900"
-                      }`}
+                        }`}
                     >
                       {isSelected && (
                         <span className="h-2.5 w-2.5 rounded-full bg-white" />
@@ -325,6 +336,10 @@ export default function EducationCenterClient({
 
             <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
               {filteredVideos.map((video) => {
+                const isNew =
+                  video.createdAt &&
+                  Date.now() - new Date(video.createdAt).getTime() < 24 * 60 * 60 * 1000;
+
                 const card = (
                   <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
                     <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700">
@@ -339,11 +354,16 @@ export default function EducationCenterClient({
                           {getVideoIcon()}
                         </div>
                       )}
-                      {video.badge && (
+
+                      {isNew ? (
+                        <span className="absolute left-4 top-4 rounded-full bg-green-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+                          New
+                        </span>
+                      ) : video.badge ? (
                         <span className="absolute left-4 top-4 rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
                           {video.badge}
                         </span>
-                      )}
+                      ) : null}
                     </div>
                     <div className="flex flex-1 flex-col p-5">
                       <div className="flex items-start justify-between gap-3">

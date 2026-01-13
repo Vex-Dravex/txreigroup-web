@@ -4,6 +4,7 @@ import Link from "next/link";
 import AppHeader from "../components/AppHeader";
 import { getPrimaryRole, getUserRoles } from "@/lib/roles";
 import { VoteButton } from "./components/VoteButton";
+import { SearchInput } from "./components/SearchInput";
 import { FORUM_TOPICS } from "./topics";
 
 // Force dynamic rendering
@@ -43,6 +44,7 @@ type Profile = {
 
 type ForumPageSearchParams = {
   topic?: string;
+  search?: string;
 };
 
 export default async function ForumPage({
@@ -67,7 +69,24 @@ export default async function ForumPage({
   const userRole = getPrimaryRole(roles, profileData?.role || "investor");
 
   // Fetch forum posts with author info and tags
-  const { data: posts, error } = await supabase
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const searchTerm = resolvedSearchParams?.search || "";
+
+  // If searching, first get post IDs that match tags
+  let tagPostIds: string[] = [];
+  if (searchTerm) {
+    const { data: tagData } = await supabase
+      .from("forum_post_tags")
+      .select("post_id")
+      .ilike("tag", `%${searchTerm}%`);
+
+    if (tagData) {
+      tagPostIds = tagData.map((t: any) => t.post_id); // Type assertion if needed, or rely on inference
+    }
+  }
+
+  // Fetch forum posts with author info and tags
+  let query = supabase
     .from("forum_posts")
     .select(`
       *,
@@ -82,6 +101,20 @@ export default async function ForumPage({
     .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(50);
+
+  if (searchTerm) {
+    const orConditions = [
+      `title.ilike.%${searchTerm}%`,
+      `content.ilike.%${searchTerm}%`,
+      `topic.ilike.%${searchTerm}%`
+    ];
+    if (tagPostIds.length > 0) {
+      orConditions.push(`id.in.(${tagPostIds.join(',')})`);
+    }
+    query = query.or(orConditions.join(','));
+  }
+
+  const { data: posts, error } = await query;
 
   if (error) {
     console.error("Error fetching forum posts:", error);
@@ -106,13 +139,13 @@ export default async function ForumPage({
     // Pinned posts always first
     if (a.is_pinned && !b.is_pinned) return -1;
     if (!a.is_pinned && b.is_pinned) return 1;
-    
+
     // Calculate hot score
     const hoursA = (now - new Date(a.created_at).getTime()) / (1000 * 60 * 60);
     const hoursB = (now - new Date(b.created_at).getTime()) / (1000 * 60 * 60);
     const scoreA = (a.upvotes - a.downvotes) / Math.max(hoursA, 1);
     const scoreB = (b.upvotes - b.downvotes) / Math.max(hoursB, 1);
-    
+
     return scoreB - scoreA;
   });
 
@@ -120,7 +153,8 @@ export default async function ForumPage({
     acc[topic.slug] = topic.label;
     return acc;
   }, {});
-  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  /* const resolvedSearchParams = searchParams ? await searchParams : undefined; 
+     Already resolved above */
   const topicFilter = resolvedSearchParams?.topic || "all";
   const filteredPosts =
     topicFilter === "all"
@@ -148,24 +182,29 @@ export default async function ForumPage({
       <AppHeader
         userRole={userRole}
         currentPage="forum"
-      avatarUrl={profileData?.avatar_url || null}
-      displayName={profileData?.display_name || null}
-      email={authData.user.email}
-    />
+        avatarUrl={profileData?.avatar_url || null}
+        displayName={profileData?.display_name || null}
+        email={authData.user.email}
+      />
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">Community Forum</h1>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
               Share ideas, ask questions, and connect with the community
             </p>
           </div>
-          <Link
-            href="/app/forum/new"
-            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
-          >
-            New Post
-          </Link>
+          <div className="flex w-full items-center gap-4 sm:w-auto">
+            <div className="w-full sm:w-64">
+              <SearchInput />
+            </div>
+            <Link
+              href="/app/forum/new"
+              className="whitespace-nowrap rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
+            >
+              New Post
+            </Link>
+          </div>
         </div>
 
         <div className="grid items-start gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
@@ -187,11 +226,10 @@ export default async function ForumPage({
                 className="flex items-center gap-3 text-sm text-zinc-700 transition-colors hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
               >
                 <span
-                  className={`flex h-5 w-5 items-center justify-center rounded-full border ${
-                    topicFilter === "all"
+                  className={`flex h-5 w-5 items-center justify-center rounded-full border ${topicFilter === "all"
                       ? "border-blue-600 bg-blue-500"
                       : "border-zinc-300 bg-white dark:border-zinc-600 dark:bg-zinc-900"
-                  }`}
+                    }`}
                 >
                   {topicFilter === "all" && <span className="h-2.5 w-2.5 rounded-full bg-white" />}
                 </span>
@@ -210,11 +248,10 @@ export default async function ForumPage({
                     className="flex items-center gap-3 text-sm text-zinc-700 transition-colors hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
                   >
                     <span
-                      className={`flex h-5 w-5 items-center justify-center rounded-full border ${
-                        isSelected
+                      className={`flex h-5 w-5 items-center justify-center rounded-full border ${isSelected
                           ? "border-blue-600 bg-blue-500"
                           : "border-zinc-300 bg-white dark:border-zinc-600 dark:bg-zinc-900"
-                      }`}
+                        }`}
                     >
                       {isSelected && <span className="h-2.5 w-2.5 rounded-full bg-white" />}
                     </span>
@@ -231,17 +268,16 @@ export default async function ForumPage({
                   href="/app/forum?topic=uncategorized"
                   className="flex items-center gap-3 text-sm text-zinc-700 transition-colors hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
                 >
-                    <span
-                      className={`flex h-5 w-5 items-center justify-center rounded-full border ${
-                        topicFilter === "uncategorized"
-                          ? "border-blue-600 bg-blue-500"
-                          : "border-zinc-300 bg-white dark:border-zinc-600 dark:bg-zinc-900"
+                  <span
+                    className={`flex h-5 w-5 items-center justify-center rounded-full border ${topicFilter === "uncategorized"
+                        ? "border-blue-600 bg-blue-500"
+                        : "border-zinc-300 bg-white dark:border-zinc-600 dark:bg-zinc-900"
                       }`}
-                    >
-                      {topicFilter === "uncategorized" && (
-                        <span className="h-2.5 w-2.5 rounded-full bg-white" />
-                      )}
-                    </span>
+                  >
+                    {topicFilter === "uncategorized" && (
+                      <span className="h-2.5 w-2.5 rounded-full bg-white" />
+                    )}
+                  </span>
                   <span className="flex-1 font-semibold">Uncategorized</span>
                   <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
                     {uncategorizedCount}
@@ -280,11 +316,10 @@ export default async function ForumPage({
                   return (
                     <div
                       key={post.id}
-                      className={`rounded-lg border bg-white shadow-sm transition-shadow hover:shadow-md dark:bg-zinc-950 ${
-                        post.is_pinned
+                      className={`rounded-lg border bg-white shadow-sm transition-shadow hover:shadow-md dark:bg-zinc-950 ${post.is_pinned
                           ? "border-blue-300 dark:border-blue-700"
                           : "border-zinc-200 dark:border-zinc-800"
-                      }`}
+                        }`}
                     >
                       <div className="p-4">
                         <div className="flex items-start justify-between mb-2">

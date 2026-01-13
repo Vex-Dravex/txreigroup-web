@@ -25,6 +25,7 @@ type EducationVideo = {
   topics: string[];
   level: string;
   video_url: string;
+  thumbnail_url: string | null;
   created_at: string;
 };
 
@@ -70,7 +71,7 @@ export default async function CoursesPage() {
 
   const { data: educationVideos, error: educationError } = await supabase
     .from("education_videos")
-    .select("id, title, description, topics, level, video_url, created_at")
+    .select("id, title, description, topics, level, video_url, thumbnail_url, created_at")
     .eq("is_published", true)
     .order("created_at", { ascending: false });
 

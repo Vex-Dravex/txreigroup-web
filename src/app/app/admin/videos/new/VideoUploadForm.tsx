@@ -44,6 +44,24 @@ export default function VideoUploadForm() {
     setSelectedFile(file);
   };
 
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailKey, setThumbnailKey] = useState(0);
+
+  const handleThumbnailInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    if (!file) {
+      setThumbnailFile(null);
+      setThumbnailKey((prev) => prev + 1);
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      setThumbnailFile(null);
+      setThumbnailKey((prev) => prev + 1);
+      return;
+    }
+    setThumbnailFile(file);
+  };
+
   const toggleTopic = (topic: string) => {
     setSelectedTopics((prev) =>
       prev.includes(topic)
@@ -56,14 +74,12 @@ export default function VideoUploadForm() {
     <form
       className="space-y-8"
       action={createEducationVideo}
-      encType="multipart/form-data"
     >
       <div
-        className={`relative rounded-2xl border-2 border-dashed p-8 text-center transition ${
-          dragActive
-            ? "border-amber-500 bg-amber-50 dark:bg-amber-500/10"
-            : "border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-950"
-        }`}
+        className={`relative rounded-2xl border-2 border-dashed p-8 text-center transition ${dragActive
+          ? "border-amber-500 bg-amber-50 dark:bg-amber-500/10"
+          : "border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-950"
+          }`}
         onDragOver={(event) => {
           event.preventDefault();
           setDragActive(true);
@@ -154,6 +170,24 @@ export default function VideoUploadForm() {
           </div>
           <div>
             <label className="text-xs font-semibold uppercase text-zinc-500 dark:text-zinc-400">
+              Thumbnail
+            </label>
+            <div className="mt-2">
+              <input
+                key={thumbnailKey}
+                name="thumbnail"
+                type="file"
+                accept="image/*"
+                onChange={handleThumbnailInput}
+                className="mt-1 block w-full text-sm text-zinc-500 file:mr-4 file:rounded-full file:border-0 file:bg-zinc-900 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-white hover:file:bg-zinc-800 dark:file:bg-white dark:file:text-zinc-900 dark:hover:file:bg-zinc-200"
+              />
+              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                Recommended: 16:9 aspect ratio (e.g. 1280x720)
+              </p>
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-semibold uppercase text-zinc-500 dark:text-zinc-400">
               Lesson level
             </label>
             <input type="hidden" name="level" value={level} />
@@ -163,11 +197,10 @@ export default function VideoUploadForm() {
                   key={option}
                   type="button"
                   onClick={() => setLevel(option)}
-                  className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-wide ${
-                    level === option
-                      ? "border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-900"
-                      : "border-zinc-200 bg-white text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
-                  }`}
+                  className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-wide ${level === option
+                    ? "border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-900"
+                    : "border-zinc-200 bg-white text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                    }`}
                 >
                   {option}
                 </button>
@@ -203,11 +236,10 @@ export default function VideoUploadForm() {
                   className="flex cursor-pointer items-center gap-3 text-sm text-zinc-700 dark:text-zinc-300"
                 >
                   <span
-                    className={`flex h-5 w-5 items-center justify-center rounded-full border ${
-                      isSelected
-                        ? "border-amber-600 bg-amber-500"
-                        : "border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-900"
-                    }`}
+                    className={`flex h-5 w-5 items-center justify-center rounded-full border ${isSelected
+                      ? "border-amber-600 bg-amber-500"
+                      : "border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+                      }`}
                   >
                     {isSelected && (
                       <span className="h-2.5 w-2.5 rounded-full bg-white" />
@@ -241,11 +273,10 @@ export default function VideoUploadForm() {
         <button
           type="submit"
           disabled={!isReadyToSave}
-          className={`rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-wide ${
-            isReadyToSave
-              ? "bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-              : "cursor-not-allowed bg-zinc-200 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-500"
-          }`}
+          className={`rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-wide ${isReadyToSave
+            ? "bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+            : "cursor-not-allowed bg-zinc-200 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-500"
+            }`}
         >
           Save video
         </button>

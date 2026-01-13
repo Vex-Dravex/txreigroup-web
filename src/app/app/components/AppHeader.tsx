@@ -24,7 +24,7 @@ export default function AppHeader({
     <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-4">
             <Link
               href="/"
               className="flex items-center transition-opacity hover:opacity-80"
@@ -32,9 +32,9 @@ export default function AppHeader({
               <Image
                 src="/Header Logo.png"
                 alt="Houston Real Estate Investment Group Header Logo"
-                width={180}
-                height={60}
-                className="h-10 w-auto object-contain"
+                width={300}
+                height={100}
+                className="h-14 w-auto object-contain"
                 priority
                 unoptimized
               />

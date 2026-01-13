@@ -47,6 +47,7 @@ export async function createEducationVideo(formData: FormData) {
   const level = String(formData.get("level") || "Beginner");
   const topics = formData.getAll("topics").map((topic) => String(topic));
   const file = formData.get("file");
+  const thumbnailFile = formData.get("thumbnail");
 
   if (!title) {
     throw new Error("Title is required");
@@ -78,6 +79,34 @@ export async function createEducationVideo(formData: FormData) {
     .from(STORAGE_BUCKET)
     .getPublicUrl(storagePath);
 
+  let thumbnailStoragePath: string | null = null;
+  let thumbnailUrl: string | null = null;
+
+  if (thumbnailFile instanceof File && thumbnailFile.size > 0) {
+    if (!thumbnailFile.type.startsWith("image/")) {
+      throw new Error("Thumbnail must be an image");
+    }
+
+    const thumbName = sanitizeFileName(thumbnailFile.name || "thumbnail");
+    thumbnailStoragePath = `${adminId}/thumbs/${crypto.randomUUID()}-${thumbName}`;
+
+    const { error: thumbUploadError } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .upload(thumbnailStoragePath, thumbnailFile, {
+        contentType: thumbnailFile.type,
+      });
+
+    if (thumbUploadError) {
+      console.warn("Failed to upload thumbnail:", thumbUploadError);
+      // Don't fail the whole request, just log it
+    } else {
+      const { data: thumbPublicUrl } = supabase.storage
+        .from(STORAGE_BUCKET)
+        .getPublicUrl(thumbnailStoragePath);
+      thumbnailUrl = thumbPublicUrl.publicUrl;
+    }
+  }
+
   const { error: insertError } = await supabase
     .from("education_videos")
     .insert({
@@ -87,6 +116,8 @@ export async function createEducationVideo(formData: FormData) {
       topics,
       video_url: publicUrl.publicUrl,
       storage_path: storagePath,
+      thumbnail_url: thumbnailUrl,
+      thumbnail_storage_path: thumbnailStoragePath,
       mime_type: file.type,
       file_size: file.size,
       created_by: adminId,

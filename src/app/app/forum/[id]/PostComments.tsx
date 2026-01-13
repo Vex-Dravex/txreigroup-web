@@ -2,7 +2,18 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import CommentForm from "./CommentForm";
 import CommentList from "./CommentList";
 
-export default async function PostComments({ postId }: { postId: string }) {
+type Profile = {
+  display_name: string | null;
+  avatar_url: string | null;
+};
+
+export default async function PostComments({
+  postId,
+  currentUserProfile,
+}: {
+  postId: string;
+  currentUserProfile: Profile | null;
+}) {
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
 
@@ -47,7 +58,11 @@ export default async function PostComments({ postId }: { postId: string }) {
 
       {authData.user && (
         <div className="mt-6">
-          <CommentForm postId={postId} />
+          <CommentForm
+            postId={postId}
+            userAvatarUrl={currentUserProfile?.avatar_url || null}
+            userDisplayName={currentUserProfile?.display_name || null}
+          />
         </div>
       )}
     </div>

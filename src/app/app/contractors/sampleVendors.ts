@@ -2,7 +2,7 @@ import { VendorListing } from "./types";
 
 export const exampleVendors: VendorListing[] = [
     {
-        id: "sample-1",
+        id: "8d3c63d8-57e3-4428-ba2e-067755c3c0a1",
         name: "Lone Star General Builders",
         tagline: "Investor-first general contracting crew across North + Central Texas",
         description:
@@ -39,7 +39,7 @@ export const exampleVendors: VendorListing[] = [
         ],
     },
     {
-        id: "sample-2",
+        id: "f4917400-b618-4221-8255-0d29377651a2",
         name: "Bluebonnet Plumbing & Mechanical",
         tagline: "Licensed plumbing + gas with 24/7 investor service line",
         description:
@@ -75,7 +75,7 @@ export const exampleVendors: VendorListing[] = [
         ],
     },
     {
-        id: "sample-3",
+        id: "a1d82084-3c66-4176-9653-90226301e2b3",
         name: "Skyline Roofing & Exteriors",
         tagline: "Insurance-savvy roofers who protect ARV and closing timelines",
         description:
@@ -111,7 +111,7 @@ export const exampleVendors: VendorListing[] = [
         ],
     },
     {
-        id: "sample-4",
+        id: "c5e91122-8f50-482a-b733-14568902f3c4",
         name: "Hill Country HVAC & Electrical",
         tagline: "Comfort systems tuned for rental durability",
         description:
@@ -147,7 +147,7 @@ export const exampleVendors: VendorListing[] = [
         ],
     },
     {
-        id: "sample-5",
+        id: "e9204432-6a71-4951-8944-45678913d4d5",
         name: "Coastal Finish Drywall + Paint",
         tagline: "Clean finishes, investor-grade pricing",
         description:
@@ -182,7 +182,7 @@ export const exampleVendors: VendorListing[] = [
         ],
     },
     {
-        id: "sample-6",
+        id: "b7113344-9c82-4062-9511-78901234e5e6",
         name: "GreenBelt Landscape & Outdoor",
         tagline: "Curb appeal and outdoor living that sell the deal",
         description:

@@ -47,11 +47,19 @@ export async function requestNetwork(targetUserId: string) {
     }
   }
 
+  const { data: requesterProfile } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("id", authData.user.id)
+    .single();
+
+  const requesterName = requesterProfile?.display_name || "A member";
+
   const { error: notificationError } = await supabase.from("notifications").insert({
     user_id: targetUserId,
     type: "network_request",
     title: "New Network Request",
-    message: "You received a new network request. Review it on your profile page.",
+    message: `${requesterName} Would like to add you to their network`,
     related_deal_id: null,
     metadata: {
       requester_id: authData.user.id,

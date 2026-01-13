@@ -307,7 +307,7 @@ export default async function PostDetailPage({ params }: PostPageParams) {
 
         {/* Comments Section */}
         <div id="comments">
-          <PostComments postId={postData.id} />
+          <PostComments postId={postData.id} currentUserProfile={profileData} />
         </div>
       </div>
     </div>

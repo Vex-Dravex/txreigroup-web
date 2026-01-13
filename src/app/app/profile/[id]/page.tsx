@@ -40,12 +40,7 @@ type Review = {
   comment: string;
   rating: number;
   created_at: string;
-  reviewer: {
-    id: string;
-    display_name: string | null;
-    avatar_url: string | null;
-    role: string | null;
-  }[] | null;
+  reviewer: any;
 };
 
 type NetworkRequest = {
@@ -53,6 +48,16 @@ type NetworkRequest = {
   status: "pending" | "accepted" | "declined";
   requester_id: string;
   requestee_id: string;
+  requester?: any;
+  requestee?: any;
+};
+
+const getSingleUser = (data: any) => {
+  if (!data) return null;
+  if (Array.isArray(data)) {
+    return data.length > 0 ? data[0] : null;
+  }
+  return data;
 };
 
 export default async function UserProfilePage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
@@ -81,22 +86,13 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
 
   const isOwner = authData.user.id === profileId;
 
-  // Check if this is a sample vendor or transaction service BEFORE checking database profile
-  const isSampleVendor = profileId.startsWith("sample-");
-  const isSampleTransactionService = profileId.startsWith("ts-");
-  let sampleVendorData: VendorListing | null = null;
+  // Check if this is a sample vendor or transaction service using ID lookup
+  const sampleVendorData: VendorListing | null =
+    exampleVendors.find(v => v.id === profileId) ||
+    exampleTransactionServices.find(v => v.id === profileId) ||
+    null;
 
-  if (isSampleVendor) {
-    sampleVendorData = exampleVendors.find(v => v.id === profileId) || null;
-    if (!sampleVendorData) {
-      notFound();
-    }
-  } else if (isSampleTransactionService) {
-    sampleVendorData = exampleTransactionServices.find(v => v.id === profileId) || null;
-    if (!sampleVendorData) {
-      notFound();
-    }
-  } else if (!profile && !isOwner) {
+  if (!profile && !isOwner && !sampleVendorData) {
     notFound();
   }
 
@@ -121,34 +117,15 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
     bio: null,
   }) as Profile;
 
-  // Check if this is a sample vendor or transaction service and merge data
-  if (profileId.startsWith("sample-")) {
-    sampleVendorData = exampleVendors.find(v => v.id === profileId) || null;
-
-    if (sampleVendorData) {
-      // Merge sample vendor data with profile
-      profileData.display_name = sampleVendorData.name;
-      profileData.avatar_url = sampleVendorData.avatarUrl || sampleVendorData.logoUrl || null;
-      profileData.banner_url = sampleVendorData.bannerUrl || null;
-      profileData.bio = sampleVendorData.description || null;
+  if (sampleVendorData) {
+    // Merge sample vendor data with profile to ensure consistency with rich data sections
+    profileData.display_name = sampleVendorData.name;
+    profileData.avatar_url = sampleVendorData.avatarUrl || sampleVendorData.logoUrl || null;
+    profileData.banner_url = sampleVendorData.bannerUrl || null;
+    profileData.bio = sampleVendorData.description || null;
+    // Ensure role matches the implicit role of these vendors if not set correctly in DB
+    if (!profile) {
       profileData.role = "contractor";
-    } else if (!profile) {
-      // Sample vendor ID but not found
-      notFound();
-    }
-  } else if (profileId.startsWith("ts-")) {
-    sampleVendorData = exampleTransactionServices.find(v => v.id === profileId) || null;
-
-    if (sampleVendorData) {
-      // Merge transaction service data with profile
-      profileData.display_name = sampleVendorData.name;
-      profileData.avatar_url = sampleVendorData.avatarUrl || sampleVendorData.logoUrl || null;
-      profileData.banner_url = sampleVendorData.bannerUrl || null;
-      profileData.bio = sampleVendorData.description || null;
-      profileData.role = "contractor";
-    } else if (!profile) {
-      // Transaction service ID but not found
-      notFound();
     }
   }
 
@@ -275,7 +252,9 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                     <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                       {formatRoleLabel(profileData.role)}
                     </span>
-                    <span>{networkCount} connections</span>
+                    <Link href={`/app/profile/${profileId}/connections`} className="hover:underline">
+                      {networkCount} connections
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -303,45 +282,51 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
           <div className="mt-6 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
             <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Network Requests</h2>
             <div className="space-y-4">
-              {pendingRequests.map((request) => (
-                <div key={request.id} className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-                      {request.requester?.[0]?.avatar_url ? (
-                        <img src={request.requester[0].avatar_url} alt={request.requester[0].display_name || "User"} className="h-full w-full object-cover" />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-zinc-500">
-                          {(request.requester?.[0]?.display_name || "U").slice(0, 1).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <div className="font-medium text-zinc-900 dark:text-zinc-50">
-                        {request.requester?.[0]?.display_name || "Community member"}
+              {pendingRequests.map((request) => {
+                const requester = getSingleUser(request.requester);
+                if (!requester) return null;
+                return (
+                  <div key={request.id} className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                        {requester.avatar_url ? (
+                          <img src={requester.avatar_url} alt={requester.display_name || "User"} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-zinc-500">
+                            {(requester.display_name || "U").slice(0, 1).toUpperCase()}
+                          </div>
+                        )}
                       </div>
-                      <div className="text-xs text-zinc-500 dark:text-zinc-400">Wants to connect</div>
+                      <div>
+                        <div className="font-medium text-zinc-900 dark:text-zinc-50">
+                          {requester.display_name || "Community member"}
+                        </div>
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                          Would like to add you to their network
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <form action={respondNetworkRequest.bind(null, request.id, "accepted")}>
+                        <button
+                          type="submit"
+                          className="rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500"
+                        >
+                          Accept
+                        </button>
+                      </form>
+                      <form action={respondNetworkRequest.bind(null, request.id, "declined")}>
+                        <button
+                          type="submit"
+                          className="rounded-full bg-zinc-200 px-4 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                        >
+                          Decline
+                        </button>
+                      </form>
                     </div>
                   </div>
-                  <div className="flex gap-3">
-                    <form action={respondNetworkRequest.bind(null, request.id, "accepted")}>
-                      <button
-                        type="submit"
-                        className="rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500"
-                      >
-                        Accept
-                      </button>
-                    </form>
-                    <form action={respondNetworkRequest.bind(null, request.id, "declined")}>
-                      <button
-                        type="submit"
-                        className="rounded-full bg-zinc-200 px-4 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
-                      >
-                        Decline
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -456,35 +441,44 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                 </div>
               ) : (
                 <div className="mb-6 space-y-4">
-                  {reviews.map((review) => (
-                    <div key={review.id} className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-                          {review.reviewer?.[0]?.avatar_url ? (
-                            <img src={review.reviewer[0].avatar_url} alt={review.reviewer[0].display_name || "Reviewer"} className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-zinc-500">
-                              {(review.reviewer?.[0]?.display_name || "U").slice(0, 1).toUpperCase()}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-                                {review.reviewer?.[0]?.display_name || "Community member"}
+                  {reviews.map((review) => {
+                    const reviewer = getSingleUser(review.reviewer);
+                    return (
+                      <div key={review.id} className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+                        <div className="flex items-center gap-3">
+                          <Link
+                            href={reviewer?.id ? `/app/profile/${reviewer.id}` : "#"}
+                            className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-zinc-200 hover:opacity-90 transition-opacity dark:bg-zinc-800"
+                          >
+                            {reviewer?.avatar_url ? (
+                              <img src={reviewer.avatar_url} alt={reviewer.display_name || "Reviewer"} className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-zinc-500">
+                                {(reviewer?.display_name || "U").slice(0, 1).toUpperCase()}
                               </div>
-                              <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                                {new Date(review.created_at).toLocaleDateString()}
+                            )}
+                          </Link>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <Link
+                                  href={reviewer?.id ? `/app/profile/${reviewer.id}` : "#"}
+                                  className="block text-sm font-semibold text-zinc-900 hover:underline dark:text-zinc-50"
+                                >
+                                  {reviewer?.display_name || "Community member"}
+                                </Link>
+                                <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                                  {new Date(review.created_at).toLocaleDateString()}
+                                </div>
                               </div>
+                              <StarDisplay rating={review.rating || 5} size="sm" />
                             </div>
-                            <StarDisplay rating={review.rating || 5} size="sm" />
                           </div>
                         </div>
+                        <p className="mt-3 text-sm text-zinc-700 dark:text-zinc-300">{review.comment}</p>
                       </div>
-                      <p className="mt-3 text-sm text-zinc-700 dark:text-zinc-300">{review.comment}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
@@ -628,7 +622,9 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                 <div className="mt-4 grid gap-3">
                   {networkConnections.map((connection) => {
                     const isRequester = connection.requester_id === profileData.id;
-                    const otherUser = isRequester ? connection.requestee?.[0] : connection.requester?.[0];
+                    const requesteeUser = getSingleUser(connection.requestee);
+                    const requesterUser = getSingleUser(connection.requester);
+                    const otherUser = isRequester ? requesteeUser : requesterUser;
                     if (!otherUser) return null;
                     return (
                       <div key={`${connection.requester_id}-${connection.requestee_id}`} className="flex items-center gap-3">
@@ -666,6 +662,6 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 }

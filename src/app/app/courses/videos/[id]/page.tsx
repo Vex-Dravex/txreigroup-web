@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import AppHeader from "../../../components/AppHeader";
 import { getPrimaryRole, getUserRoles } from "@/lib/roles";
 import VideoPlayerClient from "../VideoPlayerClient";
+import CommentForm from "../CommentForm";
 import {
   addEducationComment,
   addToWatchLater,
@@ -27,6 +28,7 @@ type EducationVideo = {
   level: string;
   topics: string[];
   video_url: string;
+  thumbnail_url: string | null;
   created_at: string;
 };
 
@@ -34,6 +36,7 @@ type VideoComment = {
   id: string;
   body: string;
   created_at: string;
+  author_id: string;
   profiles: { display_name: string | null; avatar_url: string | null } | null;
 };
 
@@ -41,14 +44,16 @@ type VideoCommentRow = {
   id: string;
   body: string;
   created_at: string;
-  profiles: { display_name: string | null; avatar_url: string | null }[] | null;
+  author_id: string;
+  profiles: { display_name: string | null; avatar_url: string | null } | { display_name: string | null; avatar_url: string | null }[] | null;
 };
 
 export default async function EducationVideoPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
 
@@ -69,16 +74,16 @@ export default async function EducationVideoPage({
   const primaryRole = getPrimaryRole(roles, profileData?.role || "investor");
 
   const sampleVideo =
-    sampleVideoMap[params.id] ||
-    sampleVideos.find((video) => video.id === params.id);
+    sampleVideoMap[id] ||
+    sampleVideos.find((video) => video.id === id);
   let isSample = Boolean(sampleVideo);
   let videoData: EducationVideo | null = null;
 
   if (!isSample) {
     const { data: video } = await supabase
       .from("education_videos")
-      .select("id, title, description, level, topics, video_url, created_at")
-      .eq("id", params.id)
+      .select("id, title, description, level, topics, video_url, thumbnail_url, created_at")
+      .eq("id", id)
       .eq("is_published", true)
       .single();
 
@@ -90,14 +95,14 @@ export default async function EducationVideoPage({
   }
 
   const fallbackSample = {
-    id: params.id,
+    id: id,
     title: "Training Video",
     description: "This video will be available once it is published.",
     duration: "On-demand",
     level: "All Levels",
     topics: [],
     type: "video" as const,
-    href: `/app/courses/videos/${params.id}`,
+    href: `/app/courses/videos/${id}`,
   };
 
   const activeSample = sampleVideo || fallbackSample;
@@ -115,9 +120,9 @@ export default async function EducationVideoPage({
   if (!isSample && currentTopics.length > 0) {
     const { data: related } = await supabase
       .from("education_videos")
-      .select("id, title, description, level, topics, video_url, created_at")
+      .select("id, title, description, level, topics, video_url, thumbnail_url, created_at")
       .eq("is_published", true)
-      .neq("id", params.id)
+      .neq("id", id)
       .overlaps("topics", currentTopics)
       .limit(6);
     relatedVideos = (related as EducationVideo[]) || [];
@@ -136,22 +141,28 @@ export default async function EducationVideoPage({
     const { data: comments } = await supabase
       .from("education_video_comments")
       .select(
-        "id, body, created_at, profiles:author_id (display_name, avatar_url)"
+        "id, body, created_at, author_id, profiles:author_id (display_name, avatar_url)"
       )
-      .eq("video_id", params.id)
+      .eq("video_id", id)
       .order("created_at", { ascending: false });
 
     const commentRows = (comments as VideoCommentRow[]) || [];
-    commentsData = commentRows.map((comment) => ({
-      ...comment,
-      profiles: comment.profiles?.[0] ?? null,
-    }));
+    commentsData = commentRows.map((comment) => {
+      const profilesData = comment.profiles;
+      const profile = Array.isArray(profilesData)
+        ? profilesData[0]
+        : profilesData;
+      return {
+        ...comment,
+        profiles: profile ?? null,
+      };
+    });
 
     const { data: watchLater } = await supabase
       .from("education_watch_later")
       .select("id")
       .eq("user_id", authData.user.id)
-      .eq("video_id", params.id)
+      .eq("video_id", id)
       .maybeSingle();
 
     isSaved = Boolean(watchLater);
@@ -176,14 +187,13 @@ export default async function EducationVideoPage({
           </Link>
           {!isSample && (
             <form action={isSaved ? removeFromWatchLater : addToWatchLater}>
-              <input type="hidden" name="videoId" value={params.id} />
+              <input type="hidden" name="videoId" value={id} />
               <button
                 type="submit"
-                className={`rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-wide ${
-                  isSaved
-                    ? "border border-zinc-300 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                    : "bg-amber-600 text-white hover:bg-amber-500"
-                }`}
+                className={`rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-wide ${isSaved
+                  ? "border border-zinc-300 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  : "bg-amber-600 text-white hover:bg-amber-500"
+                  }`}
               >
                 {isSaved ? "Saved to Watch Later" : "Save to Watch Later"}
               </button>
@@ -196,6 +206,7 @@ export default async function EducationVideoPage({
             <div className="education-player-wrapper">
               <VideoPlayerClient
                 videoUrl={isSample ? null : videoData?.video_url}
+                poster={isSample ? null : videoData?.thumbnail_url}
                 title={currentTitle}
               />
             </div>
@@ -228,21 +239,13 @@ export default async function EducationVideoPage({
                 Comments
               </h3>
               {!isSample ? (
-                <form action={addEducationComment} className="mt-4 space-y-3">
-                  <input type="hidden" name="videoId" value={params.id} />
-                  <textarea
-                    name="body"
-                    rows={3}
-                    placeholder="Share your questions or takeaways"
-                    className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                <div className="mt-6 mb-8">
+                  <CommentForm
+                    videoId={id}
+                    userAvatarUrl={profileData?.avatar_url || null}
+                    userDisplayName={profileData?.display_name || null}
                   />
-                  <button
-                    type="submit"
-                    className="rounded-full bg-zinc-900 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-                  >
-                    Post comment
-                  </button>
-                </form>
+                </div>
               ) : (
                 <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">
                   Comments are available on published videos.
@@ -256,14 +259,55 @@ export default async function EducationVideoPage({
                   </p>
                 ) : (
                   commentsData.map((comment) => (
-                    <div
-                      key={comment.id}
-                      className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
-                    >
-                      <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                        {comment.profiles?.display_name || "Member"}
-                      </p>
-                      <p className="mt-2">{comment.body}</p>
+                    <div key={comment.id} className="flex gap-4">
+                      <Link
+                        href={`/app/profile/${comment.author_id}`}
+                        className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800"
+                      >
+                        {comment.profiles?.avatar_url ? (
+                          <img
+                            src={comment.profiles.avatar_url}
+                            alt={comment.profiles.display_name || "User"}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-sm font-bold text-zinc-500 dark:text-zinc-400">
+                            {comment.profiles?.display_name
+                              ? comment.profiles.display_name[0].toUpperCase()
+                              : "U"}
+                          </div>
+                        )}
+                      </Link>
+
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/app/profile/${comment.author_id}`}
+                            className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:underline"
+                          >
+                            {comment.profiles?.display_name || "Member"}
+                          </Link>
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                            {new Date(comment.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                          {comment.body}
+                        </p>
+
+                        <div className="flex items-center gap-4 pt-1">
+                          <button className="flex items-center gap-1 text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200">
+                            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 11v8a2 2 0 0 0 2 2h6a3 3 0 0 0 2.96-2.46l1.1-6A2 2 0 0 0 17.1 10H14l.72-3.6a2 2 0 0 0-3.7-1.24L7 11Z" /><path d="M7 11H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" /></svg>
+                            <span>Like</span>
+                          </button>
+                          <button className="flex items-center gap-1 text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200">
+                            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 13V5a2 2 0 0 0-2-2H9A3 3 0 0 0 6.04 5.46l-1.1 6A2 2 0 0 0 6.9 14H10l-.72 3.6a2 2 0 0 0 3.7 1.24L17 13Z" /><path d="M17 13h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2" /></svg>
+                          </button>
+                          <button className="rounded-full px-3 py-1 text-xs font-medium text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800">
+                            Reply
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   ))
                 )}
@@ -283,21 +327,28 @@ export default async function EducationVideoPage({
                 ) : (
                   <>
                     {relatedVideos.map((video) => (
-                      <Link
+                      <div
                         key={video.id}
-                        href={`/app/courses/videos/${video.id}`}
                         className="group flex gap-3 rounded-2xl border border-zinc-200 bg-white p-3 text-sm text-zinc-900 transition hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                       >
-                        <div className="flex h-16 w-28 items-center justify-center rounded-xl bg-zinc-900 text-white">
+                        <Link
+                          href={`/app/courses/videos/${video.id}`}
+                          className="flex h-16 w-28 shrink-0 items-center justify-center rounded-xl bg-zinc-900 text-white"
+                        >
                           <svg viewBox="0 0 24 24" className="h-8 w-8">
                             <path
                               fill="currentColor"
                               d="M8.25 6.75h6.5A2.5 2.5 0 0 1 17.25 9.25v5.5a2.5 2.5 0 0 1-2.5 2.5h-6.5a2.5 2.5 0 0 1-2.5-2.5v-5.5a2.5 2.5 0 0 1 2.5-2.5Zm8.1 1.65 2.35-1.46a.75.75 0 0 1 1.15.64v8.86a.75.75 0 0 1-1.15.64l-2.35-1.46V8.4Z"
                             />
                           </svg>
-                        </div>
+                        </Link>
                         <div className="flex-1">
-                          <p className="text-sm font-semibold">{video.title}</p>
+                          <Link
+                            href={`/app/courses/videos/${video.id}`}
+                            className="block text-sm font-semibold hover:underline"
+                          >
+                            {video.title}
+                          </Link>
                           <div className="mt-2 flex flex-wrap gap-2">
                             {video.topics.map((topic) => (
                               <Link
@@ -305,7 +356,6 @@ export default async function EducationVideoPage({
                                 href={`/app/courses?topic=${encodeURIComponent(
                                   topic
                                 )}`}
-                                onClick={(event) => event.stopPropagation()}
                                 className="rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-600 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
                               >
                                 {topic}
@@ -313,24 +363,31 @@ export default async function EducationVideoPage({
                             ))}
                           </div>
                         </div>
-                      </Link>
+                      </div>
                     ))}
                     {relatedSamples.map((video) => (
-                      <Link
+                      <div
                         key={video.id}
-                        href={video.href}
                         className="group flex gap-3 rounded-2xl border border-zinc-200 bg-white p-3 text-sm text-zinc-900 transition hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                       >
-                        <div className="flex h-16 w-28 items-center justify-center rounded-xl bg-zinc-900 text-white">
+                        <Link
+                          href={video.href}
+                          className="flex h-16 w-28 shrink-0 items-center justify-center rounded-xl bg-zinc-900 text-white"
+                        >
                           <svg viewBox="0 0 24 24" className="h-8 w-8">
                             <path
                               fill="currentColor"
                               d="M8.25 6.75h6.5A2.5 2.5 0 0 1 17.25 9.25v5.5a2.5 2.5 0 0 1-2.5 2.5h-6.5a2.5 2.5 0 0 1-2.5-2.5v-5.5a2.5 2.5 0 0 1 2.5-2.5Zm8.1 1.65 2.35-1.46a.75.75 0 0 1 1.15.64v8.86a.75.75 0 0 1-1.15.64l-2.35-1.46V8.4Z"
                             />
                           </svg>
-                        </div>
+                        </Link>
                         <div className="flex-1">
-                          <p className="text-sm font-semibold">{video.title}</p>
+                          <Link
+                            href={video.href}
+                            className="block text-sm font-semibold hover:underline"
+                          >
+                            {video.title}
+                          </Link>
                           <div className="mt-2 flex flex-wrap gap-2">
                             {video.topics.map((topic) => (
                               <Link
@@ -338,7 +395,6 @@ export default async function EducationVideoPage({
                                 href={`/app/courses?topic=${encodeURIComponent(
                                   topic
                                 )}`}
-                                onClick={(event) => event.stopPropagation()}
                                 className="rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-600 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
                               >
                                 {topic}
@@ -346,7 +402,7 @@ export default async function EducationVideoPage({
                             ))}
                           </div>
                         </div>
-                      </Link>
+                      </div>
                     ))}
                   </>
                 )}

@@ -2,7 +2,7 @@ import { VendorListing } from "../contractors/types";
 
 export const exampleTransactionServices: VendorListing[] = [
     {
-        id: "ts-1",
+        id: "d8224455-1f93-4173-9622-89012345f6f1",
         name: "Bayou Title Partners",
         tagline: "Investor-first title team with fast turn commitments",
         description:
@@ -29,7 +29,7 @@ export const exampleTransactionServices: VendorListing[] = [
         ],
     },
     {
-        id: "ts-2",
+        id: "a9335566-2e84-4284-9733-90123456a7a2",
         name: "Lone Star Escrow Co.",
         tagline: "Escrow officers who keep assignment deals moving",
         description:
@@ -56,7 +56,7 @@ export const exampleTransactionServices: VendorListing[] = [
         ],
     },
     {
-        id: "ts-3",
+        id: "c0446677-3d75-4395-9844-01234567b8b3",
         name: "Cedar Capital Private Money",
         tagline: "Fast approvals for buy-and-hold investors",
         description:
@@ -83,7 +83,7 @@ export const exampleTransactionServices: VendorListing[] = [
         ],
     },
     {
-        id: "ts-4",
+        id: "e1557788-4c66-4406-9955-12345678c9c4",
         name: "Sunset Gator Buyers",
         tagline: "Close-ready cash buyers across Texas metros",
         description:
@@ -108,7 +108,7 @@ export const exampleTransactionServices: VendorListing[] = [
         ],
     },
     {
-        id: "ts-5",
+        id: "f2668899-5b57-4517-1066-23456789d0d5",
         name: "Bluebonnet Transaction Ops",
         tagline: "Coordinators who manage docs and deadlines",
         description:
