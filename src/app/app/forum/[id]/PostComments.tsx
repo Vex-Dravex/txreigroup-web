@@ -28,7 +28,6 @@ export default async function PostComments({
       )
     `)
     .eq("post_id", postId)
-    .is("parent_comment_id", null)
     .order("created_at", { ascending: true });
 
   // Fetch user's votes on comments
@@ -50,7 +49,13 @@ export default async function PostComments({
 
       <div>
         {comments && comments.length > 0 ? (
-          <CommentList comments={comments} votesMap={votesMap} currentUserId={authData.user?.id} />
+          <CommentList
+            comments={comments}
+            votesMap={votesMap}
+            currentUserId={authData.user?.id}
+            currentUserProfile={currentUserProfile}
+            postId={postId}
+          />
         ) : (
           <p className="text-sm text-zinc-500 dark:text-zinc-400">No comments yet. Be the first to comment!</p>
         )}

@@ -9,6 +9,7 @@ import { addEducationComment } from "../actions";
 import { sampleVideoMap, sampleVideos } from "../../educationData";
 import { getWatchLaterVideos, toggleWatchLater } from "../../watchLaterActions";
 import YouTubeWatchLaterButton from "../../YouTubeWatchLaterButton";
+import RelatedCarousel from "../RelatedCarousel";
 
 export const dynamic = "force-dynamic";
 
@@ -170,242 +171,187 @@ export default async function EducationVideoPage({
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
-      <AppHeader
-        userRole={primaryRole}
-        currentPage="courses"
-        avatarUrl={profileData?.avatar_url || null}
-        displayName={profileData?.display_name || null}
-        email={authData.user.email}
-      />
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <Link
-            href="/app/courses"
-            className="text-sm font-semibold uppercase tracking-wide text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-          >
-            ← Back to Education Center
-          </Link>
-        </div>
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 selection:bg-amber-500/30">
+      <div className="noise-overlay fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]" />
 
-        <div className="education-video-layout grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
-          <section className="education-main space-y-6">
-            <div className="education-player-wrapper">
-              <VideoPlayerClient
-                videoUrl={isSample ? null : videoData?.video_url}
-                poster={isSample ? null : videoData?.thumbnail_url}
-                title={currentTitle}
-              />
-            </div>
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-amber-500/5 blur-[120px]" />
+        <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full bg-blue-500/5 blur-[120px]" />
+      </div>
 
-            {/* YouTube-style Watch Later Button */}
-            <div className="flex items-center gap-3">
-              <YouTubeWatchLaterButton
-                videoId={id}
-                videoType={isSample ? "sample" : "education"}
-                initialSaved={isSaved}
-                onToggle={toggleWatchLater}
-              />
-            </div>
+      <div className="relative z-10">
+        <AppHeader
+          userRole={primaryRole}
+          currentPage="courses"
+          avatarUrl={profileData?.avatar_url || null}
+          displayName={profileData?.display_name || null}
+          email={authData.user.email}
+        />
 
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
-              <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                Description
-              </p>
-              <div className="mt-3 flex flex-wrap items-center gap-3">
-                <span className="rounded-full bg-zinc-900 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white dark:bg-zinc-800">
-                  {currentLevel}
-                </span>
-                {currentTopics.map((topic) => (
-                  <Link
-                    key={topic}
-                    href={`/app/courses?topic=${encodeURIComponent(topic)}`}
-                    className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-600 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                  >
-                    {topic}
-                  </Link>
-                ))}
-              </div>
-              <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">
-                {currentDescription}
-              </p>
-            </div>
+        <div className="mx-auto max-w-[1800px] px-4 py-8 sm:px-6 lg:px-8">
+          <div className="mb-6">
+            <Link
+              href="/app/courses"
+              className="group inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+              Back to Education Center
+            </Link>
+          </div>
 
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
-              <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                Comments
-              </h3>
-              {!isSample ? (
-                <div className="mt-6 mb-8">
-                  <CommentForm
-                    videoId={id}
-                    userAvatarUrl={profileData?.avatar_url || null}
-                    userDisplayName={profileData?.display_name || null}
-                  />
-                </div>
-              ) : (
-                <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">
-                  Comments are available on published videos.
-                </p>
-              )}
+          <div className="education-video-layout grid grid-cols-1 lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_400px] gap-8">
+            <div className="education-main space-y-6">
+              {/* Video Player Section */}
+              <div className="space-y-6">
+                <VideoPlayerClient
+                  videoUrl={isSample ? null : videoData?.video_url}
+                  poster={isSample ? null : videoData?.thumbnail_url}
+                  title={currentTitle}
+                />
 
-              <div className="mt-6 space-y-4">
-                {commentsData.length === 0 ? (
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Be the first to comment on this lesson.
-                  </p>
-                ) : (
-                  commentsData.map((comment) => (
-                    <div key={comment.id} className="flex gap-4">
-                      <Link
-                        href={`/app/profile/${comment.author_id}`}
-                        className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800"
-                      >
-                        {comment.profiles?.avatar_url ? (
-                          <img
-                            src={comment.profiles.avatar_url}
-                            alt={comment.profiles.display_name || "User"}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-sm font-bold text-zinc-500 dark:text-zinc-400">
-                            {comment.profiles?.display_name
-                              ? comment.profiles.display_name[0].toUpperCase()
-                              : "U"}
-                          </div>
-                        )}
-                      </Link>
+                <div className="space-y-4">
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-zinc-950 dark:text-zinc-50 font-display leading-tight">
+                    {currentTitle}
+                  </h1>
 
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <Link
-                            href={`/app/profile/${comment.author_id}`}
-                            className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:underline"
-                          >
-                            {comment.profiles?.display_name || "Member"}
-                          </Link>
-                          <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                            {new Date(comment.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                          {comment.body}
-                        </p>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <YouTubeWatchLaterButton
+                      videoId={id}
+                      videoType={isSample ? "sample" : "education"}
+                      initialSaved={isSaved}
+                      onToggle={toggleWatchLater}
+                    />
 
-                        <div className="flex items-center gap-4 pt-1">
-                          <button className="flex items-center gap-1 text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200">
-                            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 11v8a2 2 0 0 0 2 2h6a3 3 0 0 0 2.96-2.46l1.1-6A2 2 0 0 0 17.1 10H14l.72-3.6a2 2 0 0 0-3.7-1.24L7 11Z" /><path d="M7 11H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" /></svg>
-                            <span>Like</span>
-                          </button>
-                          <button className="flex items-center gap-1 text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200">
-                            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 13V5a2 2 0 0 0-2-2H9A3 3 0 0 0 6.04 5.46l-1.1 6A2 2 0 0 0 6.9 14H10l-.72 3.6a2 2 0 0 0 3.7 1.24L17 13Z" /><path d="M17 13h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2" /></svg>
-                          </button>
-                          <button className="rounded-full px-3 py-1 text-xs font-medium text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800">
-                            Reply
-                          </button>
-                        </div>
-                      </div>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-900 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white dark:bg-zinc-800">
+                        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor">
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                        </svg>
+                        {currentLevel}
+                      </span>
+                      {currentTopics.map((topic) => (
+                        <Link
+                          key={topic}
+                          href={`/app/courses?topic=${encodeURIComponent(topic)}`}
+                          className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-amber-800 transition-all hover:bg-amber-100 hover:border-amber-300 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-300 dark:hover:bg-amber-900/30"
+                        >
+                          {topic}
+                        </Link>
+                      ))}
                     </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </section>
-          <aside className="education-related space-y-4">
-            <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
-              <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                Related videos
-              </p>
-              <div className="mt-4 space-y-3">
-                {relatedVideos.length === 0 && relatedSamples.length === 0 ? (
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    No related videos yet.
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-white/40 bg-white/50 p-6 shadow-sm backdrop-blur-sm dark:border-white/5 dark:bg-zinc-900/40">
+                  <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-3">
+                    About This Video
+                  </h2>
+                  <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
+                    {currentDescription}
                   </p>
+                </div>
+              </div>
+
+              {/* Related Videos for Theater Mode and Mobile */}
+              <div className="hide-on-normal-video">
+                <RelatedCarousel
+                  relatedVideos={relatedVideos}
+                  relatedSamples={relatedSamples}
+                />
+              </div>
+
+              {/* Comments Section */}
+              <div className="rounded-2xl border border-white/40 bg-white/50 p-6 shadow-sm backdrop-blur-sm dark:border-white/5 dark:bg-zinc-900/40">
+                <h2 className="text-xl font-black text-zinc-950 dark:text-zinc-50 font-display mb-6">
+                  Comments
+                </h2>
+
+                {!isSample ? (
+                  <div className="mb-8">
+                    <CommentForm
+                      videoId={id}
+                      userAvatarUrl={profileData?.avatar_url || null}
+                      userDisplayName={profileData?.display_name || null}
+                    />
+                  </div>
                 ) : (
-                  <>
-                    {relatedVideos.map((video) => (
-                      <div
-                        key={video.id}
-                        className="group flex gap-3 rounded-2xl border border-zinc-200 bg-white p-3 text-sm text-zinc-900 transition hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
-                      >
-                        <Link
-                          href={`/app/courses/videos/${video.id}`}
-                          className="flex h-16 w-28 shrink-0 items-center justify-center rounded-xl bg-zinc-900 text-white"
-                        >
-                          <svg viewBox="0 0 24 24" className="h-8 w-8">
-                            <path
-                              fill="currentColor"
-                              d="M8.25 6.75h6.5A2.5 2.5 0 0 1 17.25 9.25v5.5a2.5 2.5 0 0 1-2.5 2.5h-6.5a2.5 2.5 0 0 1-2.5-2.5v-5.5a2.5 2.5 0 0 1 2.5-2.5Zm8.1 1.65 2.35-1.46a.75.75 0 0 1 1.15.64v8.86a.75.75 0 0 1-1.15.64l-2.35-1.46V8.4Z"
-                            />
-                          </svg>
-                        </Link>
-                        <div className="flex-1">
-                          <Link
-                            href={`/app/courses/videos/${video.id}`}
-                            className="block text-sm font-semibold hover:underline"
-                          >
-                            {video.title}
-                          </Link>
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {video.topics.map((topic) => (
-                              <Link
-                                key={topic}
-                                href={`/app/courses?topic=${encodeURIComponent(
-                                  topic
-                                )}`}
-                                className="rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-600 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                              >
-                                {topic}
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    {relatedSamples.map((video) => (
-                      <div
-                        key={video.id}
-                        className="group flex gap-3 rounded-2xl border border-zinc-200 bg-white p-3 text-sm text-zinc-900 transition hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
-                      >
-                        <Link
-                          href={video.href}
-                          className="flex h-16 w-28 shrink-0 items-center justify-center rounded-xl bg-zinc-900 text-white"
-                        >
-                          <svg viewBox="0 0 24 24" className="h-8 w-8">
-                            <path
-                              fill="currentColor"
-                              d="M8.25 6.75h6.5A2.5 2.5 0 0 1 17.25 9.25v5.5a2.5 2.5 0 0 1-2.5 2.5h-6.5a2.5 2.5 0 0 1-2.5-2.5v-5.5a2.5 2.5 0 0 1 2.5-2.5Zm8.1 1.65 2.35-1.46a.75.75 0 0 1 1.15.64v8.86a.75.75 0 0 1-1.15.64l-2.35-1.46V8.4Z"
-                            />
-                          </svg>
-                        </Link>
-                        <div className="flex-1">
-                          <Link
-                            href={video.href}
-                            className="block text-sm font-semibold hover:underline"
-                          >
-                            {video.title}
-                          </Link>
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {video.topics.map((topic) => (
-                              <Link
-                                key={topic}
-                                href={`/app/courses?topic=${encodeURIComponent(
-                                  topic
-                                )}`}
-                                className="rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-600 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                              >
-                                {topic}
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </>
+                  <div className="mb-6 rounded-xl bg-zinc-100 p-4 dark:bg-zinc-800/50">
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      💬 Comments are available on published videos.
+                    </p>
+                  </div>
                 )}
+
+                <div className="space-y-6">
+                  {commentsData.length === 0 ? (
+                    <div className="py-12 text-center">
+                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
+                        <svg viewBox="0 0 24 24" className="h-8 w-8 text-zinc-400" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                      </div>
+                      <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                        Be the first to share your thoughts
+                      </p>
+                    </div>
+                  ) : (
+                    commentsData.map((comment) => (
+                      <div key={comment.id} className="flex gap-4 group">
+                        <Link
+                          href={`/app/profile/${comment.author_id}`}
+                          className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-zinc-200 to-zinc-300 dark:from-zinc-700 dark:to-zinc-800 ring-2 ring-white dark:ring-zinc-900 transition-transform hover:scale-105"
+                        >
+                          {comment.profiles?.avatar_url ? (
+                            <img
+                              src={comment.profiles.avatar_url}
+                              alt={comment.profiles.display_name || "User"}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-sm font-black text-zinc-600 dark:text-zinc-300">
+                              {comment.profiles?.display_name
+                                ? comment.profiles.display_name[0].toUpperCase()
+                                : "U"}
+                            </div>
+                          )}
+                        </Link>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Link
+                              href={`/app/profile/${comment.author_id}`}
+                              className="text-sm font-bold text-zinc-900 dark:text-zinc-100 hover:underline"
+                            >
+                              {comment.profiles?.display_name || "Member"}
+                            </Link>
+                            <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                              {new Date(comment.created_at).toLocaleDateString('en-US', {
+                                month: 'short', day: 'numeric', year: 'numeric'
+                              })}
+                            </span>
+                          </div>
+                          <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
+                            {comment.body}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
-          </aside>
+
+            {/* Sidebar for Normal Desktop View */}
+            <aside className="education-sidebar show-sidebar-on-normal-video">
+              <div className="sticky top-24">
+                <RelatedCarousel
+                  relatedVideos={relatedVideos}
+                  relatedSamples={relatedSamples}
+                />
+              </div>
+            </aside>
+          </div>
         </div>
       </div>
     </div>

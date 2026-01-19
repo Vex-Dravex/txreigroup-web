@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { sampleVideos, topicOptions } from "./educationData";
+import FadeIn, { FadeInStagger } from "../../components/FadeIn";
 
 type Video = {
   id: string;
@@ -18,6 +20,8 @@ type Video = {
   badge?: string;
   createdAt?: string;
 };
+
+// ... types ...
 
 type CourseVideo = {
   id: string;
@@ -46,6 +50,30 @@ const sampleVideoCards: Video[] = sampleVideos.map((video) => ({
   href: video.href,
   createdAt: "2023-01-01T00:00:00Z", // Treat samples as old
 }));
+
+// Animation Variants (Exact match from DealsGrid/DealLink)
+const gridContainerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const cardItemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  show: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.5,
+      ease: [0.16, 1, 0.3, 1] as any,
+    },
+  },
+};
 
 const formatCourseVideos = (courseVideos: CourseVideo[]): Video[] =>
   courseVideos.map((course) => ({
@@ -124,8 +152,15 @@ export default function EducationCenterClient({
     const mappedEducation = formatEducationVideos(educationVideos);
     // Sort all videos by creation date desc
     return [...sampleVideoCards, ...mappedEducation, ...mappedCourses].sort((a, b) => {
-      const dateA = new Date(a.createdAt || 0).getTime();
-      const dateB = new Date(b.createdAt || 0).getTime();
+      // Use helper to safely parse dates, defaulting to 0 for invalid dates
+      const getTime = (dateStr?: string) => {
+        if (!dateStr) return 0;
+        const time = new Date(dateStr).getTime();
+        return isNaN(time) ? 0 : time;
+      };
+
+      const dateA = getTime(a.createdAt);
+      const dateB = getTime(b.createdAt);
       return dateB - dateA;
     });
   }, [courseVideos, educationVideos]);
@@ -189,138 +224,151 @@ export default function EducationCenterClient({
   const liveVideo = combinedVideos.find((video) => video.type === "live");
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-zinc-50 via-white to-amber-50/40 dark:from-zinc-950 dark:via-zinc-900 dark:to-amber-900/20">
-      <div className="absolute -left-24 top-20 h-80 w-80 rounded-full bg-amber-200/40 blur-3xl dark:bg-amber-500/10" />
-      <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-sky-200/40 blur-3xl dark:bg-sky-500/10" />
-
-      <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700 dark:text-amber-300">
-              Education Center
-            </p>
-            <h1 className="mt-3 text-3xl font-semibold text-zinc-900 dark:text-zinc-100 sm:text-4xl">
-              Build wholesale mastery with videos, live sessions, and weekly
-              playbooks.
-            </h1>
-            <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">
-              Curated for wholesalers, investors, and gators. Search, filter by
-              topic, and join the live room each week.
-            </p>
+    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <FadeInStagger className="grid gap-12 lg:grid-cols-12 lg:items-start mb-16">
+        <FadeIn className="lg:col-span-7 space-y-6">
+          <div className="inline-flex items-center gap-2 rounded-full bg-amber-100/50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-amber-700 ring-1 ring-inset ring-amber-200/50 backdrop-blur-sm dark:bg-amber-900/20 dark:text-amber-300 dark:ring-amber-800/30">
+            <span className="flex h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+            Education Center
           </div>
-          <div className="rounded-2xl border border-zinc-200 bg-white/90 p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80">
-            <p className="text-xs font-semibold uppercase text-zinc-500 dark:text-zinc-400">
-              Next live stream
+
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-zinc-950 dark:text-zinc-50 font-display leading-tight">
+            Build <span className="text-amber-600 dark:text-amber-500">Mastery</span> with<br />
+            Videos & Playbooks
+          </h1>
+
+          <p className="max-w-2xl text-lg md:text-xl text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">
+            Curated for wholesalers, investors, and gators. Search, filter by
+            topic, and join the live room each week.
+          </p>
+        </FadeIn>
+
+        <FadeIn delay={0.2} className="lg:col-span-5">
+          <div className="rounded-[2rem] border border-white/40 bg-white/30 p-8 shadow-xl shadow-amber-500/5 backdrop-blur-md ring-1 ring-white/60 dark:border-white/5 dark:bg-zinc-900/30 dark:shadow-black/50 dark:ring-white/5">
+            <p className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4">
+              Next Live Stream
             </p>
-            <p className="mt-2 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-              Wednesdays at 7:00 PM CST
-            </p>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 font-bold text-xl">
+                <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+              </div>
+              <div>
+                <p className="text-lg font-black text-zinc-900 dark:text-zinc-100 font-display">
+                  Wednesdays
+                </p>
+                <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                  7:00 PM CST
+                </p>
+              </div>
+            </div>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6 leading-relaxed">
               Weekly live coaching, Q&amp;A, and deal reviews.
             </p>
             <button
               type="button"
-              className="mt-3 w-full rounded-full border border-zinc-900 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-900 transition hover:bg-zinc-900 hover:text-white dark:border-white/70 dark:text-white dark:hover:bg-white dark:hover:text-zinc-900"
+              className="w-full rounded-xl bg-zinc-900 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-zinc-900/20 transition-all hover:bg-zinc-800 hover:scale-[1.02] dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
             >
               Remind me
             </button>
           </div>
-        </div>
+        </FadeIn>
+      </FadeInStagger>
 
-        <div className="mt-10 grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
-          <aside className="hidden lg:block">
-            <div className="sticky top-24 space-y-8">
-              {/* Feeds */}
-              <div>
-                <h3 className="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">
-                  Feeds
+      <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
+        <aside className="hidden lg:block">
+          <div className="sticky top-24 space-y-8">
+            {/* Feeds */}
+            <div>
+              <h3 className="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">
+                Feeds
+              </h3>
+              <nav className="space-y-1">
+                <Link
+                  href="/app/courses"
+                  className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${viewFilter === "all"
+                    ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50"
+                    : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-200"
+                    }`}
+                >
+                  <svg viewBox="0 0 24 24" className={`h-5 w-5 ${viewFilter === "all" ? "text-zinc-900 dark:text-zinc-50" : "text-zinc-400 group-hover:text-zinc-500 dark:text-zinc-500 dark:group-hover:text-zinc-400"}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                  All Videos
+                </Link>
+                <Link
+                  href="/app/courses?view=watch-later"
+                  className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${viewFilter === "watch-later"
+                    ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50"
+                    : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-200"
+                    }`}
+                >
+                  <svg viewBox="0 0 24 24" className={`h-5 w-5 ${viewFilter === "watch-later" ? "text-zinc-900 dark:text-zinc-50" : "text-zinc-400 group-hover:text-zinc-500 dark:text-zinc-500 dark:group-hover:text-zinc-400"}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                  Watch Later
+                </Link>
+              </nav>
+            </div>
+
+            {/* Topics */}
+            <div>
+              <div className="flex items-center justify-between px-3 mb-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">
+                  Topics
                 </h3>
-                <nav className="space-y-1">
+                {selectedTopics.length > 0 && (
                   <Link
                     href="/app/courses"
-                    className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${viewFilter === "all"
-                      ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50"
-                      : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-200"
-                      }`}
+                    className="text-[10px] font-bold uppercase text-blue-600 hover:underline dark:text-blue-400"
+                    onClick={() => setSelectedTopics([])}
                   >
-                    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${viewFilter === "all" ? "text-zinc-900 dark:text-zinc-50" : "text-zinc-400 group-hover:text-zinc-500 dark:text-zinc-500 dark:group-hover:text-zinc-400"}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                    All Videos
+                    Clear
                   </Link>
-                  <Link
-                    href="/app/courses?view=watch-later"
-                    className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${viewFilter === "watch-later"
-                      ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50"
-                      : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-200"
-                      }`}
-                  >
-                    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${viewFilter === "watch-later" ? "text-zinc-900 dark:text-zinc-50" : "text-zinc-400 group-hover:text-zinc-500 dark:text-zinc-500 dark:group-hover:text-zinc-400"}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
-                    Watch Later
-                  </Link>
-                </nav>
+                )}
               </div>
-
-              {/* Topics */}
-              <div>
-                <div className="flex items-center justify-between px-3 mb-2">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">
-                    Topics
-                  </h3>
-                  {selectedTopics.length > 0 && (
+              <nav className="space-y-1">
+                {topicOptions.map((topic) => {
+                  const isSelected = selectedTopics.includes(topic);
+                  return (
                     <Link
-                      href="/app/courses"
-                      className="text-[10px] font-bold uppercase text-blue-600 hover:underline dark:text-blue-400"
-                      onClick={() => setSelectedTopics([])}
+                      key={topic}
+                      href={`/app/courses?topic=${topic}`}
+                      className={`group flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isSelected
+                        ? "bg-amber-50 text-amber-900 dark:bg-amber-900/20 dark:text-amber-100"
+                        : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-200"
+                        }`}
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedTopics([]);
+                        } else {
+                          setSelectedTopics([topic]);
+                        }
+                      }}
                     >
-                      Clear
+                      <span className="break-words">{topic}</span>
                     </Link>
-                  )}
-                </div>
-                <nav className="space-y-1">
-                  {topicOptions.map((topic) => {
-                    const isSelected = selectedTopics.includes(topic);
-                    return (
-                      <Link
-                        key={topic}
-                        href={`/app/courses?topic=${topic}`}
-                        className={`group flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isSelected
-                          ? "bg-amber-50 text-amber-900 dark:bg-amber-900/20 dark:text-amber-100"
-                          : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-200"
-                          }`}
-                        onClick={() => {
-                          if (isSelected) {
-                            setSelectedTopics([]);
-                          } else {
-                            setSelectedTopics([topic]);
-                          }
-                        }}
-                      >
-                        <span className="break-words">{topic}</span>
-                      </Link>
-                    );
-                  })}
-                </nav>
-              </div>
-
-              {/* Format Filter */}
-              <div>
-                <h3 className="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">
-                  Format
-                </h3>
-                <label className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                  <input
-                    type="checkbox"
-                    checked={showLiveOnly}
-                    onChange={(event) => setShowLiveOnly(event.target.checked)}
-                    className="h-4 w-4 rounded border-zinc-300 text-amber-600 focus:ring-amber-500 dark:border-zinc-600 dark:bg-zinc-900"
-                  />
-                  Live sessions only
-                </label>
-              </div>
+                  );
+                })}
+              </nav>
             </div>
-          </aside>
 
-          <section>
-            <div className="rounded-2xl border border-zinc-200 bg-white/90 p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80">
+            {/* Format Filter */}
+            <div>
+              <h3 className="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">
+                Format
+              </h3>
+              <label className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                <input
+                  type="checkbox"
+                  checked={showLiveOnly}
+                  onChange={(event) => setShowLiveOnly(event.target.checked)}
+                  className="h-4 w-4 rounded border-zinc-300 text-amber-600 focus:ring-amber-500 dark:border-zinc-600 dark:bg-zinc-900"
+                />
+                Live sessions only
+              </label>
+            </div>
+          </div>
+        </aside>
+
+        <section>
+          <FadeIn>
+            <div className="rounded-2xl border border-white/40 bg-white/50 p-6 shadow-sm backdrop-blur-sm dark:border-white/5 dark:bg-zinc-900/40">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex-1">
                   <label className="text-xs font-semibold uppercase text-zinc-500 dark:text-zinc-400">
@@ -351,9 +399,11 @@ export default function EducationCenterClient({
                 </div>
               </div>
             </div>
+          </FadeIn>
 
-            {liveVideo && (
-              <div className="mt-6 grid gap-4 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 via-white to-amber-50 p-6 shadow-sm md:grid-cols-[1.2fr_1fr] dark:border-amber-500/40 dark:from-amber-900/20 dark:via-zinc-900 dark:to-amber-900/10">
+          {liveVideo && (
+            <FadeIn>
+              <div className="mt-6 grid gap-4 rounded-2xl border border-amber-200/50 bg-amber-50/50 p-6 shadow-sm backdrop-blur-sm md:grid-cols-[1.2fr_1fr] dark:border-amber-500/20 dark:bg-amber-900/10">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700 dark:text-amber-300">
                     Live weekly room
@@ -395,9 +445,18 @@ export default function EducationCenterClient({
                   </div>
                 </div>
               </div>
-            )}
+            </FadeIn>
+          )}
 
-            <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${viewFilter}-${filteredVideos[0]?.id || "empty"}-${selectedTopics.join(",")}-${showLiveOnly ? "live" : "all"}`}
+              variants={gridContainerVariants}
+              initial="hidden"
+              animate="show"
+              exit="hidden"
+              className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3"
+            >
               {filteredVideos.map((video) => {
                 const isNew =
                   video.createdAt &&
@@ -418,12 +477,8 @@ export default function EducationCenterClient({
                   cleanVideoId = video.id;
                 }
 
-                const isSaved = watchLaterVideos.some(
-                  (wl) => wl.video_type === videoType && wl.video_id === cleanVideoId
-                );
-
                 return (
-                  <div key={video.id} className="flex flex-col">
+                  <motion.div key={video.id} variants={cardItemVariants} className="flex flex-col">
                     <Link
                       href={video.href || "#"}
                       className="block flex-1"
@@ -434,8 +489,8 @@ export default function EducationCenterClient({
                         }
                       }}
                     >
-                      <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
-                        <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700">
+                      <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-white/40 bg-white/50 shadow-sm backdrop-blur-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-500/5 dark:border-white/5 dark:bg-zinc-900/40">
+                        <div className="relative aspect-video overflow-hidden bg-zinc-900">
                           {video.thumbnailUrl ? (
                             <img
                               src={video.thumbnailUrl}
@@ -487,13 +542,13 @@ export default function EducationCenterClient({
                         </div>
                       </div>
                     </Link>
-                  </div>
+                  </motion.div>
                 );
               })}
-            </div>
-          </section>
-        </div>
-      </div >
-    </div >
+            </motion.div>
+          </AnimatePresence>
+        </section>
+      </div>
+    </div>
   );
 }

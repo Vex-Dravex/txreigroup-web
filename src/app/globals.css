@@ -94,31 +94,71 @@ html {
   }
 }
 
+/* Theater Mode Styles */
+html.player-theater {
+  overflow-y: auto;
+}
+
+/* Make the video container full width in theater mode */
+html.player-theater .theater-video-container {
+  max-width: 100vw !important;
+  width: 100vw !important;
+  margin-left: calc(-50vw + 50%) !important;
+  margin-right: calc(-50vw + 50%) !important;
+  z-index: 40;
+}
+
+/* Sync layout with theater mode */
 html.player-theater .education-video-layout {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-areas:
-    "main"
-    "related";
+  grid-template-columns: 1fr !important;
 }
 
-html.player-theater .education-related {
-  grid-area: related;
+/* Visibility Utilities for Video Page */
+.show-sidebar-on-normal-video {
+  display: block;
 }
 
-html.player-theater .education-main {
-  grid-area: main;
+.hide-on-normal-video {
+  display: none;
 }
 
-@media (min-width: 1024px) {
-  .education-video-layout {
-    grid-template-areas: "main related";
+/* Theater Mode overrides */
+html.player-theater .show-sidebar-on-normal-video {
+  display: none !important;
+}
+
+html.player-theater .hide-on-normal-video {
+  display: block !important;
+}
+
+/* Responsive Logic (Mobile/Tablet vs Desktop) */
+@media (max-width: 1023px) {
+
+  /* On mobile, always hide sidebar and show carousel below */
+  .show-sidebar-on-normal-video {
+    display: none !important;
   }
 
-  .education-related {
-    grid-area: related;
+  .hide-on-normal-video {
+    display: block !important;
   }
+}
 
-  .education-main {
-    grid-area: main;
-  }
+/* Scrollbar Hide Utility */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Related Videos Carousel Styling */
+.related-list {
+  scroll-snap-type: x mandatory;
+}
+
+.related-list>a {
+  scroll-snap-align: start;
 }

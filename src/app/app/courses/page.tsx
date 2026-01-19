@@ -115,19 +115,29 @@ export default async function CoursesPage() {
 
   return (
     <CoursesScrollRestorationProvider>
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
-        <AppHeader
-          userRole={userRole}
-          currentPage="courses"
-          avatarUrl={profileData?.avatar_url || null}
-          displayName={profileData?.display_name || null}
-          email={authData.user.email}
-        />
-        <EducationCenterClient
-          courseVideos={courseVideos}
-          educationVideos={educationVideosData}
-          watchLaterVideos={watchLaterVideos}
-        />
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 selection:bg-amber-500/30">
+        <div className="noise-overlay fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]" />
+
+        {/* Background Gradient Elements */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+          <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-amber-500/5 blur-[120px]" />
+          <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full bg-blue-500/5 blur-[120px]" />
+        </div>
+
+        <div className="relative z-10">
+          <AppHeader
+            userRole={userRole}
+            currentPage="courses"
+            avatarUrl={profileData?.avatar_url || null}
+            displayName={profileData?.display_name || null}
+            email={authData.user.email}
+          />
+          <EducationCenterClient
+            courseVideos={courseVideos}
+            educationVideos={educationVideosData}
+            watchLaterVideos={watchLaterVideos}
+          />
+        </div>
       </div>
     </CoursesScrollRestorationProvider>
   );

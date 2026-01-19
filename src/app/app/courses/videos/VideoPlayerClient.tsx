@@ -158,10 +158,16 @@ export default function VideoPlayerClient({
 
   const toggleFullscreen = async () => {
     if (!containerRef.current) return;
-    if (!document.fullscreenElement) {
-      await containerRef.current.requestFullscreen();
-    } else {
-      await document.exitFullscreen();
+    try {
+      if (!document.fullscreenElement) {
+        await containerRef.current.requestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    } catch (err) {
+      console.error('Fullscreen error:', err);
     }
   };
 
@@ -188,7 +194,9 @@ export default function VideoPlayerClient({
   return (
     <div
       ref={containerRef}
-      className={`group relative aspect-video w-full overflow-hidden rounded-2xl bg-black shadow-lg outline-none ${theaterMode ? "z-50" : ""
+      className={`theater-video-container group relative aspect-video w-full overflow-hidden bg-black shadow-lg outline-none transition-all ${theaterMode
+        ? ""
+        : "rounded-2xl"
         }`}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => isPlaying && setShowControls(false)}
