@@ -7,6 +7,7 @@ import VendorCard from "./VendorCard";
 import { VendorListing } from "./types";
 import { getPrimaryRole, getUserRoles, hasRole } from "@/lib/roles";
 import { exampleVendors } from "./sampleVendors";
+import FadeIn, { FadeInStagger } from "../../components/FadeIn";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -223,138 +224,98 @@ export default async function ContractorsPage({ searchParams }: { searchParams: 
   const verifiedCount = allVendors.filter((vendor) => vendor.verificationStatus === "verified").length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900">
-      <AppHeader
-        userRole={userRole}
-        currentPage="contractors"
-        avatarUrl={profileData?.avatar_url || null}
-        displayName={profileData?.display_name || null}
-        email={authData.user.email}
-      />
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 selection:bg-blue-500/30">
+      <div className="noise-overlay fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]" />
 
-      <section className="border-b border-zinc-200/70 bg-white/60 py-12 backdrop-blur dark:border-zinc-800/70 dark:bg-zinc-950/60">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
-            <div className="space-y-4 lg:col-span-7">
-              <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700 ring-1 ring-inset ring-blue-100 dark:bg-blue-900/30 dark:text-blue-200 dark:ring-blue-900/50">
-                Vendor marketplace
-              </span>
-              <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl">
-                Validated vendors for investor projects
+      {/* Background Gradient Elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-emerald-500/5 blur-[120px]" />
+        <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full bg-blue-500/5 blur-[120px]" />
+      </div>
+
+      <div className="relative z-10">
+        <AppHeader
+          userRole={userRole}
+          currentPage="contractors"
+          avatarUrl={profileData?.avatar_url || null}
+          displayName={profileData?.display_name || null}
+          email={authData.user.email}
+        />
+
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <FadeInStagger className="grid gap-12 lg:grid-cols-12 lg:items-start mb-16">
+            <FadeIn className="lg:col-span-7 space-y-6">
+              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100/50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700 ring-1 ring-inset ring-emerald-200/50 backdrop-blur-sm dark:bg-emerald-900/20 dark:text-emerald-300 dark:ring-emerald-800/30">
+                <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Vendor Directory
+              </div>
+
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-zinc-950 dark:text-zinc-50 font-display leading-tight">
+                Trusted <span className="text-emerald-600 dark:text-emerald-500">Pros</span> for<br />
+                Investor Projects
               </h1>
-              <p className="max-w-3xl text-lg text-zinc-600 dark:text-zinc-400">
-                Find contractor teams that already know how to work with investors, hard-money draws, and fast turns.
-                Filter by trade and market, see references, and reach out directly.
+
+              <p className="max-w-2xl text-lg md:text-xl text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">
+                Find contractor teams that understand the speed and budget requirements of real estate investing.
+                Vetted for reliability and quality.
               </p>
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  href="/app/deals"
-                  className="rounded-md bg-zinc-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
-                >
-                  View investor deals
-                </Link>
-                {isVendor ? (
-                  <Link
-                    href="/app/contractors/profile"
-                    className="rounded-md border border-zinc-200 px-5 py-3 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-900"
-                  >
-                    My vendor profile
-                  </Link>
-                ) : (
+
+              <div className="flex flex-wrap gap-4 pt-2">
+                {!isVendor && (
                   <Link
                     href="/login"
-                    className="rounded-md border border-zinc-200 px-5 py-3 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-900"
+                    className="rounded-xl border border-zinc-200 bg-white/50 px-6 py-3.5 text-sm font-bold text-zinc-800 shadow-sm backdrop-blur transition-all hover:bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-100 dark:hover:bg-zinc-900"
                   >
-                    Refer a vendor
+                    Recommend a vendor
                   </Link>
                 )}
               </div>
-              <div className="grid gap-3 text-sm text-zinc-700 dark:text-zinc-300 sm:grid-cols-2">
-                <div className="flex items-start gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span>
-                  <p>
-                    Verified vendors come with references and recent investor jobs so you can move quickly.
-                  </p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-blue-500"></span>
-                  <p>Filter by trade, market, and verification level similar to the Off Market MLS experience.</p>
-                </div>
-              </div>
-            </div>
+            </FadeIn>
 
-            <div className="lg:col-span-5">
-              <div className="rounded-2xl border border-zinc-200 bg-gradient-to-br from-zinc-50 via-white to-blue-50 p-6 shadow-lg ring-1 ring-inset ring-white/70 dark:border-zinc-800 dark:from-zinc-950 dark:via-zinc-950 dark:to-blue-950/30 dark:ring-black/30">
-                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Marketplace pulse</p>
-                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="rounded-xl bg-white/90 p-4 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-900/80 dark:ring-zinc-800">
-                    <p className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Verified vendors</p>
-                    <p className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50">{verifiedCount}</p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">Active across Texas markets</p>
+            <FadeIn delay={0.2} className="lg:col-span-5">
+              <div className="rounded-[2rem] border border-white/40 bg-white/30 p-6 shadow-xl shadow-zinc-200/50 backdrop-blur-md ring-1 ring-white/60 dark:border-white/5 dark:bg-zinc-900/30 dark:shadow-black/50 dark:ring-white/5">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="font-display text-xl font-bold text-zinc-900 dark:text-zinc-100">Marketplace Pulse</h3>
+                  <div className="flex -space-x-2">
+                    {/* Decorative avatars or circles */}
+                    <div className="h-8 w-8 rounded-full border-2 border-white bg-zinc-200 dark:border-zinc-800 dark:bg-zinc-700" />
+                    <div className="h-8 w-8 rounded-full border-2 border-white bg-zinc-300 dark:border-zinc-800 dark:bg-zinc-600" />
+                    <div className="h-8 w-8 items-center justify-center flex rounded-full border-2 border-white bg-zinc-100 text-[10px] font-bold dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-400">
+                      +12
+                    </div>
                   </div>
-                  <div className="rounded-xl bg-white/90 p-4 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-900/80 dark:ring-zinc-800">
-                    <p className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Trades covered</p>
-                    <p className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50">
-                      {availableWorkTypes.length}
-                    </p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">From GC to specialty subs</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="group rounded-2xl bg-white/60 p-4 transition-all hover:bg-white/80 dark:bg-zinc-900/60 dark:hover:bg-zinc-900/80">
+                    <p className="text-xs uppercase tracking-wider font-bold text-zinc-500 dark:text-zinc-500">Verified Pros</p>
+                    <p className="mt-1 text-3xl font-black text-zinc-900 dark:text-zinc-50 font-display group-hover:scale-110 origin-left transition-transform">{verifiedCount}</p>
                   </div>
-                  <div className="rounded-xl bg-white/90 p-4 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-900/80 dark:ring-zinc-800">
-                    <p className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Markets</p>
-                    <p className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50">{availableMarkets.length}</p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">DFW, Austin, San Antonio + more</p>
+                  <div className="group rounded-2xl bg-white/60 p-4 transition-all hover:bg-white/80 dark:bg-zinc-900/60 dark:hover:bg-zinc-900/80">
+                    <p className="text-xs uppercase tracking-wider font-bold text-zinc-500 dark:text-zinc-500">Trades</p>
+                    <p className="mt-1 text-3xl font-black text-zinc-900 dark:text-zinc-50 font-display group-hover:scale-110 origin-left transition-transform">{availableWorkTypes.length}</p>
                   </div>
-                  <div className="rounded-xl bg-white/90 p-4 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-900/80 dark:ring-zinc-800">
-                    <p className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Avg. response</p>
-                    <p className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50">Under 24h</p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">For investor outreach</p>
+                  <div className="group rounded-2xl bg-white/60 p-4 transition-all hover:bg-white/80 dark:bg-zinc-900/60 dark:hover:bg-zinc-900/80">
+                    <p className="text-xs uppercase tracking-wider font-bold text-zinc-500 dark:text-zinc-500">Markets</p>
+                    <p className="mt-1 text-3xl font-black text-zinc-900 dark:text-zinc-50 font-display group-hover:scale-110 origin-left transition-transform">{availableMarkets.length}</p>
+                  </div>
+                  <div className="group rounded-2xl bg-emerald-100/50 p-4 transition-all hover:bg-emerald-100/70 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/30">
+                    <p className="text-xs uppercase tracking-wider font-bold text-emerald-700 dark:text-emerald-400">Response</p>
+                    <p className="mt-1 text-3xl font-black text-emerald-800 dark:text-emerald-300 font-display group-hover:scale-110 origin-left transition-transform">&lt; 24h</p>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
+            </FadeIn>
+          </FadeInStagger>
 
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-400">
-              Vendor directory
-            </p>
-            <p className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-              Showing {filteredVendors.length} vendors
-            </p>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Filter by trade, market area, verification, or keyword to find the right crew.
-            </p>
-          </div>
-          {isVendor && (
-            <Link
-              href="/app/contractors/profile"
-              className="inline-flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-800 shadow-sm transition hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900"
-            >
-              Update my vendor profile
-              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M4.25 3A1.25 1.25 0 0 0 3 4.25v11.5C3 16.66 3.56 17 4.25 17h11.5c.69 0 1.25-.34 1.25-1.25V4.25C17 3.56 16.44 3 15.75 3H4.25ZM14 7.5a.75.75 0 0 1 0 1.5H8.56l2.22 2.22a.75.75 0 0 1-1.06 1.06l-3.5-3.5a.75.75 0 0 1 0-1.06l3.5-3.5a.75.75 0 0 1 1.06 1.06L8.56 7.5H14Z" />
-              </svg>
-            </Link>
-          )}
+          <FadeIn delay={0.4}>
+            <VendorFilters
+              availableWorkTypes={availableWorkTypes}
+              availableMarkets={availableMarkets}
+              activeVendors={filteredVendors}
+            />
+          </FadeIn>
         </div>
-
-        <VendorFilters availableWorkTypes={availableWorkTypes} availableMarkets={availableMarkets}>
-          {filteredVendors.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-zinc-300 bg-white/60 p-10 text-center text-sm text-zinc-600 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/70 dark:text-zinc-400">
-              No vendors match those filters yet. Try clearing filters or choosing a nearby market.
-            </div>
-          ) : (
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {filteredVendors.map((vendor) => (
-                <VendorCard key={vendor.id} vendor={vendor} />
-              ))}
-            </div>
-          )}
-        </VendorFilters>
       </div>
     </div>
   );

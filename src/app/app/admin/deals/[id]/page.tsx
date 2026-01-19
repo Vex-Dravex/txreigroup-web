@@ -266,7 +266,7 @@ export default async function AdminDealReviewPage({ params }: { params: Promise<
               href="/app/deals"
               className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
             >
-              View Off Market MLS
+              View Creative Marketplace
             </Link>
           </div>
         </div>
@@ -392,12 +392,12 @@ export default async function AdminDealReviewPage({ params }: { params: Promise<
 
             <div
               className={`rounded-lg border p-6 shadow-sm ${dealData.deal_type === "seller_finance"
-                  ? "border-emerald-200 bg-emerald-50/70 dark:border-emerald-900/60 dark:bg-emerald-950/30"
-                  : dealData.deal_type === "mortgage_takeover"
-                    ? "border-purple-200 bg-purple-50/70 dark:border-purple-900/60 dark:bg-purple-950/30"
-                    : dealData.deal_type === "trust_acquisition"
-                      ? "border-orange-200 bg-orange-50/70 dark:border-orange-900/60 dark:bg-orange-950/30"
-                      : "border-blue-200 bg-blue-50/70 dark:border-blue-900/60 dark:bg-blue-950/30"
+                ? "border-emerald-200 bg-emerald-50/70 dark:border-emerald-900/60 dark:bg-emerald-950/30"
+                : dealData.deal_type === "mortgage_takeover"
+                  ? "border-purple-200 bg-purple-50/70 dark:border-purple-900/60 dark:bg-purple-950/30"
+                  : dealData.deal_type === "trust_acquisition"
+                    ? "border-orange-200 bg-orange-50/70 dark:border-orange-900/60 dark:bg-orange-950/30"
+                    : "border-blue-200 bg-blue-50/70 dark:border-blue-900/60 dark:bg-blue-950/30"
                 }`}
             >
               <div className="mb-4 flex items-center justify-between">

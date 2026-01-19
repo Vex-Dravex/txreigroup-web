@@ -56,7 +56,7 @@ export default function AppHeader({
                   : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
                   }`}
               >
-                Off Market MLS
+                Creative Marketplace
               </Link>
               <Link
                 href="/app/contractors"

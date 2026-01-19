@@ -11,6 +11,9 @@ import PaginationControls from "./PaginationControls";
 import { ScrollRestorationProvider } from "./useScrollRestoration";
 import DealLink from "./DealLink";
 import { getPrimaryRole, getUserRoles, hasRole } from "@/lib/roles";
+import { SavedDealsProvider } from "./SavedDealsProvider";
+import SaveButton from "./SaveButton";
+import DealsListContainer from "./DealsListContainer";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -47,6 +50,10 @@ type Deal = {
     email?: string | null;
     phone?: string | null;
   } | null;
+  deal_media?: {
+    file_path: string;
+    display_order: number;
+  }[];
 };
 
 type Profile = {
@@ -109,6 +116,10 @@ export default async function DealsPage({
         display_name,
         email,
         phone
+      ),
+      deal_media(
+        file_path,
+        display_order
       )
     `)
     .order("created_at", { ascending: false });
@@ -219,6 +230,11 @@ export default async function DealsPage({
         email: "mike@example.com",
         phone: "(512) 555-0789",
       },
+      deal_media: [
+        { file_path: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop", display_order: 1 },
+        { file_path: "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=800&h=600&fit=crop", display_order: 2 },
+        { file_path: "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=800&h=600&fit=crop", display_order: 3 },
+      ],
     },
     {
       id: "example-4",
@@ -248,6 +264,10 @@ export default async function DealsPage({
         email: "lisa@example.com",
         phone: "(210) 555-0321",
       },
+      deal_media: [
+        { file_path: "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800&h=600&fit=crop", display_order: 1 },
+        { file_path: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&h=600&fit=crop", display_order: 2 },
+      ],
     },
     {
       id: "example-5",
@@ -363,7 +383,17 @@ export default async function DealsPage({
 
   // Filter deals based on search params
   displayDeals = displayDeals.filter((deal) => {
-    // Search filter - matches against title, address, or city
+    // 1. Status Filter - remove pending and approved cards (badges) users don't need to see
+    if (!isAdmin) {
+      if (deal.status === 'pending' || deal.status === 'closed' || deal.status === 'rejected' || deal.status === 'draft') {
+        // Wholesalers can only see their own non-approved deals
+        if (!isWholesaler || deal.wholesaler_id !== authData.user.id) {
+          return false;
+        }
+      }
+    }
+
+    // 2. Search filter - matches against title, address, or city
     if (filters.search) {
       const searchLower = filters.search;
       const titleMatch = deal.title?.toLowerCase().includes(searchLower);
@@ -382,15 +412,9 @@ export default async function DealsPage({
         return false;
       }
       if (filters.exactBedrooms) {
-        // Exact match: must be exactly this number
-        if (dealBedrooms !== filters.bedrooms) {
-          return false;
-        }
+        if (dealBedrooms !== filters.bedrooms) return false;
       } else {
-        // Minimum match: must be at least this number
-        if (dealBedrooms < filters.bedrooms) {
-          return false;
-        }
+        if (dealBedrooms < filters.bedrooms) return false;
       }
     }
 
@@ -401,91 +425,64 @@ export default async function DealsPage({
         return false;
       }
       if (filters.exactBathrooms) {
-        // Exact match: must be exactly this number (within 0.01 tolerance for floating point)
-        if (Math.abs(dealBathrooms - filters.bathrooms) > 0.01) {
-          return false;
-        }
+        if (Math.abs(dealBathrooms - filters.bathrooms) > 0.01) return false;
       } else {
-        // Minimum match: must be at least this number
-        if (dealBathrooms < filters.bathrooms) {
-          return false;
-        }
+        if (dealBathrooms < filters.bathrooms) return false;
       }
     }
 
     // Square footage filter
     if (filters.minSqFt !== null) {
       const dealSqFt = typeof deal.square_feet === 'number' ? deal.square_feet : (deal.square_feet ? parseInt(String(deal.square_feet)) : null);
-      if (dealSqFt === null || dealSqFt < filters.minSqFt) {
-        return false;
-      }
+      if (dealSqFt === null || dealSqFt < filters.minSqFt) return false;
     }
     if (filters.maxSqFt !== null) {
       const dealSqFt = typeof deal.square_feet === 'number' ? deal.square_feet : (deal.square_feet ? parseInt(String(deal.square_feet)) : null);
-      if (dealSqFt === null || dealSqFt > filters.maxSqFt) {
-        return false;
-      }
+      if (dealSqFt === null || dealSqFt > filters.maxSqFt) return false;
     }
 
     // Lot size filter
     if (filters.minLotSize !== null) {
       const dealLotSize = typeof deal.lot_size_acres === 'number' ? deal.lot_size_acres : (deal.lot_size_acres ? parseFloat(String(deal.lot_size_acres)) : null);
-      if (dealLotSize === null || dealLotSize < filters.minLotSize) {
-        return false;
-      }
+      if (dealLotSize === null || dealLotSize < filters.minLotSize) return false;
     }
     if (filters.maxLotSize !== null) {
       const dealLotSize = typeof deal.lot_size_acres === 'number' ? deal.lot_size_acres : (deal.lot_size_acres ? parseFloat(String(deal.lot_size_acres)) : null);
-      if (dealLotSize === null || dealLotSize > filters.maxLotSize) {
-        return false;
-      }
+      if (dealLotSize === null || dealLotSize > filters.maxLotSize) return false;
     }
 
-    // Deal type filter - exclude deals that don't match the selected deal type
+    // Deal type filter
     if (filters.dealType) {
-      // If deal doesn't have deal_type or it doesn't match, exclude it
-      if (!deal.deal_type || deal.deal_type !== filters.dealType) {
-        return false;
-      }
+      if (!deal.deal_type || deal.deal_type !== filters.dealType) return false;
     }
 
     // Buyer entry cost filter
     if (filters.minEntryPrice !== null || filters.maxEntryPrice !== null) {
-      // Handle buyer_entry_cost - it might be a number, string, or null
       let buyerEntryCost: number;
       if (deal.buyer_entry_cost !== null && deal.buyer_entry_cost !== undefined) {
         buyerEntryCost = typeof deal.buyer_entry_cost === 'number'
           ? deal.buyer_entry_cost
           : parseFloat(String(deal.buyer_entry_cost)) || 0;
       } else {
-        // Fallback to 20% of asking price if buyer_entry_cost is not set
         buyerEntryCost = typeof deal.asking_price === 'number'
           ? deal.asking_price * 0.2
           : parseFloat(String(deal.asking_price)) * 0.2 || 0;
       }
 
-      if (filters.minEntryPrice !== null && buyerEntryCost < filters.minEntryPrice) {
-        return false;
-      }
-      if (filters.maxEntryPrice !== null && buyerEntryCost > filters.maxEntryPrice) {
-        return false;
-      }
+      if (filters.minEntryPrice !== null && buyerEntryCost < filters.minEntryPrice) return false;
+      if (filters.maxEntryPrice !== null && buyerEntryCost > filters.maxEntryPrice) return false;
     }
 
-    // City filter - case-insensitive comparison
+    // City filter
     if (filters.city) {
       const dealCity = deal.property_city ? deal.property_city.toLowerCase().trim() : '';
-      if (!dealCity || dealCity !== filters.city) {
-        return false;
-      }
+      if (!dealCity || dealCity !== filters.city) return false;
     }
 
-    // Zipcode filter - exact match (trimmed)
+    // Zipcode filter
     if (filters.zipcode) {
       const dealZip = deal.property_zip ? String(deal.property_zip).trim() : '';
-      if (!dealZip || dealZip !== filters.zipcode) {
-        return false;
-      }
+      if (!dealZip || dealZip !== filters.zipcode) return false;
     }
 
     return true;
@@ -544,212 +541,128 @@ export default async function DealsPage({
 
   return (
     <FilterProvider>
-      <ScrollRestorationProvider>
-        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
-          <AppHeader
-            userRole={userRole}
-            currentPage="deals"
-            avatarUrl={profileData?.avatar_url || null}
-            displayName={profileData?.display_name || null}
-            email={authData.user.email}
-          />
-          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-            <div className="mb-8">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">Off Market MLS</h1>
-                  <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                    {isAdmin
-                      ? "All deals"
-                      : isWholesaler
-                        ? "Manage your deals"
-                        : "Browse approved wholesale deals"}
-                    {displayDeals.length > 0 && (
-                      <span className="ml-2">({displayDeals.length} {displayDeals.length === 1 ? "listing" : "listings"})</span>
-                    )}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Suspense fallback={null}>
-                    <FilterToggleButton />
-                  </Suspense>
-                </div>
-              </div>
+      <SavedDealsProvider>
+        <ScrollRestorationProvider>
+          <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 selection:bg-blue-500/30">
+            <div className="noise-overlay fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]" />
 
-              {/* Search Bar */}
-              <div className="mt-6">
-                <Suspense fallback={null}>
-                  <SearchBar />
-                </Suspense>
-              </div>
+            {/* Background Gradient Elements */}
+            <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+              <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-blue-500/5 blur-[120px]" />
+              <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full bg-purple-500/5 blur-[120px]" />
             </div>
 
-            {/* Sidebar + Main Content Layout */}
-            <div className="flex gap-6">
-              {/* Filter Sidebar - controlled by FilterToggleButton */}
-              <FilterSidebarWrapper />
+            <div className="relative z-10">
+              <AppHeader
+                userRole={userRole}
+                currentPage="deals"
+                avatarUrl={profileData?.avatar_url || null}
+                displayName={profileData?.display_name || null}
+                email={authData.user.email}
+              />
 
-              {/* Main Content Area */}
-              <div className="flex-1">
-                {/* Filter Tags - shown above listings */}
-                <Suspense fallback={null}>
-                  <FilterTagsDisplay />
-                </Suspense>
-
-                {displayDeals.length === 0 ? (
-                  <div className="rounded-lg border border-zinc-200 bg-white p-12 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-                    <p className="text-zinc-600 dark:text-zinc-400">
-                      {Object.values(filters).some((v) => v !== null)
-                        ? "No deals match your current filters. Try adjusting your search criteria."
-                        : isAdmin
-                          ? "No deals found."
+              <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+                <div className="mb-12">
+                  <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-10">
+                    <div className="flex-1">
+                      <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-zinc-950 dark:text-zinc-50 font-syne mb-3">
+                        Creative <span className="text-blue-600">Marketplace</span>
+                      </h1>
+                      <p className="text-zinc-600 dark:text-zinc-400 font-medium text-lg">
+                        {isAdmin
+                          ? "Master Inventory Control"
                           : isWholesaler
-                            ? "You haven't created any deals yet."
-                            : "No approved deals available at this time."}
-                    </p>
-                    {Object.values(filters).some((v) => v !== null) && (
-                      <Link
-                        href="/app/deals"
-                        className="mt-4 inline-block rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
-                      >
-                        Clear Filters
-                      </Link>
+                            ? "Your Exclusive Inventory"
+                            : "Curated Wholesale Opportunities"}
+                        {displayDeals.length > 0 && (
+                          <span className="ml-3 px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-xs font-bold text-zinc-500">
+                            {displayDeals.length} {displayDeals.length === 1 ? "listing" : "listings"}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Action Bar: Search + Filter + Save - All grouped together */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-12">
+                    {/* Search Bar */}
+                    <div className="flex-1 min-w-0">
+                      <Suspense fallback={null}>
+                        <SearchBar />
+                      </Suspense>
+                    </div>
+
+                    {/* Filter and Save Buttons */}
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <Suspense fallback={null}>
+                        <FilterToggleButton />
+                      </Suspense>
+                      <SaveButton />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sidebar + Main Content Layout */}
+                <div className="flex flex-col lg:flex-row gap-12 items-start">
+                  {/* Filter Sidebar - controlled by FilterToggleButton */}
+                  <div className="lg:pt-2"> {/* Tiny offset to align with grid top */}
+                    <FilterSidebarWrapper />
+                  </div>
+
+                  {/* Main Content Area */}
+                  <div className="flex-1 w-full">
+                    {/* Filter Tags - shown above listings */}
+                    <Suspense fallback={null}>
+                      <div className="mb-6">
+                        <FilterTagsDisplay />
+                      </div>
+                    </Suspense>
+
+                    {displayDeals.length === 0 ? (
+                      <div className="glass rounded-[2rem] border border-zinc-200 p-16 text-center shadow-sm dark:border-zinc-800">
+                        <div className="text-4xl mb-4">🏠</div>
+                        <p className="text-zinc-600 dark:text-zinc-400 font-medium text-lg">
+                          {Object.values(filters).some((v) => v !== null)
+                            ? "No matches found for your current criteria."
+                            : isAdmin
+                              ? "Inventory is currently empty."
+                              : isWholesaler
+                                ? "You haven't posted any deals yet."
+                                : "No new opportunities at the moment."}
+                        </p>
+                        {Object.values(filters).some((v) => v !== null) && (
+                          <Link
+                            href="/app/deals"
+                            className="mt-6 inline-flex items-center px-6 py-3 rounded-xl bg-zinc-900 text-white font-bold text-sm transition-transform hover:scale-105 active:scale-95 dark:bg-zinc-50 dark:text-zinc-900"
+                          >
+                            Clear all filters
+                          </Link>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        <DealsListContainer
+                          initialDeals={paginatedDeals}
+                        />
+
+                        <div className="mt-12">
+                          <PaginationControls
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            totalItems={totalItems}
+                            limit={limit}
+                          />
+                        </div>
+                      </>
                     )}
                   </div>
-                ) : (
-                  <>
-                    <DealsGrid>
-                      {paginatedDeals.map((deal) => {
-                        const dealTypeInfo = getDealTypeInfo(deal.deal_type);
-                        const buyerEntryCost = deal.buyer_entry_cost || deal.asking_price * 0.2; // Default to 20% if not set
-
-                        return (
-                          <DealLink
-                            key={deal.id}
-                            dealId={deal.id}
-                            className="group overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm transition-all hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-950"
-                          >
-                            {/* Property Image */}
-                            <div className="relative h-64 w-full overflow-hidden bg-zinc-200 dark:bg-zinc-800">
-                              {deal.property_image_url ? (
-                                <img
-                                  src={deal.property_image_url}
-                                  alt={deal.title}
-                                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                />
-                              ) : (
-                                <div className="flex h-full w-full items-center justify-center text-zinc-400 dark:text-zinc-600">
-                                  <svg className="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                  </svg>
-                                </div>
-                              )}
-                              {/* Deal Type Badge */}
-                              {deal.deal_type && (
-                                <div className="absolute left-3 top-3">
-                                  <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${dealTypeInfo.color}`}>
-                                    {dealTypeInfo.label}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Content */}
-                            <div className="p-5">
-                              {/* Buyer Entry Cost - Prominently Displayed */}
-                              <div className="mb-3">
-                                <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Buyer Entry Cost</div>
-                                <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-                                  {formatPrice(buyerEntryCost)}
-                                </div>
-                              </div>
-
-                              {/* Address */}
-                              <h2 className="mb-2 text-lg font-semibold text-zinc-900 group-hover:text-blue-600 dark:text-zinc-50 dark:group-hover:text-blue-400">
-                                {deal.property_address}
-                              </h2>
-                              <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-                                {deal.property_city}, {deal.property_state} {deal.property_zip}
-                              </p>
-
-                              {/* Property Details Grid */}
-                              <div className="mb-4 grid grid-cols-2 gap-3 border-t border-zinc-200 pt-4 dark:border-zinc-800">
-                                {deal.property_type && (
-                                  <div>
-                                    <div className="text-xs text-zinc-500 dark:text-zinc-400">Type</div>
-                                    <div className="text-sm font-medium text-zinc-900 dark:text-zinc-50 capitalize">
-                                      {deal.property_type}
-                                    </div>
-                                  </div>
-                                )}
-                                {deal.bedrooms && (
-                                  <div>
-                                    <div className="text-xs text-zinc-500 dark:text-zinc-400">Bedrooms</div>
-                                    <div className="text-sm font-medium text-zinc-900 dark:text-zinc-50">{deal.bedrooms}</div>
-                                  </div>
-                                )}
-                                {deal.bathrooms && (
-                                  <div>
-                                    <div className="text-xs text-zinc-500 dark:text-zinc-400">Bathrooms</div>
-                                    <div className="text-sm font-medium text-zinc-900 dark:text-zinc-50">{deal.bathrooms}</div>
-                                  </div>
-                                )}
-                                {deal.square_feet && (
-                                  <div>
-                                    <div className="text-xs text-zinc-500 dark:text-zinc-400">Sq Ft</div>
-                                    <div className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
-                                      {deal.square_feet.toLocaleString()}
-                                    </div>
-                                  </div>
-                                )}
-                                {deal.insurance_estimate_monthly !== null && deal.insurance_estimate_monthly !== undefined && (
-                                  <div>
-                                    <div className="text-xs text-zinc-500 dark:text-zinc-400">Est. Insurance</div>
-                                    <div className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
-                                      {formatPrice(deal.insurance_estimate_monthly)} / mo
-                                    </div>
-                                  </div>
-                                )}
-                                {deal.lot_size_acres && (
-                                  <div className="col-span-2">
-                                    <div className="text-xs text-zinc-500 dark:text-zinc-400">Lot Size</div>
-                                    <div className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
-                                      {deal.lot_size_acres.toFixed(2)} acres
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Asking Price */}
-                              <div className="border-t border-zinc-200 pt-3 dark:border-zinc-800">
-                                <div className="flex justify-between text-sm">
-                                  <span className="text-zinc-600 dark:text-zinc-400">Asking Price</span>
-                                  <span className="font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {formatPrice(deal.asking_price)}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </DealLink>
-                        );
-                      })}
-                    </DealsGrid>
-
-                    <div className="mt-8">
-                      <PaginationControls
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        totalItems={totalItems}
-                        limit={limit}
-                      />
-                    </div>
-                  </>
-                )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </ScrollRestorationProvider>
+        </ScrollRestorationProvider>
+      </SavedDealsProvider>
     </FilterProvider>
   );
 }
+

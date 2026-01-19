@@ -14,7 +14,7 @@ interface FeatureSlide {
 const features: FeatureSlide[] = [
   {
     id: 1,
-    title: 'Off Market MLS',
+    title: 'Creative Marketplace',
     description: 'Access exclusive wholesale deals vetted by our team. Browse verified properties with detailed analytics, insurance estimates, and comprehensive property information.',
     image: '/off-market-mls.png',
     category: 'investors',

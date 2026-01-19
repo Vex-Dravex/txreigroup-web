@@ -35,7 +35,7 @@ export default async function AdminDashboard() {
   const primaryRole = getPrimaryRole(roles, profileData?.role || "investor");
 
   // Get statistics
-  const [pendingDealsResult, inquiriesResult, usersResult, contractorsResult] = await Promise.all([
+  const [pendingDealsResult, inquiriesResult, usersResult, contractorsResult, dealInterestResult] = await Promise.all([
     supabase
       .from("deals")
       .select("id", { count: "exact", head: true })
@@ -51,6 +51,10 @@ export default async function AdminDashboard() {
       .from("contractor_profiles")
       .select("verification_status", { count: "exact", head: true })
       .eq("verification_status", "pending"),
+    supabase
+      .from("deal_interest")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
   ]);
 
   return (
@@ -134,6 +138,17 @@ export default async function AdminDashboard() {
                   {contractorsResult.count || 0}
                 </dd>
               </div>
+              <div className="flex items-center justify-between">
+                <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Deal Interest</dt>
+                <dd className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                  <Link
+                    href="/app/admin/deal-interest"
+                    className="transition-colors hover:text-zinc-700 dark:hover:text-zinc-200"
+                  >
+                    {dealInterestResult.count || 0}
+                  </Link>
+                </dd>
+              </div>
             </dl>
           </div>
         </div>
@@ -153,6 +168,12 @@ export default async function AdminDashboard() {
               className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
             >
               Review Deals
+            </Link>
+            <Link
+              href="/app/admin/deal-interest"
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+            >
+              View Deal Interest
             </Link>
             <Link
               href="/app/admin/inquiries"

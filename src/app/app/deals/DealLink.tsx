@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 
 const SCROLL_POSITION_KEY = "deals-scroll-position";
 
@@ -21,13 +22,28 @@ export default function DealLink({ dealId, children, className }: DealLinkProps)
         }
     };
 
+    const item = {
+        hidden: { y: 20, opacity: 0 },
+        show: {
+            y: 0,
+            opacity: 1,
+            transition: {
+                duration: 0.5,
+                ease: [0.16, 1, 0.3, 1] as any
+            }
+        },
+    };
+
     return (
-        <Link
-            href={`/app/deals/${dealId}`}
-            className={className}
-            onClick={handleClick}
-        >
-            {children}
-        </Link>
+        <motion.div variants={item}>
+            <Link
+                href={`/app/deals/${dealId}`}
+                className={className}
+                onClick={handleClick}
+            >
+                {children}
+            </Link>
+        </motion.div>
     );
 }
+

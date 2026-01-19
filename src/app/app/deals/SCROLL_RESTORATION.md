@@ -28,7 +28,7 @@ Implemented automatic scroll position restoration using `sessionStorage` to reme
 1. User scrolls through deals list
 2. User clicks on a deal → scroll position saved
 3. User views deal details
-4. User clicks "← Back to Off Market MLS"
+4. User clicks "← Back to Creative Marketplace"
 5. Page loads and **instantly scrolls to the exact position** they left off
 6. User can continue browsing from where they were
 

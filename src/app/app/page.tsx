@@ -139,13 +139,12 @@ export default async function AppHome() {
                   <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Status</dt>
                   <dd className="mt-1">
                     <span
-                      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        membershipStatus === "active"
+                      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${membershipStatus === "active"
                           ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
                           : membershipStatus === "past_due"
                             ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
                             : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-                      }`}
+                        }`}
                     >
                       {membershipStatus === "active"
                         ? "Active"
@@ -176,7 +175,7 @@ export default async function AppHome() {
               href="/app/deals"
               className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
             >
-              Off Market MLS
+              Creative Marketplace
             </Link>
             <Link
               href="/app/contractors"

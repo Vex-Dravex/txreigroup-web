@@ -3,10 +3,10 @@ import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import AppHeader from "../components/AppHeader";
 import ServiceFilters from "./ServiceFilters";
-import VendorCard from "../contractors/VendorCard";
 import { VendorListing } from "../contractors/types";
 import { getPrimaryRole, getUserRoles } from "@/lib/roles";
 import { exampleTransactionServices } from "./sampleTransactionServices";
+import FadeIn, { FadeInStagger } from "../../components/FadeIn";
 
 export const dynamic = "force-dynamic";
 
@@ -54,14 +54,14 @@ export default async function TransactionServicesPage({
 
   if (!authData.user) redirect("/login");
 
-  const { data: profile } = await supabase
+  const { data: profileData } = await supabase
     .from("profiles")
     .select("role, display_name, avatar_url")
     .eq("id", authData.user.id)
     .single();
 
-  const roles = await getUserRoles(supabase, authData.user.id, profile?.role || "investor");
-  const userRole = getPrimaryRole(roles, profile?.role || "investor");
+  const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
+  const userRole = getPrimaryRole(roles, profileData?.role || "investor");
 
   const selectedWorkTypes = parseListParam(resolvedSearchParams.workType);
   const selectedMarkets = parseListParam(resolvedSearchParams.market);
@@ -117,116 +117,91 @@ export default async function TransactionServicesPage({
   const verifiedCount = exampleTransactionServices.filter((service) => service.verificationStatus === "verified").length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900">
-      <AppHeader
-        userRole={userRole}
-        currentPage="transaction-services"
-        avatarUrl={profile?.avatar_url || null}
-        displayName={profile?.display_name || null}
-        email={authData.user.email}
-      />
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 selection:bg-blue-500/30">
+      <div className="noise-overlay fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]" />
 
-      <section className="border-b border-zinc-200/70 bg-white/60 py-12 backdrop-blur dark:border-zinc-800/70 dark:bg-zinc-950/60">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
-            <div className="space-y-4 lg:col-span-7">
-              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700 ring-1 ring-inset ring-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-200 dark:ring-emerald-900/50">
-                Transaction services marketplace
-              </span>
-              <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl">
-                Title, escrow, and funding partners built for investors
+      {/* Background Gradient Elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-emerald-500/5 blur-[120px]" />
+        <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full bg-blue-500/5 blur-[120px]" />
+      </div>
+
+      <div className="relative z-10">
+        <AppHeader
+          userRole={userRole}
+          currentPage="transaction-services"
+          avatarUrl={profileData?.avatar_url || null}
+          displayName={profileData?.display_name || null}
+          email={authData.user.email}
+        />
+
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <FadeInStagger className="grid gap-12 lg:grid-cols-12 lg:items-start mb-16">
+            <FadeIn className="lg:col-span-7 space-y-6">
+              <div className="inline-flex items-center gap-2 rounded-full bg-blue-100/50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-blue-700 ring-1 ring-inset ring-blue-200/50 backdrop-blur-sm dark:bg-blue-900/20 dark:text-blue-300 dark:ring-blue-800/30">
+                <span className="flex h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                Partner Network
+              </div>
+
+              <h1 className="text-4xl md:text-5xl lg:text-7xl font-black tracking-tighter text-zinc-950 dark:text-zinc-50 font-display italic leading-[0.9]">
+                Title, Escrow, and <br />
+                <span className="text-blue-600 not-italic">Funding Partners</span>
               </h1>
-              <p className="max-w-3xl text-lg text-zinc-600 dark:text-zinc-400">
-                Find transaction service providers who already understand assignments, double closes, and fast funding.
-                Compare coverage areas, see recent work, and connect directly.
+
+              <p className="max-w-2xl text-lg md:text-xl text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">
+                Connect with elite partners well-versed in Creative Finance, ready to help you facilitate your closings and scale your portfolio.
               </p>
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  href="/app/deals"
-                  className="rounded-md bg-zinc-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
-                >
-                  Explore investor deals
-                </Link>
-                <Link
-                  href="/login"
-                  className="rounded-md border border-zinc-200 px-5 py-3 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-900"
-                >
-                  Promote your services
-                </Link>
-              </div>
-              <div className="grid gap-3 text-sm text-zinc-700 dark:text-zinc-300 sm:grid-cols-2">
-                <div className="flex items-start gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span>
-                  <p>Verified partners share experience with investor closings and draw schedules.</p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-blue-500"></span>
-                  <p>Filter by service type and market coverage to match your deal pipeline.</p>
-                </div>
-              </div>
-            </div>
+            </FadeIn>
 
-            <div className="lg:col-span-5">
-              <div className="rounded-2xl border border-zinc-200 bg-gradient-to-br from-zinc-50 via-white to-emerald-50 p-6 shadow-lg ring-1 ring-inset ring-white/70 dark:border-zinc-800 dark:from-zinc-950 dark:via-zinc-950 dark:to-emerald-950/30 dark:ring-black/30">
-                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Marketplace snapshot</p>
-                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="rounded-xl bg-white/90 p-4 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-900/80 dark:ring-zinc-800">
-                    <p className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Verified partners</p>
-                    <p className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50">{verifiedCount}</p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">Title, escrow, lending, gators</p>
+            <FadeIn delay={0.2} className="lg:col-span-5">
+              <div className="rounded-[2rem] border border-white/40 bg-white/30 p-8 shadow-xl shadow-blue-500/5 backdrop-blur-md ring-1 ring-white/60 dark:border-white/5 dark:bg-zinc-900/30 dark:shadow-black/50 dark:ring-white/5">
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h3 className="font-display text-2xl font-black text-zinc-950 dark:text-zinc-50 tracking-tighter">Network Pulse</h3>
+                    <p className="text-xs font-bold uppercase tracking-widest text-zinc-500 mt-1">Live Statistics</p>
                   </div>
-                  <div className="rounded-xl bg-white/90 p-4 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-900/80 dark:ring-zinc-800">
-                    <p className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Service types</p>
-                    <p className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50">
-                      {availableWorkTypes.length}
-                    </p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">Specialized investor support</p>
+                  <div className="flex -space-x-4">
+                    <div className="h-12 w-12 rounded-full border-2 border-white bg-gradient-to-br from-blue-400 to-indigo-500 shadow-lg dark:border-zinc-800" />
+                    <div className="h-12 w-12 rounded-full border-2 border-white bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg dark:border-zinc-800" />
+                    <div className="h-12 w-12 items-center justify-center flex rounded-full border-2 border-white bg-white/80 text-[10px] font-black dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-400 shadow-lg backdrop-blur-sm">
+                      +15
+                    </div>
                   </div>
-                  <div className="rounded-xl bg-white/90 p-4 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-900/80 dark:ring-zinc-800">
-                    <p className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Markets</p>
-                    <p className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50">{availableMarkets.length}</p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">Texas-wide coverage</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="group rounded-2xl bg-white/60 p-5 transition-all hover:bg-blue-600 hover:scale-[1.02] dark:bg-zinc-900/60 dark:hover:bg-blue-600">
+                    <p className="text-[10px] uppercase tracking-widest font-black text-zinc-500 group-hover:text-blue-100 transition-colors">Verified Partners</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-4xl font-black text-zinc-950 dark:text-zinc-50 font-display group-hover:text-white transition-colors">{verifiedCount}</p>
+                      <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse group-hover:bg-white" />
+                    </div>
                   </div>
-                  <div className="rounded-xl bg-white/90 p-4 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-900/80 dark:ring-zinc-800">
-                    <p className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Typical close</p>
-                    <p className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50">10-14 days</p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">Investor-aligned timelines</p>
+                  <div className="group rounded-2xl bg-white/60 p-5 transition-all hover:bg-blue-600 hover:scale-[1.02] dark:bg-zinc-900/60 dark:hover:bg-blue-600">
+                    <p className="text-[10px] uppercase tracking-widest font-black text-zinc-500 group-hover:text-blue-100 transition-colors">Specialties</p>
+                    <p className="mt-1 text-4xl font-black text-zinc-950 dark:text-zinc-50 font-display group-hover:text-white transition-colors">{availableWorkTypes.length}</p>
+                  </div>
+                  <div className="group rounded-2xl bg-white/60 p-5 transition-all hover:bg-blue-600 hover:scale-[1.02] dark:bg-zinc-900/60 dark:hover:bg-blue-600">
+                    <p className="text-[10px] uppercase tracking-widest font-black text-zinc-500 group-hover:text-blue-100 transition-colors">Service Regions</p>
+                    <p className="mt-1 text-4xl font-black text-zinc-950 dark:text-zinc-50 font-display group-hover:text-white transition-colors">{availableMarkets.length}</p>
+                  </div>
+                  <div className="group rounded-2xl bg-emerald-500/10 p-5 transition-all hover:bg-emerald-600 hover:scale-[1.02] dark:bg-emerald-500/5 dark:hover:bg-emerald-600">
+                    <p className="text-[10px] uppercase tracking-widest font-black text-emerald-600 group-hover:text-emerald-50 transition-colors">Investor Ready</p>
+                    <p className="mt-1 text-4xl font-black text-emerald-600 dark:text-emerald-400 font-display group-hover:text-white transition-colors">Pro</p>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </FadeIn>
+          </FadeInStagger>
+
+          <FadeIn delay={0.4}>
+            <ServiceFilters
+              activeVendors={filteredServices}
+              availableWorkTypes={availableWorkTypes}
+              availableMarkets={availableMarkets}
+            />
+          </FadeIn>
         </div>
-      </section>
-
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-400">
-              Transaction service directory
-            </p>
-            <p className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-              Showing {filteredServices.length} partners
-            </p>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Filter by service type, market area, verification, or keyword to find the right partner.
-            </p>
-          </div>
-        </div>
-
-        <ServiceFilters availableWorkTypes={availableWorkTypes} availableMarkets={availableMarkets}>
-          {filteredServices.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-zinc-300 bg-white/60 p-10 text-center text-sm text-zinc-600 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/70 dark:text-zinc-400">
-              No transaction services match those filters yet. Try clearing filters or choosing a nearby market.
-            </div>
-          ) : (
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {filteredServices.map((service) => (
-                <VendorCard key={service.id} vendor={service} verifiedLabel="Verified Partner" />
-              ))}
-            </div>
-          )}
-        </ServiceFilters>
       </div>
     </div>
   );

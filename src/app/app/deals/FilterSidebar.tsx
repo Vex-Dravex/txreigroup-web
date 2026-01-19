@@ -92,18 +92,18 @@ export function FilterTags({ searchParams, onRemoveFilters }: FilterTagsProps) {
           onClick={() => {
             onRemoveFilters(filter.removeKeys);
           }}
-          className="group inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800 transition-colors hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
+          className="group inline-flex items-center gap-2 rounded-xl bg-blue-50/50 backdrop-blur-md border border-blue-100 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-blue-600 transition-all hover:bg-blue-600 hover:text-white dark:bg-blue-900/20 dark:border-blue-500/20 dark:text-blue-400 dark:hover:bg-blue-600 dark:hover:text-white"
         >
           <span>
             {filter.label}: {filter.value}
           </span>
           <svg
-            className="h-3 w-3 opacity-70 group-hover:opacity-100"
+            className="h-3.5 w-3.5 opacity-50 group-hover:opacity-100 transition-opacity"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       ))}
@@ -232,34 +232,32 @@ export default function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
     <>
       {/* Collapsible Sidebar */}
       <div
-        className={`fixed left-0 top-0 z-40 h-full w-80 transform bg-white shadow-xl transition-transform duration-300 ease-in-out dark:bg-zinc-950 lg:sticky lg:top-4 lg:z-auto lg:h-fit lg:transform-none lg:rounded-xl lg:border lg:border-zinc-200 lg:shadow-sm lg:dark:border-zinc-800 ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        className={`fixed left-0 top-0 z-40 h-full w-80 transform bg-white/80 backdrop-blur-xl shadow-2xl transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) dark:bg-zinc-950/80 lg:sticky lg:top-8 lg:z-auto lg:h-fit lg:transform-none lg:rounded-[2rem] lg:border lg:border-zinc-200 lg:shadow-xl lg:dark:border-zinc-800 ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           }`}
       >
-        <div className="flex h-full flex-col overflow-y-auto p-5 lg:h-auto lg:overflow-visible">
+        <div className="flex h-full flex-col overflow-y-auto p-8 lg:h-auto lg:overflow-visible">
           {/* Header */}
-          <div className="mb-6 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">Filters</h2>
+          <div className="mb-8 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-black tracking-tighter text-zinc-950 dark:text-zinc-50 font-syne italic">Filters</h2>
               {hasActiveFilters && (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
-                  !
-                </span>
+                <span className="flex h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
               )}
             </div>
             <button
               onClick={onClose}
-              className="lg:hidden rounded-md p-1 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              className="lg:hidden rounded-xl p-2 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-colors"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-blue-600 transition-colors"
               >
-                Reset
+                Reset All
               </button>
             )}
           </div>
@@ -452,12 +450,13 @@ export default function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
             </div>
 
             {/* Apply Button */}
-            <div className="pt-2">
+            <div className="pt-4">
               <button
                 onClick={applyFilters}
-                className="w-full rounded-lg bg-zinc-900 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-zinc-800 focus:ring-2 focus:ring-zinc-900 focus:ring-offset-2 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 dark:focus:ring-zinc-50 dark:focus:ring-offset-zinc-900"
+                className="group relative w-full overflow-hidden rounded-2xl bg-zinc-950 py-4 text-xs font-black uppercase tracking-widest text-white shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] dark:bg-zinc-50 dark:text-zinc-950"
               >
-                Update Results
+                <span className="relative z-10">Show Results</span>
+                <div className="absolute inset-0 z-0 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity" />
               </button>
             </div>
           </div>

@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Syne, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./components/ThemeProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const syne = Syne({
+  variable: "--font-syne",
   subsets: ["latin"],
+  weight: ["700", "800"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plusJakarta = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta",
   subsets: ["latin"],
 });
 
@@ -26,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${syne.variable} ${plusJakarta.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
         <ThemeProvider>{children}</ThemeProvider>
