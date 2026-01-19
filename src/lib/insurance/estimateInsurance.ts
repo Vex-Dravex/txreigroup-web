@@ -19,7 +19,7 @@ export const insuranceEstimateInputSchema = z.object({
   costPerSqftOverride: z.number().positive().optional(),
 });
 
-export type InsuranceEstimateInput = z.infer<typeof insuranceEstimateInputSchema>;
+export type InsuranceEstimateInput = z.input<typeof insuranceEstimateInputSchema>;
 
 type InsuranceBreakdown = {
   replacementCost: number;
