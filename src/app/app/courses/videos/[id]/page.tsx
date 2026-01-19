@@ -5,6 +5,7 @@ import AppHeader from "../../../components/AppHeader";
 import { getPrimaryRole, getUserRoles } from "@/lib/roles";
 import VideoPlayerClient from "../VideoPlayerClient";
 import CommentForm from "../CommentForm";
+import CommentList from "../CommentList";
 import { addEducationComment } from "../actions";
 import { sampleVideoMap, sampleVideos } from "../../educationData";
 import { getWatchLaterVideos, toggleWatchLater } from "../../watchLaterActions";
@@ -36,6 +37,7 @@ type VideoComment = {
   body: string;
   created_at: string;
   author_id: string;
+  parent_comment_id: string | null;
   profiles: { display_name: string | null; avatar_url: string | null } | null;
 };
 
@@ -44,6 +46,7 @@ type VideoCommentRow = {
   body: string;
   created_at: string;
   author_id: string;
+  parent_comment_id: string | null;
   profiles: { display_name: string | null; avatar_url: string | null } | { display_name: string | null; avatar_url: string | null }[] | null;
 };
 
@@ -140,7 +143,7 @@ export default async function EducationVideoPage({
     const { data: comments } = await supabase
       .from("education_video_comments")
       .select(
-        "id, body, created_at, author_id, profiles:author_id (display_name, avatar_url)"
+        "id, body, created_at, author_id, parent_comment_id, profiles:author_id (display_name, avatar_url)"
       )
       .eq("video_id", id)
       .order("created_at", { ascending: false });
@@ -285,59 +288,12 @@ export default async function EducationVideoPage({
                 )}
 
                 <div className="space-y-6">
-                  {commentsData.length === 0 ? (
-                    <div className="py-12 text-center">
-                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
-                        <svg viewBox="0 0 24 24" className="h-8 w-8 text-zinc-400" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                      </div>
-                      <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                        Be the first to share your thoughts
-                      </p>
-                    </div>
-                  ) : (
-                    commentsData.map((comment) => (
-                      <div key={comment.id} className="flex gap-4 group">
-                        <Link
-                          href={`/app/profile/${comment.author_id}`}
-                          className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-zinc-200 to-zinc-300 dark:from-zinc-700 dark:to-zinc-800 ring-2 ring-white dark:ring-zinc-900 transition-transform hover:scale-105"
-                        >
-                          {comment.profiles?.avatar_url ? (
-                            <img
-                              src={comment.profiles.avatar_url}
-                              alt={comment.profiles.display_name || "User"}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center text-sm font-black text-zinc-600 dark:text-zinc-300">
-                              {comment.profiles?.display_name
-                                ? comment.profiles.display_name[0].toUpperCase()
-                                : "U"}
-                            </div>
-                          )}
-                        </Link>
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <Link
-                              href={`/app/profile/${comment.author_id}`}
-                              className="text-sm font-bold text-zinc-900 dark:text-zinc-100 hover:underline"
-                            >
-                              {comment.profiles?.display_name || "Member"}
-                            </Link>
-                            <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                              {new Date(comment.created_at).toLocaleDateString('en-US', {
-                                month: 'short', day: 'numeric', year: 'numeric'
-                              })}
-                            </span>
-                          </div>
-                          <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
-                            {comment.body}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  )}
+                  <CommentList
+                    comments={commentsData}
+                    videoId={id}
+                    userAvatarUrl={profileData?.avatar_url || null}
+                    userDisplayName={profileData?.display_name || null}
+                  />
                 </div>
               </div>
             </div>

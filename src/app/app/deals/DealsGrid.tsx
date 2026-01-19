@@ -5,10 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 
 type DealsGridProps = {
   children: React.ReactNode;
-  key?: string;
 };
 
-export default function DealsGrid({ children, key }: DealsGridProps) {
+export default function DealsGrid({ children }: DealsGridProps) {
   const isFilterOpen = useFilterIsOpen();
 
   const container = {
@@ -31,7 +30,6 @@ export default function DealsGrid({ children, key }: DealsGridProps) {
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        key={key}
         variants={container}
         initial="hidden"
         animate="show"

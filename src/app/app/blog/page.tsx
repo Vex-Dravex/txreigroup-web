@@ -22,7 +22,6 @@ export default async function BlogPage() {
 
     const roles = await getUserRoles(supabase, authData.user.id, profile?.role || "investor");
     const role = getPrimaryRole(roles, profile?.role || "investor");
-    const isAdmin = hasRole(roles, "admin");
 
     const displayName = profile?.display_name || authData.user.email?.split("@")[0] || "User";
 
@@ -40,7 +39,7 @@ export default async function BlogPage() {
     const previousPosts = posts?.slice(1) || [];
 
     return (
-        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+        <div className="min-h-screen bg-zinc-50 dark:bg-black selection:bg-purple-500/30">
             <AppHeader
                 userRole={role}
                 currentPage="blog"
@@ -49,54 +48,76 @@ export default async function BlogPage() {
                 email={authData.user.email}
             />
 
-            <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <div className="mb-8 flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">Investor Insights</h1>
-                        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                            Weekly stories about investors, their projects, and their journey.
+            <main className="mx-auto max-w-[1600px] px-4 py-12 sm:px-6 lg:px-8">
+                {/* Header Section */}
+                <div className="mb-16 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                    <div className="space-y-4">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-purple-700 dark:border-purple-900/30 dark:bg-purple-900/10 dark:text-purple-400">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
+                            </span>
+                            Community Blog
+                        </div>
+                        <h1 className="text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-50 md:text-5xl lg:text-6xl">
+                            Investor <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400">Insights</span>
+                        </h1>
+                        <p className="max-w-2xl text-lg text-zinc-600 dark:text-zinc-400">
+                            Updates, strategies, and success stories from the Dravex community.
                         </p>
                     </div>
-                    <Link
-                        href="/app/admin/blog/new"
-                        className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
-                    >
-                        Create Post
-                    </Link>
+
+
                 </div>
 
                 {featuredPost ? (
-                    <section className="mb-12">
-                        <Link href={`/app/blog/${featuredPost.slug}`} className="group relative block overflow-hidden rounded-2xl bg-white shadow-sm transition-all hover:shadow-md dark:bg-zinc-950">
-                            <div className="md:flex">
-                                <div className="relative h-64 w-full md:h-auto md:w-1/2 lg:w-2/3">
-                                    {featuredPost.featured_image_url ? (
-                                        <Image
-                                            src={featuredPost.featured_image_url}
-                                            alt={featuredPost.title}
-                                            fill
-                                            className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                        />
-                                    ) : (
-                                        <div className="flex h-full w-full items-center justify-center bg-zinc-200 text-zinc-400 dark:bg-zinc-800">
-                                            <svg className="h-20 w-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex flex-col justify-center p-8 md:w-1/2 lg:w-1/3">
-                                    <div className="text-sm font-medium text-purple-600 dark:text-purple-400">
-                                        Latest Story
+                    <section className="mb-20">
+                        <Link
+                            href={`/app/blog/${featuredPost.slug}`}
+                            className="group relative block overflow-hidden rounded-[2.5rem] bg-zinc-900 shadow-2xl dark:border dark:border-zinc-800"
+                        >
+                            {/* Background Image with Overlay */}
+                            <div className="absolute inset-0">
+                                {featuredPost.featured_image_url ? (
+                                    <Image
+                                        src={featuredPost.featured_image_url}
+                                        alt={featuredPost.title}
+                                        fill
+                                        className="object-cover opacity-60 transition-transform duration-700 group-hover:scale-105"
+                                        priority
+                                    />
+                                ) : (
+                                    <div className="h-full w-full bg-gradient-to-br from-purple-900 to-zinc-900" />
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+                            </div>
+
+                            <div className="relative flex min-h-[500px] flex-col justify-end p-8 md:p-12 lg:p-16">
+                                <div className="space-y-6 max-w-4xl">
+                                    <div className="flex items-center gap-4 text-sm font-bold text-white/80">
+                                        <span className="rounded-full bg-purple-500/20 px-3 py-1 text-purple-200 backdrop-blur-md border border-purple-500/30">
+                                            Featured Story
+                                        </span>
+                                        <span className="h-1 w-1 rounded-full bg-white/30" />
+                                        <span>
+                                            {new Date(featuredPost.published_at).toLocaleDateString(undefined, {
+                                                month: 'long',
+                                                day: 'numeric',
+                                                year: 'numeric'
+                                            })}
+                                        </span>
                                     </div>
-                                    <h2 className="mt-2 text-3xl font-bold text-zinc-900 group-hover:text-purple-600 dark:text-zinc-50 dark:group-hover:text-purple-400">
+
+                                    <h2 className="text-4xl font-bold leading-tight text-white md:text-5xl lg:text-6xl transition-colors group-hover:text-purple-400">
                                         {featuredPost.title}
                                     </h2>
-                                    <p className="mt-4 line-clamp-3 text-zinc-600 dark:text-zinc-400">
+
+                                    <p className="line-clamp-2 text-lg text-zinc-200 md:text-xl font-medium max-w-2xl leading-relaxed">
                                         {featuredPost.excerpt}
                                     </p>
-                                    <div className="mt-8 flex items-center gap-3">
-                                        <div className="relative h-10 w-10 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+
+                                    <div className="flex items-center gap-4 pt-4">
+                                        <div className="relative h-12 w-12 overflow-hidden rounded-full ring-2 ring-white/20">
                                             {featuredPost.author?.avatar_url ? (
                                                 <Image
                                                     src={featuredPost.author.avatar_url}
@@ -105,21 +126,17 @@ export default async function BlogPage() {
                                                     className="object-cover"
                                                 />
                                             ) : (
-                                                <div className="flex h-full w-full items-center justify-center text-xs font-medium text-zinc-500">
+                                                <div className="flex h-full w-full items-center justify-center bg-zinc-800 text-xs font-bold text-zinc-400">
                                                     {featuredPost.author?.display_name?.[0] || "A"}
                                                 </div>
                                             )}
                                         </div>
                                         <div>
-                                            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                                            <div className="text-base font-bold text-white">
                                                 {featuredPost.author?.display_name || "Unknown Author"}
                                             </div>
-                                            <div className="text-xs text-zinc-500">
-                                                {new Date(featuredPost.published_at).toLocaleDateString(undefined, {
-                                                    year: 'numeric',
-                                                    month: 'long',
-                                                    day: 'numeric'
-                                                })}
+                                            <div className="text-sm font-medium text-zinc-400">
+                                                Author
                                             </div>
                                         </div>
                                     </div>
@@ -128,19 +145,30 @@ export default async function BlogPage() {
                         </Link>
                     </section>
                 ) : (
-                    <div className="rounded-lg border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
-                        <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-50">No posts yet</h3>
-                        <p className="mt-1 text-sm text-zinc-500">Get started by creating a new blog post.</p>
+                    <div className="rounded-[2.5rem] border border-dashed border-zinc-300 p-20 text-center dark:border-zinc-800">
+                        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
+                            <svg className="h-8 w-8 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">No posts yet</h3>
+                        <p className="mt-2 text-zinc-500">This blog is fresh! Check back soon for new stories.</p>
                     </div>
                 )}
 
                 {previousPosts.length > 0 && (
                     <section>
-                        <h3 className="mb-6 text-2xl font-bold text-zinc-900 dark:text-zinc-50">Recent Stories</h3>
-                        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                        <div className="mb-10 flex items-center justify-between border-b border-zinc-200 pb-6 dark:border-zinc-800">
+                            <h3 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 md:text-3xl">
+                                Recent Stories
+                            </h3>
+                            {/* Optional: Add category filters here later */}
+                        </div>
+
+                        <div className="grid gap-x-8 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
                             {previousPosts.map((post) => (
-                                <Link key={post.id} href={`/app/blog/${post.slug}`} className="group flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm transition-all hover:border-purple-200 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-purple-800/30">
-                                    <div className="relative aspect-video w-full overflow-hidden bg-zinc-100 dark:bg-zinc-900">
+                                <Link key={post.id} href={`/app/blog/${post.slug}`} className="group flex flex-col gap-4">
+                                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-900 shadow-sm transition-all group-hover:shadow-xl dark:border dark:border-zinc-800">
                                         {post.featured_image_url ? (
                                             <Image
                                                 src={post.featured_image_url}
@@ -149,22 +177,38 @@ export default async function BlogPage() {
                                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                                             />
                                         ) : (
-                                            <div className="flex h-full w-full items-center justify-center text-zinc-400">
-                                                <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <div className="flex h-full w-full items-center justify-center bg-zinc-100 dark:bg-zinc-900">
+                                                <svg className="h-12 w-12 text-zinc-300 dark:text-zinc-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                                 </svg>
                                             </div>
                                         )}
+                                        <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
                                     </div>
-                                    <div className="flex flex-1 flex-col p-6">
-                                        <h4 className="mb-2 text-xl font-bold text-zinc-900 group-hover:text-purple-600 dark:text-zinc-50 dark:group-hover:text-purple-400">
+
+                                    <div className="flex flex-col gap-3">
+                                        <div className="flex items-center gap-3 text-xs font-bold text-zinc-500 dark:text-zinc-500">
+                                            <span className="text-purple-600 dark:text-purple-400">Article</span>
+                                            <span className="h-1 w-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+                                            <span>
+                                                {new Date(post.published_at).toLocaleDateString(undefined, {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    year: 'numeric'
+                                                })}
+                                            </span>
+                                        </div>
+
+                                        <h4 className="text-xl font-bold leading-tight text-zinc-900 group-hover:text-purple-600 dark:text-zinc-50 dark:group-hover:text-purple-400 transition-colors line-clamp-2">
                                             {post.title}
                                         </h4>
-                                        <p className="mb-4 flex-1 line-clamp-3 text-sm text-zinc-600 dark:text-zinc-400">
+
+                                        <p className="line-clamp-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                                             {post.excerpt}
                                         </p>
-                                        <div className="flex items-center gap-2">
-                                            <div className="relative h-6 w-6 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+
+                                        <div className="mt-2 flex items-center gap-2">
+                                            <div className="relative h-6 w-6 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800 ring-1 ring-zinc-200 dark:ring-zinc-700">
                                                 {post.author?.avatar_url ? (
                                                     <Image
                                                         src={post.author.avatar_url}
@@ -173,17 +217,13 @@ export default async function BlogPage() {
                                                         className="object-cover"
                                                     />
                                                 ) : (
-                                                    <div className="flex h-full w-full items-center justify-center text-[10px] font-medium text-zinc-500">
+                                                    <div className="flex h-full w-full items-center justify-center text-[8px] font-bold text-zinc-500">
                                                         {post.author?.display_name?.[0] || "A"}
                                                     </div>
                                                 )}
                                             </div>
-                                            <span className="text-xs font-medium text-zinc-500">
-                                                {new Date(post.published_at).toLocaleDateString(undefined, {
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                    year: 'numeric'
-                                                })}
+                                            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                                                {post.author?.display_name || "Unknown"}
                                             </span>
                                         </div>
                                     </div>

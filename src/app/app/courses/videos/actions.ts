@@ -13,6 +13,7 @@ export async function addEducationComment(formData: FormData) {
 
   const videoId = String(formData.get("videoId") || "");
   const body = String(formData.get("body") || "").trim();
+  const parentCommentId = formData.get("parentCommentId") ? String(formData.get("parentCommentId")) : null;
 
   if (!videoId) {
     throw new Error("Video id is required");
@@ -25,6 +26,7 @@ export async function addEducationComment(formData: FormData) {
     video_id: videoId,
     author_id: authData.user.id,
     body,
+    parent_comment_id: parentCommentId,
   });
 
   if (error) {
