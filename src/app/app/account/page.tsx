@@ -4,6 +4,8 @@ import AccountForm from "./AccountForm";
 import AppHeader from "../components/AppHeader";
 import { getPrimaryRole, getUserRoles } from "@/lib/roles";
 
+export const dynamic = 'force-dynamic';
+
 export default async function AccountPage() {
     const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
