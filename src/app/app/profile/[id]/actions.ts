@@ -341,6 +341,28 @@ export async function createReview(reviewedUserId: string, formData: FormData) {
     throw new Error(`Failed to add review: ${error.message}`);
   }
 
+  // Notify the reviewed user
+  const { data: reviewerProfile } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("id", authData.user.id)
+    .single();
+
+  const reviewerName = reviewerProfile?.display_name || "A member";
+
+  await supabase.from("notifications").insert({
+    user_id: reviewedUserId,
+    type: "profile_review",
+    title: "New Profile Review",
+    message: `${reviewerName} left you a ${rating}-star review: "${comment.substring(0, 50)}${comment.length > 50 ? "..." : ""}"`,
+    link: `/app/profile/${reviewedUserId}`,
+    actor_id: authData.user.id,
+    metadata: {
+      rating,
+      comment,
+    },
+  });
+
   revalidatePath(`/app/profile/${reviewedUserId}`);
 }
 
@@ -406,6 +428,26 @@ export async function updateProfile(profileId: string, formData: FormData) {
 
   if (error) {
     throw new Error(`Failed to update profile: ${error.message}`);
+  }
+
+  revalidatePath(`/app/profile/${profileId}`);
+}
+
+export async function removeProfileAvatar(profileId: string) {
+  const supabase = await createSupabaseServerClient();
+  const { data: authData } = await supabase.auth.getUser();
+
+  if (!authData.user || authData.user.id !== profileId) {
+    throw new Error("Unauthorized");
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ avatar_url: null })
+    .eq("id", profileId);
+
+  if (error) {
+    throw new Error(`Failed to remove avatar: ${error.message}`);
   }
 
   revalidatePath(`/app/profile/${profileId}`);

@@ -139,6 +139,37 @@ export async function voteOnPost(postId: string, voteType: "upvote" | "downvote"
       user_id: userId,
       vote_type: voteType,
     });
+
+    if (voteType === "upvote") {
+      // Notify the post author
+      const { data: post } = await supabase
+        .from("forum_posts")
+        .select("author_id, title")
+        .eq("id", postId)
+        .single();
+
+      if (post && post.author_id !== userId) {
+        const { data: userProfile } = await supabase
+          .from("profiles")
+          .select("display_name")
+          .eq("id", userId)
+          .single();
+
+        const actorName = userProfile?.display_name || "Someone";
+
+        await supabase.from("notifications").insert({
+          user_id: post.author_id,
+          type: "forum_post_like",
+          title: "New Post Like",
+          message: `${actorName} liked your post "${post.title}"`,
+          link: `/app/forum/${postId}`,
+          actor_id: userId,
+          metadata: {
+            post_id: postId,
+          },
+        });
+      }
+    }
   }
 
   revalidatePath("/app/forum");
@@ -148,15 +179,74 @@ export async function voteOnPost(postId: string, voteType: "upvote" | "downvote"
 export async function createComment(postId: string, content: string, parentCommentId?: string) {
   const { supabase, userId } = await verifyAuth();
 
-  const { error } = await supabase.from("forum_comments").insert({
-    post_id: postId,
-    author_id: userId,
-    content,
-    parent_comment_id: parentCommentId || null,
-  });
+  const { data: comment, error: commentError } = await supabase
+    .from("forum_comments")
+    .insert({
+      post_id: postId,
+      author_id: userId,
+      content,
+      parent_comment_id: parentCommentId || null,
+    })
+    .select()
+    .single();
 
-  if (error) {
-    throw new Error(`Failed to create comment: ${error.message}`);
+  if (commentError) {
+    throw new Error(`Failed to create comment: ${commentError.message}`);
+  }
+
+  // Fetch author info and current user info
+  const { data: userProfile } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("id", userId)
+    .single();
+
+  const actorName = userProfile?.display_name || "Someone";
+
+  if (parentCommentId) {
+    // This is a reply
+    const { data: parentComment } = await supabase
+      .from("forum_comments")
+      .select("author_id")
+      .eq("id", parentCommentId)
+      .single();
+
+    if (parentComment && parentComment.author_id !== userId) {
+      await supabase.from("notifications").insert({
+        user_id: parentComment.author_id,
+        type: "forum_reply",
+        title: "New Reply",
+        message: `${actorName} replied to your comment: "${content.substring(0, 50)}${content.length > 50 ? "..." : ""}"`,
+        link: `/app/forum/${postId}`,
+        actor_id: userId,
+        metadata: {
+          post_id: postId,
+          comment_id: comment.id,
+        },
+      });
+    }
+  } else {
+    // This is a comment on the post
+    const { data: post } = await supabase
+      .from("forum_posts")
+      .select("author_id, title")
+      .eq("id", postId)
+      .single();
+
+    if (post && post.author_id !== userId) {
+      await supabase.from("notifications").insert({
+        user_id: post.author_id,
+        type: "forum_comment",
+        title: "New Comment",
+        message: `${actorName} commented on your post "${post.title}": "${content.substring(0, 50)}${content.length > 50 ? "..." : ""}"`,
+        link: `/app/forum/${postId}`,
+        actor_id: userId,
+        metadata: {
+          post_id: postId,
+          comment_id: comment.id,
+        },
+      });
+    }
   }
 
   revalidatePath(`/app/forum/${postId}`);

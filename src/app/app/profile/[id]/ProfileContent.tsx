@@ -7,6 +7,7 @@ import { ProfileEditAvatar, ProfileEditBanner, ProfileEditBio, CreateShowcasePos
 import { createPortfolioItem, createReview, requestNetwork, respondNetworkRequest } from "./actions";
 import { StarRating, StarDisplay } from "./StarRating";
 import Image from "next/image";
+import MessengerPopup from "../../components/MessengerPopup";
 
 // --- Types ---
 export type Profile = {
@@ -55,6 +56,7 @@ export default function ProfileContent({
     networkCount,
     networkConnections,
     sampleVendorData,
+    currentUserId,
 }: {
     profileData: Profile;
     isOwner: boolean;
@@ -65,8 +67,10 @@ export default function ProfileContent({
     networkCount: number;
     networkConnections: any[];
     sampleVendorData: any;
+    currentUserId: string;
 }) {
     const [activeTab, setActiveTab] = useState<"timeline" | "network">("timeline");
+    const [isMessengerOpen, setIsMessengerOpen] = useState(false);
 
     const formatRoleLabel = (role: string) => role.replace("_", " ");
 
@@ -518,9 +522,12 @@ export default function ProfileContent({
                                             {requestStatusLabel}
                                         </button>
                                     </form>
-                                    <Link href="/app/forum/new" className="flex-1 rounded-lg bg-zinc-200 px-5 py-2 text-center text-sm font-bold text-zinc-900 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 sm:flex-none">
+                                    <button
+                                        onClick={() => setIsMessengerOpen(true)}
+                                        className="flex-1 rounded-lg bg-zinc-200 px-5 py-2 text-center text-sm font-bold text-zinc-900 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 sm:flex-none"
+                                    >
                                         Message
-                                    </Link>
+                                    </button>
                                 </>
                             )}
                         </div>
@@ -604,6 +611,18 @@ export default function ProfileContent({
                     )}
                 </AnimatePresence>
             </div>
+
+            {/* Messenger Popup */}
+            {!isOwner && (
+                <MessengerPopup
+                    isOpen={isMessengerOpen}
+                    onClose={() => setIsMessengerOpen(false)}
+                    recipientId={profileData.id}
+                    recipientName={profileData.display_name || "User"}
+                    recipientAvatar={profileData.avatar_url || null}
+                    currentUserId={currentUserId}
+                />
+            )}
 
         </div>
     );

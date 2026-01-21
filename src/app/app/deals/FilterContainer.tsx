@@ -26,7 +26,7 @@ export function useFilterIsOpen() {
 }
 
 function FilterProvider({ children }: { children: React.ReactNode }) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   return <FilterContext.Provider value={{ isOpen, setIsOpen }}>{children}</FilterContext.Provider>;
 }
 

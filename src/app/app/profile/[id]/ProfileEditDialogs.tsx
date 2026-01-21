@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { updateProfile } from "./actions";
+import { updateProfile, removeProfileAvatar } from "./actions";
 import { motion, Reorder } from "framer-motion";
 import Image from "next/image";
+import ImageCropper from "../../components/ImageCropper";
 
 type EditProps = {
   profileId: string;
@@ -12,6 +13,45 @@ type EditProps = {
 
 export function ProfileEditAvatar({ profileId, currentUrl }: EditProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [selectedImageForCrop, setSelectedImageForCrop] = useState<string | null>(null);
+
+  const handleRemove = async () => {
+    try {
+      setIsRemoving(true);
+      await removeProfileAvatar(profileId);
+      setIsOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to remove photo");
+    } finally {
+      setIsRemoving(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSelectedImageForCrop(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCropComplete = async (croppedImage: Blob) => {
+    setSelectedImageForCrop(null);
+    try {
+      const formData = new FormData();
+      formData.append("avatarFile", croppedImage, "avatar.jpg");
+      await updateProfile(profileId, formData);
+      setIsOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to upload cropped image");
+    }
+  };
 
   return (
     <>
@@ -39,11 +79,20 @@ export function ProfileEditAvatar({ profileId, currentUrl }: EditProps) {
                 Close
               </button>
             </div>
-            <form action={updateProfile.bind(null, profileId)} encType="multipart/form-data" className="space-y-4">
+            <form action={async (formData) => {
+              await updateProfile(profileId, formData);
+              setIsOpen(false);
+            }} className="space-y-4">
               <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-zinc-300 bg-zinc-50 px-4 py-6 text-center text-sm text-zinc-600 hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
                 <span className="font-semibold text-zinc-900 dark:text-zinc-50">Drag & drop an image</span>
                 <span className="mt-1 text-xs">or click to upload</span>
-                <input name="avatarFile" type="file" accept="image/*" className="hidden" />
+                <input
+                  name="avatarFile"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
               </label>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200" htmlFor="avatarUrl">
@@ -58,15 +107,35 @@ export function ProfileEditAvatar({ profileId, currentUrl }: EditProps) {
                   className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
                 />
               </div>
-              <button
-                type="submit"
-                className="w-full rounded-md bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
-              >
-                Save Photo
-              </button>
+              <div className="flex gap-3">
+                {currentUrl && (
+                  <button
+                    type="button"
+                    disabled={isRemoving}
+                    onClick={handleRemove}
+                    className="flex-1 rounded-md border border-zinc-300 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-900"
+                  >
+                    {isRemoving ? "Removing..." : "Remove Photo"}
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  className="flex-[2] rounded-md bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
+                >
+                  Save Photo
+                </button>
+              </div>
             </form>
           </div>
         </div>
+      )}
+
+      {selectedImageForCrop && (
+        <ImageCropper
+          image={selectedImageForCrop}
+          onCropComplete={handleCropComplete}
+          onCancel={() => setSelectedImageForCrop(null)}
+        />
       )}
     </>
   );
@@ -97,7 +166,7 @@ export function ProfileEditBanner({ profileId, currentUrl }: EditProps) {
                 Close
               </button>
             </div>
-            <form action={updateProfile.bind(null, profileId)} encType="multipart/form-data" className="space-y-4">
+            <form action={updateProfile.bind(null, profileId)} className="space-y-4">
               <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-zinc-300 bg-zinc-50 px-4 py-6 text-center text-sm text-zinc-600 hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
                 <span className="font-semibold text-zinc-900 dark:text-zinc-50">Drag & drop an image</span>
                 <span className="mt-1 text-xs">or click to upload</span>

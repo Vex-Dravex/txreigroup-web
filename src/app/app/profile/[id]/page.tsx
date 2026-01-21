@@ -160,6 +160,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
         networkCount={networkCount}
         networkConnections={networkConnections}
         sampleVendorData={sampleVendorData}
+        currentUserId={authData.user.id}
       />
     </div>
   );

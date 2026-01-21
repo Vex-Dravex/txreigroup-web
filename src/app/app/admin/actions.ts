@@ -58,6 +58,28 @@ export async function approveDeal(dealId: string, adminNotes?: string) {
     new_value: { status: "approved", approved_at: new Date().toISOString() },
   });
 
+  // Fetch deal info for notification
+  const { data: dealInfo } = await supabase
+    .from("deals")
+    .select("wholesaler_id, title")
+    .eq("id", dealId)
+    .single();
+
+  if (dealInfo) {
+    await supabase.from("notifications").insert({
+      user_id: dealInfo.wholesaler_id,
+      type: "deal_approved",
+      title: "Deal Approved!",
+      message: `Your deal "${dealInfo.title}" has been approved and is now live on the marketplace.`,
+      link: `/app/deals/${dealId}`,
+      actor_id: adminId,
+      metadata: {
+        deal_id: dealId,
+        deal_title: dealInfo.title,
+      },
+    });
+  }
+
   revalidatePath("/app/admin/deals");
   revalidatePath(`/app/deals/${dealId}`);
   revalidatePath("/app/deals");
@@ -104,7 +126,8 @@ export async function rejectDeal(dealId: string, adminNotes: string) {
     type: "deal_rejected",
     title: "Deal Not Accepted",
     message: rejectionMessage,
-    related_deal_id: dealId,
+    link: `/app/deals/${dealId}`,
+    actor_id: adminId,
     metadata: {
       deal_title: dealInfo.title,
       admin_notes: adminNotes,

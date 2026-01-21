@@ -4,13 +4,17 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import ThemeToggle from "@/app/components/ThemeToggle";
 
+type Role = "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
+
 type ProfileMenuProps = {
   avatarUrl: string | null;
   displayName: string | null;
   email: string | null;
+  userRole?: Role;
+  pendingDealsCount?: number | null;
 };
 
-export default function ProfileMenu({ avatarUrl, displayName, email }: ProfileMenuProps) {
+export default function ProfileMenu({ avatarUrl, displayName, email, userRole, pendingDealsCount }: ProfileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -33,11 +37,11 @@ export default function ProfileMenu({ avatarUrl, displayName, email }: ProfileMe
 
   const initials = displayName
     ? displayName
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
     : email
       ? email[0].toUpperCase()
       : "U";
@@ -87,12 +91,28 @@ export default function ProfileMenu({ avatarUrl, displayName, email }: ProfileMe
               My Profile
             </Link>
             <Link
+              href="/app/messages"
+              onClick={() => setIsOpen(false)}
+              className="block px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+            >
+              Messages
+            </Link>
+            <Link
               href="/app/account"
               onClick={() => setIsOpen(false)}
               className="block px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900"
             >
               Account
             </Link>
+            {userRole === "admin" && (
+              <Link
+                href="/app/admin"
+                onClick={() => setIsOpen(false)}
+                className="block px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800"
+              >
+                Admin
+              </Link>
+            )}
             <Link
               href="/app/support"
               onClick={() => setIsOpen(false)}
