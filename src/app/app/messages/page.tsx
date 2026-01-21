@@ -80,18 +80,32 @@ export default async function MessagesPage() {
             p => p.conversation_id === cp.conversation_id && p.user_id !== authData.user.id
         );
 
+        const rawProfiles = otherParticipant?.profiles;
+        const otherUser = Array.isArray(rawProfiles) ? rawProfiles[0] : rawProfiles;
+
         const conversationData = Array.isArray(cp.conversations) ? cp.conversations[0] : cp.conversations;
         const lastMessage = lastMessageByConversation[cp.conversation_id];
         const hasUnread = lastMessage && new Date(lastMessage.created_at) > new Date(cp.last_read_at);
 
+        if (!otherUser) return null;
+
         return {
             id: cp.conversation_id,
-            otherUser: otherParticipant?.profiles,
-            lastMessage,
-            hasUnread,
+            otherUser: {
+                id: otherUser.id,
+                display_name: otherUser.display_name,
+                avatar_url: otherUser.avatar_url,
+            },
+            lastMessage: lastMessage ? {
+                content: lastMessage.content,
+                message_type: lastMessage.message_type,
+                created_at: lastMessage.created_at,
+                sender_id: lastMessage.sender_id,
+            } : null,
+            hasUnread: !!hasUnread,
             updatedAt: conversationData?.updated_at || new Date().toISOString(),
         };
-    }).filter(c => c.otherUser) || [];
+    }).filter((c): c is NonNullable<typeof c> => c !== null) || [];
 
     // Sort by most recent activity
     conversations.sort((a, b) =>
