@@ -121,6 +121,7 @@ export async function submitDeal(prevState: ActionState, formData: FormData): Pr
   };
 
   const photos = formData.getAll("photos") as File[];
+  const primaryImageIndex = Number(formData.get("primaryImageIndex") || 0);
   const contract = formData.get("contract") as File | null;
 
   try {
@@ -153,7 +154,28 @@ export async function submitDeal(prevState: ActionState, formData: FormData): Pr
     if (contactEmail) extraDetails.push(`Contact Email: ${contactEmail}`);
     if (contactPhone) extraDetails.push(`Contact Phone: ${contactPhone}`);
     if (contractUrl) extraDetails.push(`Contract: ${contractUrl}`);
-    if (uploadedPhotoUrls.length > 0) extraDetails.push(`Photo URLs: ${uploadedPhotoUrls.join(", ")}`);
+
+    // Extract Comps
+    const compCount = Number(formData.get("compCount") || 0);
+    if (compCount > 0) {
+      extraDetails.push("\nPROPERTY COMPARABLES:");
+      for (let i = 0; i < compCount; i++) {
+        const addr = formData.get(`comp_address_${i}`);
+        const price = formData.get(`comp_price_${i}`);
+        const date = formData.get(`comp_date_${i}`);
+        const condition = formData.get(`comp_condition_${i}`);
+        if (addr || price) {
+          extraDetails.push(`Comp #${i + 1}: ${addr} | Price: $${price} | Date: ${date} | Condition: ${condition}`);
+        }
+      }
+    }
+
+    if (uploadedPhotoUrls.length > 0) {
+      extraDetails.push(`\nPROPERTY PHOTOS (${uploadedPhotoUrls.length}):`);
+      uploadedPhotoUrls.forEach((url, i) => {
+        extraDetails.push(`Photo ${i + 1}: ${url}${i === primaryImageIndex ? " (PRIMARY)" : ""}`);
+      });
+    }
 
     const combinedDescription = [
       description,
@@ -163,20 +185,6 @@ export async function submitDeal(prevState: ActionState, formData: FormData): Pr
     ]
       .filter(Boolean)
       .join("\n");
-
-    const insuranceInput = {
-      sqft: squareFeet ?? undefined,
-      yearBuilt: yearBuilt ?? undefined,
-      occupancy: occupancy as "owner" | "rental" | "vacant",
-      roofAgeYears: roofAgeYears ?? undefined,
-      construction: construction as "frame" | "masonry" | "unknown",
-      deductible: deductible === 1000 || deductible === 2500 || deductible === 5000 ? deductible : undefined,
-      riskFlags,
-      replacementCostOverride: replacementCostOverride ?? undefined,
-    };
-
-    const insuranceParsed = squareFeet ? insuranceEstimateInputSchema.safeParse(insuranceInput) : null;
-    const insuranceEstimate = insuranceParsed?.success ? estimateInsurance(insuranceParsed.data) : null;
 
     const { error: insertError } = await supabase.from("deals").insert({
       wholesaler_id: userId,
@@ -197,13 +205,8 @@ export async function submitDeal(prevState: ActionState, formData: FormData): Pr
       bathrooms: baths,
       lot_size_acres: lotSize,
       year_built: yearBuilt,
-      property_image_url: imageUrl || uploadedPhotoUrls[0] || null,
+      property_image_url: uploadedPhotoUrls[primaryImageIndex] || imageUrl || null,
       status: submissionStatus,
-      replacement_cost_override: replacementCostOverride,
-      insurance_estimate_annual: insuranceEstimate?.annual ?? null,
-      insurance_estimate_monthly: insuranceEstimate?.monthly ?? null,
-      insurance_estimate_inputs: insuranceEstimate ? insuranceParsed?.data ?? null : null,
-      insurance_estimate_updated_at: insuranceEstimate ? new Date().toISOString() : null,
     });
 
     if (insertError) {
