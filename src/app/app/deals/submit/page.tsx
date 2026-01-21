@@ -55,8 +55,8 @@ export default async function SubmitDealPage() {
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-zinc-950 dark:text-zinc-50 font-syne mb-4">
               Submit a <span className="text-blue-600">Deal</span>
             </h1>
-            <p className="text-zinc-600 dark:text-zinc-400 font-medium text-lg max-w-2xl">
-              Share a property you have under contract. Our algorithm will help you estimate insurance and present the deal to qualified investors.
+            <p className="mt-2 text-lg text-zinc-500 dark:text-zinc-400 font-medium">
+              Submit your wholesale deals and let our professional disposition team find you the perfect buyer—so you can focus on locking up your next big deal.
             </p>
           </div>
 
