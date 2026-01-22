@@ -175,7 +175,7 @@ export default function OnboardingPage() {
                                 <InvestorForm
                                     key="investor"
                                     data={investorData}
-                                    updateData={(d) => setInvestorData({ ...investorData, ...d })}
+                                    updateData={(d: any) => setInvestorData({ ...investorData, ...d })}
                                     onNext={handleNext}
                                     loading={loading}
                                 />
@@ -185,7 +185,7 @@ export default function OnboardingPage() {
                                 <WholesalerForm
                                     key="wholesaler"
                                     data={wholesalerData}
-                                    updateData={(d) => setWholesalerData({ ...wholesalerData, ...d })}
+                                    updateData={(d: any) => setWholesalerData({ ...wholesalerData, ...d })}
                                     onNext={handleNext}
                                     loading={loading}
                                 />
@@ -195,7 +195,7 @@ export default function OnboardingPage() {
                                 <ServiceForm
                                     key="service"
                                     data={serviceData}
-                                    updateData={(d) => setServiceData({ ...serviceData, ...d })}
+                                    updateData={(d: any) => setServiceData({ ...serviceData, ...d })}
                                     onNext={handleNext}
                                     loading={loading}
                                 />
@@ -205,7 +205,7 @@ export default function OnboardingPage() {
                                 <VendorForm
                                     key="vendor"
                                     data={vendorData}
-                                    updateData={(d) => setVendorData({ ...vendorData, ...d })}
+                                    updateData={(d: any) => setVendorData({ ...vendorData, ...d })}
                                     onNext={handleNext}
                                     loading={loading}
                                 />
