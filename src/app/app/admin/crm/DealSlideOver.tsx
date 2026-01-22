@@ -67,7 +67,12 @@ export default function DealSlideOver({ deal, isOpen, onClose }: DealSlideOverPr
     const loadNotes = async () => {
         try {
             const fetchedNotes = await getDealNotes(deal.id);
-            setNotes(fetchedNotes || []);
+            // safe cast: ensure profiles is treated as single object if it comes as array
+            const formattedNotes = fetchedNotes?.map((n: any) => ({
+                ...n,
+                profiles: Array.isArray(n.profiles) ? n.profiles[0] : n.profiles
+            }));
+            setNotes((formattedNotes as Note[]) || []);
         } catch (err) {
             console.error(err);
         }
