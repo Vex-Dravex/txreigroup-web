@@ -64,7 +64,7 @@ export default async function AdminVideoEditPage({
   const videoData = video as EducationVideo;
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+    <div className="w-full">
       <AppHeader
         userRole={primaryRole}
         currentPage="admin"

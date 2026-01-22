@@ -80,7 +80,7 @@ export default async function DealInterestPage() {
     };
 
     return (
-        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+        <div className="w-full">
             <AppHeader
                 userRole={userRole}
                 currentPage="admin"
@@ -106,7 +106,7 @@ export default async function DealInterestPage() {
                 </div>
 
                 {dealInterests.length === 0 ? (
-                    <div className="rounded-lg border border-zinc-200 bg-white p-16 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                    <div className="rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl p-16 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
                         <div className="text-4xl mb-4">📭</div>
                         <p className="text-zinc-600 dark:text-zinc-400">
                             No deal interest submissions yet.
@@ -117,7 +117,7 @@ export default async function DealInterestPage() {
                         {dealInterests.map((interest) => (
                             <div
                                 key={interest.id}
-                                className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 hover:border-blue-500/30 transition-colors"
+                                className="rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50 hover:border-blue-500/30 transition-colors"
                             >
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="flex-1">

@@ -33,7 +33,7 @@ export default function UserStatusForm({ userId, currentStatus }: { userId: stri
         value={status}
         onChange={(e) => handleStatusChange(e.target.value)}
         disabled={loading}
-        className="w-full rounded-md border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-600 dark:focus:ring-zinc-600"
+        className="w-full rounded-md border border-zinc-300 bg-white/50 backdrop-blur-xl px-2 py-1 text-xs text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-600 dark:focus:ring-zinc-600"
       >
         <option value="active">Active</option>
         <option value="suspended">Suspended</option>

@@ -238,7 +238,7 @@ export default async function AdminDealReviewPage({ params }: { params: Promise<
   const insuranceAnnual = dealData.insurance_estimate_annual ?? insuranceEstimate?.annual ?? null;
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+    <div className="w-full">
       <AppHeader
         userRole={primaryRole}
         currentPage="admin"
@@ -271,7 +271,7 @@ export default async function AdminDealReviewPage({ params }: { params: Promise<
           </div>
         </div>
 
-        <div className="mb-6 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="mb-6 overflow-hidden rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
           <div className="relative h-96 w-full overflow-hidden bg-zinc-200 dark:bg-zinc-800">
             {dealData.property_image_url ? (
               <img
@@ -316,7 +316,7 @@ export default async function AdminDealReviewPage({ params }: { params: Promise<
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
             {dealData.description && (
-              <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
                 <h2 className="mb-4 text-xl font-semibold text-zinc-900 dark:text-zinc-50">Property Description</h2>
                 <p className="whitespace-pre-wrap leading-relaxed text-zinc-700 dark:text-zinc-300">
                   {dealData.description}
@@ -324,7 +324,7 @@ export default async function AdminDealReviewPage({ params }: { params: Promise<
               </div>
             )}
 
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
               <h2 className="mb-4 text-xl font-semibold text-zinc-900 dark:text-zinc-50">Property Details</h2>
               <dl className="grid grid-cols-2 gap-4">
                 {dealData.property_type && (
@@ -373,7 +373,7 @@ export default async function AdminDealReviewPage({ params }: { params: Promise<
             </div>
 
             {dealData.admin_notes && (
-              <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
                 <h2 className="mb-3 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Admin Notes</h2>
                 <p className="whitespace-pre-wrap text-sm text-zinc-700 dark:text-zinc-300">
                   {dealData.admin_notes}
@@ -628,7 +628,7 @@ export default async function AdminDealReviewPage({ params }: { params: Promise<
               <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">
                 Calculations reflect submitted inputs; missing fields show as not provided.
               </p>
-              <div className="mt-4 rounded-md border border-zinc-200 bg-white/70 p-3 text-sm text-zinc-700 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-200">
+              <div className="mt-4 rounded-md border border-zinc-200 bg-white/70 p-3 text-sm text-zinc-700 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50/60 dark:text-zinc-200">
                 <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                   Approve / Reject
                 </div>
@@ -636,7 +636,7 @@ export default async function AdminDealReviewPage({ params }: { params: Promise<
               </div>
             </div>
 
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
               <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Contact Wholesaler</h2>
               {dealData.profiles?.display_name && (
                 <div className="mb-4">
@@ -670,7 +670,7 @@ export default async function AdminDealReviewPage({ params }: { params: Promise<
               )}
             </div>
 
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
               <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Deal Information</h2>
               <dl className="space-y-3 text-sm">
                 <div>

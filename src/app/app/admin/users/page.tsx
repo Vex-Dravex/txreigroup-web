@@ -167,7 +167,7 @@ export default async function AdminUsersPage() {
   );
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+    <div className="w-full">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
           <Link
@@ -185,26 +185,26 @@ export default async function AdminUsersPage() {
 
         {/* Statistics */}
         <div className="mb-8 grid gap-4 md:grid-cols-4">
-          <div className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
             <div className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Total Users</div>
             <div className="mt-1 text-2xl font-bold text-zinc-900 dark:text-zinc-50">{usersData.length}</div>
           </div>
-          <div className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
             <div className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Admins</div>
             <div className="mt-1 text-2xl font-bold text-zinc-900 dark:text-zinc-50">{admins.length}</div>
           </div>
-          <div className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
             <div className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Investors</div>
             <div className="mt-1 text-2xl font-bold text-zinc-900 dark:text-zinc-50">{investors.length}</div>
           </div>
-          <div className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
             <div className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Wholesalers</div>
             <div className="mt-1 text-2xl font-bold text-zinc-900 dark:text-zinc-50">{wholesalers.length}</div>
           </div>
         </div>
 
         {/* Users Table */}
-        <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-zinc-200 dark:border-zinc-800">

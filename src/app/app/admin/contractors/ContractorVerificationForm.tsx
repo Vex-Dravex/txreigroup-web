@@ -83,7 +83,7 @@ export default function ContractorVerificationForm({ contractorId }: { contracto
               ? "Add any notes about this verification..."
               : "Explain why this contractor is being rejected..."
           }
-          className="mt-1 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-500 dark:focus:border-zinc-600 dark:focus:ring-zinc-600"
+          className="mt-1 w-full rounded-md border border-zinc-300 bg-white/50 backdrop-blur-xl px-3 py-2 text-sm placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-500 dark:focus:border-zinc-600 dark:focus:ring-zinc-600"
           required={action === "reject"}
         />
       </div>
@@ -102,7 +102,7 @@ export default function ContractorVerificationForm({ contractorId }: { contracto
             setError(null);
           }}
           disabled={loading}
-          className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:hover:bg-zinc-800"
+          className="rounded-md border border-zinc-300 bg-white/50 backdrop-blur-xl px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:hover:bg-zinc-800"
         >
           Cancel
         </button>

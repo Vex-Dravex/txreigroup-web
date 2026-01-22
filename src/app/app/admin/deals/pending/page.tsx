@@ -97,7 +97,7 @@ export default async function PendingDealsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+    <div className="w-full">
       <AppHeader
         userRole={primaryRole}
         currentPage="admin"
@@ -123,7 +123,7 @@ export default async function PendingDealsPage() {
         </div>
 
         {pendingDeals && pendingDeals.length > 0 ? (
-          <div className="divide-y divide-zinc-200 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="divide-y divide-zinc-200 overflow-hidden rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl shadow-sm dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900/50">
             {(pendingDeals as Deal[]).map((deal) => (
               <Link
                 key={deal.id}
@@ -166,7 +166,7 @@ export default async function PendingDealsPage() {
             ))}
           </div>
         ) : (
-          <div className="rounded-lg border border-zinc-200 bg-white p-10 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl p-10 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
               No pending deals to review. You are all caught up.
             </p>

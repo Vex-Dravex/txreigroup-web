@@ -99,7 +99,7 @@ export default async function AdminInquiriesPage() {
   };
 
   const InquiryCard = ({ inquiry }: { inquiry: Inquiry }) => (
-    <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
       <div className="mb-4 flex items-start justify-between">
         <div className="flex-1">
           <div className="mb-2 flex items-center gap-3">
@@ -169,7 +169,7 @@ export default async function AdminInquiriesPage() {
   );
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+    <div className="w-full">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
           <Link
@@ -242,7 +242,7 @@ export default async function AdminInquiriesPage() {
         )}
 
         {inquiriesData.length === 0 && (
-          <div className="rounded-lg border border-zinc-200 bg-white p-12 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl p-12 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
             <p className="text-zinc-600 dark:text-zinc-400">No inquiries found.</p>
           </div>
         )}

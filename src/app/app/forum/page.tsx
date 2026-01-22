@@ -1,16 +1,13 @@
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import AppHeader from "../components/AppHeader";
-import { getPrimaryRole, getUserRoles } from "@/lib/roles";
 import { SearchInput } from "./components/SearchInput";
 import { ForumScrollRestorationProvider } from "@/lib/scrollRestoration";
 import { ForumPost } from "./types";
 import ForumFeed from "./components/ForumFeed";
 import { ForumLeftSidebar } from "./components/ForumLeftSidebar";
 import { ForumRightSidebar } from "./components/ForumRightSidebar";
-
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getPrimaryRole, getUserRoles } from "@/lib/roles";
 
 type Profile = {
   id: string;
@@ -19,15 +16,16 @@ type Profile = {
   avatar_url: string | null;
 };
 
-type ForumPageSearchParams = {
-  topic?: string;
+// Define types for search parameters
+interface ForumPageSearchParams {
   search?: string;
-};
+  topic?: string;
+}
 
 export default async function ForumPage({
   searchParams,
 }: {
-  searchParams?: Promise<ForumPageSearchParams>;
+  searchParams?: ForumPageSearchParams;
 }) {
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
@@ -46,8 +44,7 @@ export default async function ForumPage({
   const userRole = getPrimaryRole(roles, profileData?.role || "investor");
 
   // Fetch forum posts with author info and tags
-  const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const searchTerm = resolvedSearchParams?.search || "";
+  const searchTerm = searchParams?.search || "";
 
   // If searching, first get post IDs that match tags
   let tagPostIds: string[] = [];
@@ -62,7 +59,7 @@ export default async function ForumPage({
     }
   }
 
-  const topicFilter = resolvedSearchParams?.topic || "all";
+  const topicFilter = searchParams?.topic || "all";
 
   // If looking for saved posts, fetch those IDs
   let savedPostIds: string[] | null = null;
@@ -108,10 +105,10 @@ export default async function ForumPage({
     if (savedPostIds && savedPostIds.length > 0) {
       query = query.in("id", savedPostIds);
     } else {
+      // If no saved posts, return an empty set to prevent fetching all posts
       query = query.in("id", ["00000000-0000-0000-0000-000000000000"]);
     }
   } else if (topicFilter !== "all" && topicFilter !== "uncategorized" && topicFilter !== "popular") {
-    // "popular" is just a sort filter, not a topic filter, but we treat "all" as no filter.
     query = query.eq("topic", topicFilter);
   } else if (topicFilter === "uncategorized") {
     query = query.is("topic", null);
@@ -126,7 +123,6 @@ export default async function ForumPage({
   // Fetch user's votes separately
   const { data: userVotes } = await supabase
     .from("forum_post_votes")
-    .select("post_id, vote_type")
     .select("post_id, vote_type")
     .eq("user_id", authData.user.id);
 
@@ -144,24 +140,20 @@ export default async function ForumPage({
   const now = Date.now();
   const postsWithVotes = postsData.map((post) => ({
     ...post,
-    ...post,
     user_vote: votesMap.get(post.id) ? { vote_type: votesMap.get(post.id) } : null,
     is_saved: savesSet.has(post.id),
   }));
 
   const sortedPosts = postsWithVotes.sort((a, b) => {
-    // Pinned posts always first
     if (a.is_pinned && !b.is_pinned) return -1;
     if (!a.is_pinned && b.is_pinned) return 1;
 
-    // Calculate hot score
     const hoursA = (now - new Date(a.created_at).getTime()) / (1000 * 60 * 60);
     const hoursB = (now - new Date(b.created_at).getTime()) / (1000 * 60 * 60);
     const scoreA = (a.upvotes - a.downvotes) / Math.max(hoursA, 1);
     const scoreB = (b.upvotes - b.downvotes) / Math.max(hoursB, 1);
 
     if (topicFilter === 'popular') {
-      // Sort by most interaction: (upvotes + comment_count)
       return (b.upvotes + b.comment_count) - (a.upvotes + a.comment_count);
     }
 
@@ -170,7 +162,15 @@ export default async function ForumPage({
 
   return (
     <ForumScrollRestorationProvider>
-      <div className="min-h-screen bg-zinc-50 dark:bg-black selection:bg-blue-500/30">
+      <div className="relative min-h-screen bg-zinc-950 selection:bg-blue-500/30 overflow-hidden">
+        <div className="noise-overlay opacity-20" />
+
+        {/* Background Glows */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/10 blur-[120px] animate-pulse" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-600/10 blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
+        </div>
+
         <AppHeader
           userRole={userRole}
           currentPage="forum"
@@ -179,7 +179,9 @@ export default async function ForumPage({
           email={authData.user.email}
         />
 
-        <div className="mx-auto max-w-[1800px] px-4 py-8 sm:px-6 lg:px-8">
+        <div
+          className="relative z-10 mx-auto max-w-[1800px] px-4 py-8 sm:px-6 lg:px-8"
+        >
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 xl:gap-8">
 
             {/* Left Sidebar - Navigation */}
@@ -192,23 +194,19 @@ export default async function ForumPage({
             {/* Center - Feed */}
             <main className="lg:col-span-9 xl:col-span-7">
               <div className="mb-8 flex flex-col gap-4">
-                {/* Mobile Header stuff only shows on small screens if needed, but AppHeader covers it. 
-                            We keep SearchInput prominent as per design. 
-                        */}
-                <div className="sticky top-20 z-30 -mx-4 bg-zinc-50/95 px-4 py-3 backdrop-blur-md dark:bg-black/95 sm:static sm:mx-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+                <div className="sticky top-20 z-30 -mx-4 px-4 py-3 backdrop-blur-md sm:static sm:mx-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
                   <div className="flex items-center gap-4">
                     <div className="flex-1">
                       <SearchInput />
-                    </div>
-                    <div className="lg:hidden">
-                      {/* Mobile Menu Trigger could go here if we built a drawer, but relying on AppHeader for now */}
                     </div>
                   </div>
                 </div>
 
                 {/* Create Post Input Trigger (Reddit Style) */}
-                <div className="hidden sm:flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
-                  <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                <div
+                  className="hidden sm:flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 shadow-xl backdrop-blur-sm hover:border-white/20 transition-all"
+                >
+                  <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/10 bg-zinc-800">
                     {profileData?.avatar_url ? (
                       <img src={profileData.avatar_url} alt="User" className="h-full w-full object-cover" />
                     ) : (
@@ -217,11 +215,13 @@ export default async function ForumPage({
                       </div>
                     )}
                   </div>
-                  <a href="/app/forum/new" className="flex-1 rounded-lg bg-zinc-100 px-4 py-2.5 text-sm font-medium text-zinc-500 hover:bg-zinc-200 hover:text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-300 transition-colors text-left">
-                    Create a post...
+                  <a href="/app/forum/new" className="flex-1 rounded-xl bg-white/5 px-4 py-2.5 text-sm font-medium text-zinc-400 hover:bg-white/10 hover:text-zinc-200 transition-all text-left">
+                    Share something with the community...
                   </a>
-                  <a href="/app/forum/new" className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  <a href="/app/forum/new" className="p-2 text-zinc-500 hover:text-white transition-colors">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
                   </a>
                 </div>
               </div>

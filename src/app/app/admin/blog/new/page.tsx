@@ -77,7 +77,7 @@ export default function NewPostPage() {
                 <form action={formAction} className="grid grid-cols-1 gap-8 lg:grid-cols-12">
                     {/* Left Column: Content */}
                     <div className="space-y-6 lg:col-span-8">
-                        <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                        <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white/50 backdrop-blur-xl shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                             <div className="border-b border-zinc-100 bg-zinc-50/50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900/50">
                                 <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Post Content</h2>
                             </div>
@@ -108,7 +108,7 @@ export default function NewPostPage() {
                                         <label className="block text-sm font-bold text-zinc-700 dark:text-zinc-300">
                                             Content <span className="text-xs font-normal text-zinc-400">(Markdown Supported)</span>
                                         </label>
-                                        <div className="mt-2 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm focus-within:border-purple-500 focus-within:ring-4 focus-within:ring-purple-500/10 dark:border-zinc-700 dark:bg-zinc-800">
+                                        <div className="mt-2 overflow-hidden rounded-xl border border-zinc-200 bg-white/50 backdrop-blur-xl shadow-sm focus-within:border-purple-500 focus-within:ring-4 focus-within:ring-purple-500/10 dark:border-zinc-700 dark:bg-zinc-800">
                                             <textarea
                                                 name="content"
                                                 rows={25}
@@ -123,7 +123,7 @@ export default function NewPostPage() {
                             </div>
                         </div>
 
-                        <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                        <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white/50 backdrop-blur-xl shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                             <div className="border-b border-zinc-100 bg-zinc-50/50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900/50">
                                 <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Excerpt</h2>
                             </div>
@@ -145,7 +145,7 @@ export default function NewPostPage() {
                     <div className="space-y-6 lg:col-span-4">
                         <div className="sticky top-24 space-y-6">
                             {/* Publishing Card */}
-                            <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                            <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white/50 backdrop-blur-xl shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                                 <div className="border-b border-zinc-100 bg-zinc-50/50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900/50">
                                     <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Publish Settings</h2>
                                 </div>
@@ -177,7 +177,7 @@ export default function NewPostPage() {
                             </div>
 
                             {/* Featured Image Card */}
-                            <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                            <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white/50 backdrop-blur-xl shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                                 <div className="border-b border-zinc-100 bg-zinc-50/50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900/50">
                                     <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Featured Image</h2>
                                 </div>

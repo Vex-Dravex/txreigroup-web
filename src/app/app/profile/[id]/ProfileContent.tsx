@@ -57,6 +57,8 @@ export default function ProfileContent({
     networkConnections,
     sampleVendorData,
     currentUserId,
+    onboardingData,
+    isViewerAdmin,
 }: {
     profileData: Profile;
     isOwner: boolean;
@@ -68,6 +70,8 @@ export default function ProfileContent({
     networkConnections: any[];
     sampleVendorData: any;
     currentUserId: string;
+    onboardingData?: any;
+    isViewerAdmin?: boolean;
 }) {
     const [activeTab, setActiveTab] = useState<"timeline" | "network">("timeline");
     const [isMessengerOpen, setIsMessengerOpen] = useState(false);
@@ -278,6 +282,91 @@ export default function ProfileContent({
                     <p className="italic text-zinc-500 text-sm">No bio added yet.</p>
                 )}
             </div>
+
+            {/* Admin View: Onboarding Data */}
+            {isViewerAdmin && onboardingData && (
+                <div className="rounded-2xl border border-yellow-500/30 bg-yellow-500/5 p-6 shadow-sm">
+                    <div className="mb-4 flex items-center gap-2 text-yellow-500">
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <h2 className="text-lg font-bold">Admin View: Onboarding Data</h2>
+                    </div>
+
+                    <div className="space-y-6 text-sm">
+                        {/* Investor Data */}
+                        {onboardingData.investor_data && Object.keys(onboardingData.investor_data).length > 0 && (
+                            <div className="space-y-2">
+                                <h3 className="font-bold text-zinc-900 dark:text-zinc-100 uppercase text-xs tracking-wider">Investor Profile</h3>
+                                <div className="grid grid-cols-1 gap-y-2 p-3 rounded-lg bg-black/20 text-zinc-300">
+                                    <div className="flex justify-between border-b border-white/10 pb-1">
+                                        <span className="text-zinc-500">Buy Box:</span>
+                                        <span className="text-right max-w-[60%]">{onboardingData.investor_data.buyBox}</span>
+                                    </div>
+                                    <div className="flex justify-between border-b border-white/10 pb-1">
+                                        <span className="text-zinc-500">Max Entry:</span>
+                                        <span className="text-right text-green-400 font-mono">${onboardingData.investor_data.maxEntry}</span>
+                                    </div>
+                                    <div className="flex justify-between border-b border-white/10 pb-1">
+                                        <span className="text-zinc-500">Areas:</span>
+                                        <span className="text-right">{onboardingData.investor_data.areas}</span>
+                                    </div>
+                                    <div className="flex justify-between border-b border-white/10 pb-1">
+                                        <span className="text-zinc-500">Target Return:</span>
+                                        <span className="text-right">{onboardingData.investor_data.targetReturn}</span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-zinc-500 mb-1">Deal Types:</span>
+                                        <div className="flex flex-wrap gap-1 justify-end">
+                                            {Array.isArray(onboardingData.investor_data.dealTypes) && onboardingData.investor_data.dealTypes.map((t: string) => (
+                                                <span key={t} className="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-xs">{t}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Wholesaler Data */}
+                        {onboardingData.wholesaler_data && Object.keys(onboardingData.wholesaler_data).length > 0 && (
+                            <div className="space-y-2">
+                                <h3 className="font-bold text-zinc-900 dark:text-zinc-100 uppercase text-xs tracking-wider">Wholesaler Stats</h3>
+                                <div className="grid grid-cols-1 gap-y-2 p-3 rounded-lg bg-black/20 text-zinc-300">
+                                    <div className="flex justify-between border-b border-white/10 pb-1">
+                                        <span className="text-zinc-500">Experience:</span>
+                                        <span className="text-right">{onboardingData.wholesaler_data.experienceYears}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-zinc-500">Deals Closed:</span>
+                                        <span className="text-right font-bold text-purple-400">{onboardingData.wholesaler_data.dealsClosed}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Vendor/Service Data */}
+                        {(onboardingData.vendor_data?.companyName || onboardingData.service_data?.companyName) && (
+                            <div className="space-y-2">
+                                <h3 className="font-bold text-zinc-900 dark:text-zinc-100 uppercase text-xs tracking-wider">Business Details</h3>
+                                <div className="grid grid-cols-1 gap-y-2 p-3 rounded-lg bg-black/20 text-zinc-300">
+                                    {onboardingData.service_data?.companyName && (
+                                        <div className="flex justify-between border-b border-white/10 pb-1">
+                                            <span className="text-zinc-500">Service Company:</span>
+                                            <span className="text-right">{onboardingData.service_data.companyName} ({onboardingData.service_data.serviceType})</span>
+                                        </div>
+                                    )}
+                                    {onboardingData.vendor_data?.companyName && (
+                                        <div className="flex justify-between">
+                                            <span className="text-zinc-500">Vendor Company:</span>
+                                            <span className="text-right">{onboardingData.vendor_data.companyName} ({onboardingData.vendor_data.serviceType})</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             <div className="grid gap-6 lg:grid-cols-12">
                 {/* Left Sidebar: Intro Details & Widgets */}

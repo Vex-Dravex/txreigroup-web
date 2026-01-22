@@ -56,7 +56,7 @@ export default async function SubmitDealPage() {
               Submit a <span className="text-blue-600">Deal</span>
             </h1>
             <p className="mt-2 text-lg text-zinc-500 dark:text-zinc-400 font-medium">
-              Submit your wholesale deals and let our professional disposition team find you the perfect buyer—so you can focus on locking up your next big deal.
+              Wholesalers can submit their deals to our professional disposition team to be posted on our exclusive creative marketplace and spend more time locking up their next deal.
             </p>
           </div>
 

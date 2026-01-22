@@ -39,7 +39,15 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     const displayName = profile?.display_name || authData.user.email?.split("@")[0] || "User";
 
     return (
-        <div className="min-h-screen bg-white dark:bg-black selection:bg-purple-500/30">
+        <div className="relative min-h-screen bg-zinc-950 selection:bg-purple-500/30 overflow-hidden">
+            <div className="noise-overlay opacity-20" />
+
+            {/* Background Glows */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/10 blur-[120px] animate-pulse" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-600/10 blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
+            </div>
+
             <AppHeader
                 userRole={role}
                 currentPage="blog"

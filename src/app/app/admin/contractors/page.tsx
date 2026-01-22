@@ -90,7 +90,7 @@ export default async function AdminContractorsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+    <div className="w-full">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
           <Link
@@ -118,7 +118,7 @@ export default async function AdminContractorsPage() {
               {(pendingContractors as ContractorProfile[]).map((contractor) => (
                 <div
                   key={contractor.id}
-                  className="rounded-lg border border-yellow-200 bg-white p-6 shadow-sm dark:border-yellow-800 dark:bg-zinc-950"
+                  className="rounded-lg border border-yellow-200 bg-white/50 backdrop-blur-xl p-6 shadow-sm dark:border-yellow-800 dark:bg-zinc-900/50"
                 >
                   <div className="mb-4 flex items-start justify-between">
                     <div className="flex-1">
@@ -197,7 +197,7 @@ export default async function AdminContractorsPage() {
         <div>
           <h2 className="mb-4 text-xl font-semibold text-zinc-900 dark:text-zinc-50">All Contractors</h2>
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+            <table className="w-full border-collapse rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-900/50">
               <thead>
                 <tr className="border-b border-zinc-200 dark:border-zinc-800">
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase text-zinc-600 dark:text-zinc-400">

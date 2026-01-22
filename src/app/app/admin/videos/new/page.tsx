@@ -38,7 +38,7 @@ export default async function AdminVideoUploadPage() {
   const primaryRole = getPrimaryRole(roles, profileData?.role || "investor");
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+    <div className="w-full">
       <AppHeader
         userRole={primaryRole}
         currentPage="admin"

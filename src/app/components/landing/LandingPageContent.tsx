@@ -115,12 +115,12 @@ export default function LandingPageContent({
                                         </motion.span>
                                     </Link>
 
-                                    <Link
-                                        href="#features"
-                                        className="inline-flex items-center text-sm font-black tracking-widest uppercase text-zinc-900 dark:text-zinc-50 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                    <button
+                                        onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+                                        className="inline-flex items-center text-sm font-black tracking-widest uppercase text-zinc-900 dark:text-zinc-50 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
                                     >
                                         Explore Ecosystem
-                                    </Link>
+                                    </button>
                                 </motion.div>
                             </motion.div>
 

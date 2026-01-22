@@ -26,8 +26,8 @@ export default function AppHeader({
   unreadNotificationsCount = null,
 }: AppHeaderProps) {
   return (
-    <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 border-b border-white/5 bg-zinc-950/70 backdrop-blur-xl">
+      <div className="mx-auto max-w-[1800px] px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link

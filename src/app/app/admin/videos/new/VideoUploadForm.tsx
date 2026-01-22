@@ -90,7 +90,7 @@ export default function VideoUploadForm() {
       <div
         className={`relative rounded-2xl border-2 border-dashed p-8 text-center transition ${dragActive
           ? "border-amber-500 bg-amber-50 dark:bg-amber-500/10"
-          : "border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-950"
+          : "border-zinc-300 bg-white/50 backdrop-blur-xl dark:border-zinc-700 dark:bg-zinc-950"
           }`}
         onDragOver={(event) => {
           event.preventDefault();
@@ -154,7 +154,7 @@ export default function VideoUploadForm() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-        <div className="space-y-5 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
+        <div className="space-y-5 rounded-2xl border border-zinc-200 bg-white/50 backdrop-blur-xl p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
           <div>
             <label className="text-xs font-semibold uppercase text-zinc-500 dark:text-zinc-400">
               Video title
@@ -164,7 +164,7 @@ export default function VideoUploadForm() {
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="Give the video a clear title"
-              className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+              className="mt-2 w-full rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl px-4 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
             />
           </div>
           <div>
@@ -177,7 +177,7 @@ export default function VideoUploadForm() {
               onChange={(event) => setDescription(event.target.value)}
               rows={4}
               placeholder="Add the key takeaways and learning outcomes"
-              className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+              className="mt-2 w-full rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl px-4 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
             />
           </div>
           <div>
@@ -211,7 +211,7 @@ export default function VideoUploadForm() {
                   onClick={() => setLevel(option)}
                   className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-wide ${level === option
                     ? "border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-900"
-                    : "border-zinc-200 bg-white text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                    : "border-zinc-200 bg-white/50 backdrop-blur-xl text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
                     }`}
                 >
                   {option}
@@ -221,7 +221,7 @@ export default function VideoUploadForm() {
           </div>
         </div>
 
-        <div className="space-y-5 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
+        <div className="space-y-5 rounded-2xl border border-zinc-200 bg-white/50 backdrop-blur-xl p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Topics</p>
@@ -250,7 +250,7 @@ export default function VideoUploadForm() {
                   <span
                     className={`flex h-5 w-5 items-center justify-center rounded-full border ${isSelected
                       ? "border-amber-600 bg-amber-500"
-                      : "border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+                      : "border-zinc-300 bg-white/50 backdrop-blur-xl dark:border-zinc-700 dark:bg-zinc-900"
                       }`}
                   >
                     {isSelected && (
@@ -273,7 +273,7 @@ export default function VideoUploadForm() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white px-6 py-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white/50 backdrop-blur-xl px-6 py-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
         <div>
           <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
             Ready to publish?

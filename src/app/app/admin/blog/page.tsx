@@ -37,7 +37,7 @@ export default async function AdminBlogPage() {
     const primaryRole = getPrimaryRole(roles, profile?.role || "investor");
 
     return (
-        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+        <div className="w-full">
             <AppHeader
                 userRole={primaryRole}
                 currentPage="admin"
@@ -62,7 +62,7 @@ export default async function AdminBlogPage() {
                     </Link>
                 </div>
 
-                <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
                     <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
                         <thead className="bg-zinc-50 dark:bg-zinc-900/50">
                             <tr>
@@ -72,7 +72,7 @@ export default async function AdminBlogPage() {
                                 <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-zinc-200 bg-white dark:divide-zinc-800 dark:bg-zinc-950">
+                        <tbody className="divide-y divide-zinc-200 bg-white dark:divide-zinc-800 dark:bg-zinc-900/50">
                             {posts?.length === 0 ? (
                                 <tr>
                                     <td colSpan={4} className="px-6 py-12 text-center text-sm text-zinc-500">

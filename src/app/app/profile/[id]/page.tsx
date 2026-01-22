@@ -140,6 +140,14 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
   const networkCount = networkCountResult.count || 0;
   const networkConnections = (networkConnectionsResult.data || []) as any[];
 
+  const { data: onboardingData } = await supabase
+    .from("user_onboarding")
+    .select("*")
+    .eq("user_id", profileId)
+    .single();
+
+  const isViewerAdmin = viewerProfileData?.role === "admin";
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <AppHeader
@@ -161,6 +169,8 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
         networkConnections={networkConnections}
         sampleVendorData={sampleVendorData}
         currentUserId={authData.user.id}
+        onboardingData={onboardingData}
+        isViewerAdmin={isViewerAdmin}
       />
     </div>
   );

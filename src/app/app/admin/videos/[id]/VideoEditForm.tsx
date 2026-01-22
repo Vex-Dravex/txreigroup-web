@@ -57,7 +57,7 @@ export default function VideoEditForm({ video }: { video: EducationVideo }) {
       encType="multipart/form-data"
     >
       <input type="hidden" name="id" value={video.id} />
-      <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
+      <div className="rounded-2xl border border-zinc-200 bg-white/50 backdrop-blur-xl p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
         <p className="text-xs font-semibold uppercase text-zinc-500 dark:text-zinc-400">
           Current video file
         </p>
@@ -80,7 +80,7 @@ export default function VideoEditForm({ video }: { video: EducationVideo }) {
             name="file"
             accept="video/*"
             onChange={handleFileInput}
-            className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+            className="mt-2 w-full rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl px-4 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
           />
           {selectedFile && (
             <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
@@ -91,7 +91,7 @@ export default function VideoEditForm({ video }: { video: EducationVideo }) {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-        <div className="space-y-5 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
+        <div className="space-y-5 rounded-2xl border border-zinc-200 bg-white/50 backdrop-blur-xl p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
           <div>
             <label className="text-xs font-semibold uppercase text-zinc-500 dark:text-zinc-400">
               Video title
@@ -100,7 +100,7 @@ export default function VideoEditForm({ video }: { video: EducationVideo }) {
               name="title"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+              className="mt-2 w-full rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl px-4 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
             />
           </div>
           <div>
@@ -112,7 +112,7 @@ export default function VideoEditForm({ video }: { video: EducationVideo }) {
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               rows={4}
-              className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+              className="mt-2 w-full rounded-lg border border-zinc-200 bg-white/50 backdrop-blur-xl px-4 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
             />
           </div>
           <div>
@@ -129,7 +129,7 @@ export default function VideoEditForm({ video }: { video: EducationVideo }) {
                   className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-wide ${
                     level === option
                       ? "border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-900"
-                      : "border-zinc-200 bg-white text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                      : "border-zinc-200 bg-white/50 backdrop-blur-xl text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
                   }`}
                 >
                   {option}
@@ -139,7 +139,7 @@ export default function VideoEditForm({ video }: { video: EducationVideo }) {
           </div>
         </div>
 
-        <div className="space-y-5 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
+        <div className="space-y-5 rounded-2xl border border-zinc-200 bg-white/50 backdrop-blur-xl p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
@@ -171,7 +171,7 @@ export default function VideoEditForm({ video }: { video: EducationVideo }) {
                     className={`flex h-5 w-5 items-center justify-center rounded-full border ${
                       isSelected
                         ? "border-amber-600 bg-amber-500"
-                        : "border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+                        : "border-zinc-300 bg-white/50 backdrop-blur-xl dark:border-zinc-700 dark:bg-zinc-900"
                     }`}
                   >
                     {isSelected && (
@@ -194,7 +194,7 @@ export default function VideoEditForm({ video }: { video: EducationVideo }) {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white px-6 py-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white/50 backdrop-blur-xl px-6 py-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
         <div>
           <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
             Save updates

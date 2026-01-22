@@ -60,7 +60,7 @@ export default async function AdminVideosPage() {
   const videosData = (videos as EducationVideo[]) || [];
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+    <div className="w-full">
       <AppHeader
         userRole={primaryRole}
         currentPage="admin"
@@ -90,7 +90,7 @@ export default async function AdminVideosPage() {
         </div>
 
         {videosData.length === 0 ? (
-          <div className="rounded-2xl border border-zinc-200 bg-white p-12 text-center shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
+          <div className="rounded-2xl border border-zinc-200 bg-white/50 backdrop-blur-xl p-12 text-center shadow-sm dark:border-zinc-700 dark:bg-zinc-900/50">
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
               No education videos yet. Upload your first video to get started.
             </p>
@@ -100,7 +100,7 @@ export default async function AdminVideosPage() {
             {videosData.map((video) => (
               <div
                 key={video.id}
-                className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-950"
+                className="rounded-2xl border border-zinc-200 bg-white/50 backdrop-blur-xl p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/50"
               >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div>
@@ -130,7 +130,7 @@ export default async function AdminVideosPage() {
                       {video.topics.map((topic) => (
                         <span
                           key={topic}
-                          className="rounded-full border border-zinc-200 bg-white px-3 py-1 dark:border-zinc-700 dark:bg-zinc-900"
+                          className="rounded-full border border-zinc-200 bg-white/50 backdrop-blur-xl px-3 py-1 dark:border-zinc-700 dark:bg-zinc-900"
                         >
                           {topic}
                         </span>
