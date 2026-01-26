@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import AppHeader from "../../components/AppHeader";
 import { hasRole, type Role } from "@/lib/roles";
 import SecureDealButton from "./SecureDealButton";
+import InquiryModalButton from "./InquiryModalButton";
 
 type DealType = "cash_deal" | "seller_finance" | "mortgage_takeover" | "trust_acquisition";
 
@@ -289,13 +290,11 @@ export default function DealDetailContent({
                                     <div className="space-y-4">
                                         {hasRole(roles, "investor") && dealData.status === "approved" && (
                                             <>
-                                                <Link
-                                                    href={`/app/deals/${dealData.id}/inquiry`}
-                                                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-zinc-950 dark:bg-zinc-50 py-5 text-center font-black text-white dark:text-zinc-950 shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] uppercase tracking-tighter"
-                                                >
-                                                    Start Full Inquiry
-                                                    <span className="text-lg">→</span>
-                                                </Link>
+                                                <InquiryModalButton
+                                                    dealId={dealData.id}
+                                                    dealTitle={dealData.title}
+                                                    dealAddress={`${dealData.property_address}, ${dealData.property_city}, ${dealData.property_state}`}
+                                                />
 
                                                 <SecureDealButton
                                                     dealId={dealData.id}

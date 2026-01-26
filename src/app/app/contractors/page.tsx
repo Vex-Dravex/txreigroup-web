@@ -261,14 +261,6 @@ export default async function ContractorsPage({ searchParams }: { searchParams: 
               </p>
 
               <div className="flex flex-wrap gap-4 pt-2">
-                {!isVendor && (
-                  <Link
-                    href="/login"
-                    className="rounded-xl border border-zinc-200 bg-white/50 px-6 py-3.5 text-sm font-bold text-zinc-800 shadow-sm backdrop-blur transition-all hover:bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-100 dark:hover:bg-zinc-900"
-                  >
-                    Recommend a vendor
-                  </Link>
-                )}
               </div>
             </FadeIn>
 

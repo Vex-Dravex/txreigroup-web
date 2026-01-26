@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export const dynamic = 'force-dynamic';
 
-type Step = "roles" | "details" | "complete";
+type Step = "personal" | "roles" | "details" | "complete";
 
 const ROLES = [
     { id: "investor", label: "Investor", icon: "📈", description: "I want to buy properties" },
@@ -19,12 +19,19 @@ const ROLES = [
 
 export default function OnboardingPage() {
     const router = useRouter();
-    const [step, setStep] = useState<Step>("roles");
+    const [step, setStep] = useState<Step>("personal");
     const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
     const [currentRoleIndex, setCurrentRoleIndex] = useState(0);
     const [loading, setLoading] = useState(false);
 
     // Data State
+    const [personalData, setPersonalData] = useState({
+        firstName: "",
+        lastName: "",
+        businessName: "",
+        phoneNumber: "",
+    });
+
     const [investorData, setInvestorData] = useState({
         buyBox: "",
         maxEntry: "",
@@ -70,7 +77,10 @@ export default function OnboardingPage() {
     };
 
     const handleNext = async () => {
-        if (step === "roles") {
+        if (step === "personal") {
+            if (!personalData.firstName || !personalData.lastName || !personalData.phoneNumber) return;
+            setStep("roles");
+        } else if (step === "roles") {
             if (selectedRoles.length === 0) return;
             setStep("details");
             setCurrentRoleIndex(0);
@@ -92,7 +102,21 @@ export default function OnboardingPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error("No user found");
 
-            // Save to Supabase
+            // Update profiles table with personal info
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .update({
+                    first_name: personalData.firstName,
+                    last_name: personalData.lastName,
+                    business_name: personalData.businessName,
+                    phone: personalData.phoneNumber,
+                    display_name: `${personalData.firstName} ${personalData.lastName}`
+                })
+                .eq('id', user.id);
+
+            if (profileError) throw profileError;
+
+            // Save to user_onboarding table
             const { error } = await supabase
                 .from('user_onboarding')
                 .upsert({
@@ -106,6 +130,28 @@ export default function OnboardingPage() {
                 });
 
             if (error) throw error;
+
+            // Also save each role to user_roles table for multi-role support
+            // First, delete existing roles for this user
+            await supabase
+                .from('user_roles')
+                .delete()
+                .eq('user_id', user.id);
+
+            // Then insert all selected roles
+            const roleInserts = selectedRoles.map(role => ({
+                user_id: user.id,
+                role: role as "admin" | "investor" | "wholesaler" | "contractor" | "vendor" | "service"
+            }));
+
+            const { error: rolesError } = await supabase
+                .from('user_roles')
+                .insert(roleInserts);
+
+            if (rolesError) {
+                console.error("Error saving user roles:", rolesError);
+                // Don't throw - onboarding data is saved, roles  are nice-to-have
+            }
 
             router.push("/app"); // Redirect to main app
         } catch (err) {
@@ -162,6 +208,15 @@ export default function OnboardingPage() {
                     {/* Right Side: Dynamic Form */}
                     <div className="relative">
                         <AnimatePresence mode="wait">
+                            {step === "personal" && (
+                                <PersonalForm
+                                    key="personal"
+                                    data={personalData}
+                                    updateData={(d: any) => setPersonalData({ ...personalData, ...d })}
+                                    onNext={handleNext}
+                                />
+                            )}
+
                             {step === "roles" && (
                                 <RolesSelection
                                     key="roles"
@@ -219,6 +274,58 @@ export default function OnboardingPage() {
 }
 
 // Sub-components for cleaner file
+
+function PersonalForm({ data, updateData, onNext }: any) {
+    return (
+        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+            <div>
+                <h2 className="text-2xl font-bold text-white mb-2">Let's get to know you</h2>
+                <p className="text-zinc-400 text-sm">Tell us a bit about yourself.</p>
+            </div>
+
+            <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <Input
+                        label="First Name"
+                        placeholder="John"
+                        value={data.firstName}
+                        onChange={(e: any) => updateData({ firstName: e.target.value })}
+                        required
+                    />
+                    <Input
+                        label="Last Name"
+                        placeholder="Doe"
+                        value={data.lastName}
+                        onChange={(e: any) => updateData({ lastName: e.target.value })}
+                        required
+                    />
+                </div>
+                <Input
+                    label="Phone Number"
+                    placeholder="(555) 000-0000"
+                    type="tel"
+                    value={data.phoneNumber}
+                    onChange={(e: any) => updateData({ phoneNumber: e.target.value })}
+                    required
+                />
+                <Input
+                    label="Business Name (Optional)"
+                    placeholder="Acme Real Estate"
+                    value={data.businessName}
+                    onChange={(e: any) => updateData({ businessName: e.target.value })}
+                />
+            </div>
+
+            <button
+                onClick={onNext}
+                disabled={!data.firstName || !data.lastName || !data.phoneNumber}
+                className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-800 disabled:opacity-50 text-white font-bold py-4 rounded-2xl transition-all"
+            >
+                Continue to Role Selection
+            </button>
+        </motion.div>
+    );
+}
 
 function RolesSelection({ selectedRoles, onToggle, onNext }: any) {
     return (

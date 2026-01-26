@@ -17,9 +17,8 @@ const getSingleUser = (data: any) => {
   return data;
 };
 
-export default async function UserProfilePage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = await Promise.resolve(params);
-  const profileId = resolvedParams.id;
+export default async function UserProfilePage(props: { params: Promise<{ id: string }> }) {
+  const { id: profileId } = await props.params;
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
 
@@ -27,7 +26,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, role, display_name, avatar_url, banner_url, bio")
+    .select("id, role, display_name, avatar_url, banner_url, bio, email, phone, business_name")
     .eq("id", profileId)
     .single();
 

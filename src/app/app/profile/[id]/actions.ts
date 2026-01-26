@@ -26,6 +26,8 @@ export async function requestNetwork(targetUserId: string) {
     return;
   }
 
+  let requestId = existing?.id;
+
   if (existing?.id) {
     const { error: updateError } = await supabase
       .from("network_requests")
@@ -36,15 +38,20 @@ export async function requestNetwork(targetUserId: string) {
       throw new Error(`Failed to update network request: ${updateError.message}`);
     }
   } else {
-    const { error: insertError } = await supabase.from("network_requests").insert({
-      requester_id: authData.user.id,
-      requestee_id: targetUserId,
-      status: "pending",
-    });
+    const { data: newRequest, error: insertError } = await supabase
+      .from("network_requests")
+      .insert({
+        requester_id: authData.user.id,
+        requestee_id: targetUserId,
+        status: "pending",
+      })
+      .select("id")
+      .single();
 
     if (insertError) {
       throw new Error(`Failed to send network request: ${insertError.message}`);
     }
+    requestId = newRequest.id;
   }
 
   const { data: requesterProfile } = await supabase
@@ -61,8 +68,10 @@ export async function requestNetwork(targetUserId: string) {
     title: "New Network Request",
     message: `${requesterName} Would like to add you to their network`,
     related_deal_id: null,
+    actor_id: authData.user.id,
     metadata: {
       requester_id: authData.user.id,
+      request_id: requestId,
     },
   });
 
@@ -107,6 +116,7 @@ export async function respondNetworkRequest(requestId: string, action: "accepted
       title: "Network Request Accepted",
       message: "Your network request was accepted. You are now connected.",
       related_deal_id: null,
+      actor_id: authData.user.id,
       metadata: {
         requestee_id: authData.user.id,
       },
@@ -119,6 +129,27 @@ export async function respondNetworkRequest(requestId: string, action: "accepted
 
   revalidatePath(`/app/profile/${authData.user.id}`);
   revalidatePath(`/app/profile/${request.requester_id}`);
+}
+
+export async function removeNetworkConnection(targetUserId: string) {
+  const supabase = await createSupabaseServerClient();
+  const { data: authData } = await supabase.auth.getUser();
+
+  if (!authData.user) {
+    throw new Error("Unauthorized");
+  }
+
+  const { error } = await supabase
+    .from("network_requests")
+    .delete()
+    .or(`and(requester_id.eq.${authData.user.id},requestee_id.eq.${targetUserId}),and(requester_id.eq.${targetUserId},requestee_id.eq.${authData.user.id})`);
+
+  if (error) {
+    throw new Error(`Failed to remove connection: ${error.message}`);
+  }
+
+  revalidatePath(`/app/profile/${authData.user.id}`);
+  revalidatePath(`/app/profile/${targetUserId}`);
 }
 
 export async function createPortfolioItem(profileId: string, formData: FormData) {
