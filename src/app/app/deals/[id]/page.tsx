@@ -52,7 +52,7 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
 
-  if (!authData.user) redirect("/login");
+  if (!authData.user) redirect("/login?mode=signup");
 
   // Get user profile to determine role
   const { data: profile } = await supabase

@@ -13,6 +13,7 @@ type AppHeaderProps = {
   pendingDealsCount?: number | null;
   unreadMessagesCount?: number | null;
   unreadNotificationsCount?: number | null;
+  isAuthenticated?: boolean;
 };
 
 export default function AppHeader({
@@ -24,6 +25,7 @@ export default function AppHeader({
   pendingDealsCount = null,
   unreadMessagesCount = null,
   unreadNotificationsCount = null,
+  isAuthenticated = true,
 }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-50 border-b border-white/5 bg-zinc-950/70 backdrop-blur-xl">
@@ -111,36 +113,58 @@ export default function AppHeader({
             </nav>
           </div>
           <div className="flex items-center gap-3">
-            <NotificationBell unreadCount={unreadNotificationsCount || 0} />
-            <Link
-              href="/app/messages"
-              className="relative inline-flex h-10 w-10 items-center justify-center rounded-md border border-zinc-200 text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
-              aria-label="Messages"
-            >
-              <svg
-                aria-hidden="true"
-                className="h-5 w-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.8}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-              {typeof unreadMessagesCount === "number" && unreadMessagesCount > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 rounded-full bg-purple-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                  {unreadMessagesCount}
-                </span>
-              )}
-            </Link>
+            {isAuthenticated ? (
+              <>
+                {/* Authenticated users see notifications and messages */}
+                <NotificationBell unreadCount={unreadNotificationsCount || 0} />
+                <Link
+                  href="/app/messages"
+                  className="relative inline-flex h-10 w-10 items-center justify-center rounded-md border border-zinc-200 text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+                  aria-label="Messages"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.8}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                  {typeof unreadMessagesCount === "number" && unreadMessagesCount > 0 && (
+                    <span className="absolute -right-1.5 -top-1.5 rounded-full bg-purple-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                      {unreadMessagesCount}
+                    </span>
+                  )}
+                </Link>
+              </>
+            ) : (
+              <>
+                {/* Unauthenticated users see Sign In/Sign Up buttons */}
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-zinc-900 dark:text-zinc-50 transition-colors hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/login?mode=signup"
+                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg transition-all hover:scale-105 active:scale-95"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
             <ProfileMenu
               avatarUrl={avatarUrl}
               displayName={displayName}
               email={email}
               userRole={userRole}
               pendingDealsCount={pendingDealsCount}
+              isAuthenticated={isAuthenticated}
             />
           </div>
         </div>

@@ -12,7 +12,7 @@ export default async function SupportPage() {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-        redirect("/login");
+        redirect("/login?mode=signup");
     }
 
     const { data: profile } = await supabase

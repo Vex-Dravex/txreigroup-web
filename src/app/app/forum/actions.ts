@@ -9,7 +9,7 @@ async function verifyAuth() {
   const { data: authData } = await supabase.auth.getUser();
 
   if (!authData.user) {
-    redirect("/login");
+    redirect("/login?mode=signup");
   }
 
   return { supabase, userId: authData.user.id };

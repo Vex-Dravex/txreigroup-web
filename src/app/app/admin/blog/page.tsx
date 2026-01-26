@@ -11,7 +11,7 @@ export default async function AdminBlogPage() {
     const supabase = await createSupabaseServerClient();
     const { data: authData } = await supabase.auth.getUser();
 
-    if (!authData.user) redirect("/login");
+    if (!authData.user) redirect("/login?mode=signup");
 
     // Check admin role
     const roles = await getUserRoles(supabase, authData.user.id, "investor"); // Default to investor to check

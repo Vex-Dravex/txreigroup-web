@@ -11,7 +11,7 @@ export default async function BlogPage() {
     const supabase = await createSupabaseServerClient();
     const { data: authData } = await supabase.auth.getUser();
 
-    if (!authData.user) redirect("/login");
+    if (!authData.user) redirect("/login?mode=signup");
 
     // Fetch profile for header
     const { data: profile } = await supabase

@@ -44,6 +44,7 @@ export default function LandingPageContent({
     return (
         <div className="flex min-h-screen flex-col overflow-x-hidden selection:bg-blue-500/30">
             <AppHeader
+                isAuthenticated={isAuthenticated}
                 userRole={isAuthenticated ? userRole : "investor"}
                 currentPage="home"
                 avatarUrl={userProfile?.avatar_url || null}

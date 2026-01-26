@@ -52,7 +52,7 @@ export default async function TransactionServicesPage({
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
 
-  if (!authData.user) redirect("/login");
+  if (!authData.user) redirect("/login?mode=signup");
 
   const { data: profileData } = await supabase
     .from("profiles")

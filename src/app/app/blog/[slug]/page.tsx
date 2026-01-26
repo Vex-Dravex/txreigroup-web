@@ -13,7 +13,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     const supabase = await createSupabaseServerClient();
     const { data: authData } = await supabase.auth.getUser();
 
-    if (!authData.user) redirect("/login");
+    if (!authData.user) redirect("/login?mode=signup");
 
     // Fetch post
     const { data: post } = await supabase

@@ -27,6 +27,7 @@ export async function middleware(req: NextRequest) {
   if (isAppRoute && !data.user) {
     const redirectUrl = req.nextUrl.clone();
     redirectUrl.pathname = "/login";
+    redirectUrl.searchParams.set("mode", "signup");
     redirectUrl.searchParams.set("next", req.nextUrl.pathname);
     return NextResponse.redirect(redirectUrl);
   }

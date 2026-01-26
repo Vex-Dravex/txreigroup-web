@@ -132,7 +132,7 @@ function LoginForm() {
         }
 
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
-        const redirectUrl = `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`;
+        const redirectUrl = `${siteUrl}/auth/callback`;
 
         const { data: signUpData, error } = await supabase.auth.signUp({
           email,
@@ -148,8 +148,10 @@ function LoginForm() {
           setSuccessMessage("Account created! Please check your email to verify your account.");
           setMode("signin");
         } else if (signUpData.session) {
-          setSuccessMessage("Account created! Redirecting...");
-          router.push(next);
+          // User signed up and has immediate session (email confirmation disabled)
+          // Redirect to onboarding since they're a new user
+          setSuccessMessage("Account created! Setting up your profile...");
+          router.push("/onboarding");
           router.refresh();
         }
       } else {
@@ -158,7 +160,19 @@ function LoginForm() {
         if (error) throw error;
         if (!signInData.user) throw new Error("Sign in failed.");
 
-        router.push(next);
+        // Check if user has completed onboarding
+        const { data: onboardingData } = await supabase
+          .from('user_onboarding')
+          .select('completed')
+          .eq('user_id', signInData.user.id)
+          .single();
+
+        // If user hasn't completed onboarding, redirect to onboarding
+        if (!onboardingData || !onboardingData.completed) {
+          router.push("/onboarding");
+        } else {
+          router.push(next);
+        }
         router.refresh();
       }
     } catch (err: any) {

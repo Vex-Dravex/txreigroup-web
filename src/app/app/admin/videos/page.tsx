@@ -28,7 +28,7 @@ export default async function AdminVideosPage() {
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
 
-  if (!authData.user) redirect("/login");
+  if (!authData.user) redirect("/login?mode=signup");
 
   const { data: profile } = await supabase
     .from("profiles")

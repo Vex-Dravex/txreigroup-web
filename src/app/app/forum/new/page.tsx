@@ -23,7 +23,7 @@ export default async function NewPostPage() {
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
 
-  if (!authData.user) redirect("/login");
+  if (!authData.user) redirect("/login?mode=signup");
 
   // Get user profile
   const { data: profile } = await supabase
