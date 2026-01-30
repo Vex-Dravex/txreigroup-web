@@ -10,16 +10,21 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@stripe/stripe-js": "^8.7.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.89.0",
+    "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.27.0",
+    "lucide-react": "^0.563.0",
     "next": "16.1.1",
     "next-themes": "^0.4.6",
     "podio-js": "^1.6.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-easy-crop": "^5.5.6",
+    "stripe": "^20.3.0",
+    "tailwind-merge": "^3.4.0",
     "zod": "^4.3.5"
   },
   "devDependencies": {
