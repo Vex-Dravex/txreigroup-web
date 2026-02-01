@@ -2,6 +2,8 @@
 
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import EmbeddedCheckout from "@/components/checkout/EmbeddedCheckout";
+import { useRouter } from "next/navigation";
 
 interface PricingTier {
     id: string;
@@ -19,11 +21,18 @@ interface PricingTier {
 
 interface PricingCardProps {
     tier: PricingTier;
-    onSelect: (priceId: string) => void;
-    isLoading?: boolean;
 }
 
-export default function PricingCard({ tier, onSelect, isLoading }: PricingCardProps) {
+export default function PricingCard({ tier }: PricingCardProps) {
+    const router = useRouter();
+
+    const handleSuccess = () => {
+        router.push("/app");
+    };
+
+    const handleCancel = () => {
+        console.log("Checkout cancelled");
+    };
     return (
         <div
             className={cn(
@@ -51,35 +60,37 @@ export default function PricingCard({ tier, onSelect, isLoading }: PricingCardPr
                 <span className="text-sm font-medium text-zinc-400">/{tier.interval}</span>
             </div>
 
-            <p className="mb-6 text-sm text-zinc-400">{tier.description}</p>
-
-            <ul className="mb-8 flex-1 space-y-3">
-                {tier.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3 text-sm text-zinc-300">
-                        <Check className="h-5 w-5 shrink-0 text-emerald-500" />
-                        <span>{feature}</span>
-                    </li>
-                ))}
-            </ul>
-
-            <button
-                onClick={() => onSelect(tier.priceId)}
-                disabled={isLoading}
-                className={cn(
-                    "w-full rounded-xl py-3 text-sm font-bold transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-zinc-900",
-                    tier.highlight
-                        ? "bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-900/20"
-                        : "bg-white text-zinc-900 hover:bg-zinc-200"
-                )}
-            >
-                {isLoading ? "Processing..." : "Start 14-Day Free Trial"}
-            </button>
-
+            <p className="mb-6 text-sm text-zinc-400">{tier.description}</p>            {/* Trial Information Block */}
+            <div className="mb-10 p-5 rounded-2xl bg-zinc-900/50 border border-white/5 backdrop-blur-sm">
+                <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">Start Today • Free</span>
+                    </div>
+                    <p className="text-xs leading-relaxed text-zinc-300 font-medium">
+                        Your 14-day free trial starts today. You will only be billed <span className="text-white font-bold">{tier.price}</span> for <span className="text-white font-bold">{tier.name}</span> after your trial period ends.
+                    </p>
+                    <div className="pt-2 border-t border-white/5">
+                        <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">
+                            Cancel anytime during trial
+                        </p>
+                    </div>
+                </div>
+            </div>
             {tier.savings && (
-                <p className="mt-3 text-center text-xs font-medium text-emerald-400">
+                <p className="mb-4 text-center text-xs font-bold uppercase tracking-wider text-emerald-500">
                     Save {tier.savings}
                 </p>
             )}
-        </div>
+
+            {/* New Embedded Checkout Component */}
+            <EmbeddedCheckout
+                priceId={tier.priceId}
+                planName={tier.name}
+                planPrice={tier.price}
+                onSuccess={handleSuccess}
+                onCancel={handleCancel}
+            />
+        </div >
     );
 }

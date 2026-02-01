@@ -1,53 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { PRICING_TIERS } from "@/lib/constants/pricing";
 import PricingCard from "./components/PricingCard";
-import { getStripe } from "@/lib/stripe-client";
 import FadeIn, { FadeInStagger } from "@/app/components/FadeIn";
 
 export default function SubscriptionPage() {
-    const [loading, setLoading] = useState<string | null>(null);
-    const router = useRouter();
-
-    const handleSelectPlan = async (priceId: string) => {
-        try {
-            setLoading(priceId);
-
-            // Create a checkout session
-            const response = await fetch("/api/checkout", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    priceId,
-                    successUrl: window.location.origin + "/app?session_id={CHECKOUT_SESSION_ID}",
-                    cancelUrl: window.location.origin + "/onboarding/subscription",
-                }),
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || `HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            if (data.url) {
-                window.location.href = data.url;
-            } else {
-                throw new Error("No checkout URL returned");
-            }
-        } catch (err: any) {
-            console.error("Checkout error:", err);
-            alert(`Failed to start checkout: ${err.message || 'Please try again.'}`);
-        } finally {
-            setLoading(null);
-        }
-    };
-
     return (
         <div className="min-h-screen bg-zinc-950 selection:bg-blue-500/30">
             <div className="noise-overlay fixed inset-0 pointer-events-none opacity-[0.05]" />
@@ -73,11 +30,7 @@ export default function SubscriptionPage() {
                 <FadeInStagger className="grid gap-8 lg:grid-cols-4 md:grid-cols-2">
                     {PRICING_TIERS.map((tier) => (
                         <FadeIn key={tier.id}>
-                            <PricingCard
-                                tier={tier}
-                                onSelect={handleSelectPlan}
-                                isLoading={loading === tier.priceId}
-                            />
+                            <PricingCard tier={tier} />
                         </FadeIn>
                     ))}
                 </FadeInStagger>

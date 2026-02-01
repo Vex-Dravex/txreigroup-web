@@ -48,7 +48,7 @@ export const PRICING_TIERS = [
         highlight: false,
         badge: 'Best Value',
         valueHook: '1 Month Free',
-        savings: '$99 saved',
+        savings: '$99',
     },
     {
         id: 'annual',
@@ -65,6 +65,6 @@ export const PRICING_TIERS = [
         highlight: false,
         badge: 'Max Savings',
         valueHook: '2 Months Free',
-        savings: '$198 saved',
+        savings: '$198',
     },
 ];

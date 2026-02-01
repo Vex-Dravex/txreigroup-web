@@ -101,9 +101,9 @@ export default function MembershipPage() {
                                 ) : (
                                     <button
                                         onClick={() => router.push('/onboarding/subscription')}
-                                        className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-50 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 rounded-lg font-medium transition-colors"
+                                        className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-all hover:scale-105"
                                     >
-                                        Subscribe Now
+                                        SELECT
                                     </button>
                                 )}
                             </div>
