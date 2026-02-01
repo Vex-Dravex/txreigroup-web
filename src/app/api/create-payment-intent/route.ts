@@ -91,10 +91,31 @@ export async function POST(req: NextRequest) {
             },
         };
 
-        // Apply coupon if provided
+        // Apply coupon/promotion code if provided
         if (couponCode) {
-            subscriptionParams.coupon = couponCode;
-            console.log("Applying coupon to subscription:", couponCode);
+            console.log("Attempting to apply coupon/promo code:", couponCode);
+
+            // First, try to find it as a promotion code
+            try {
+                const promoCodes = await stripe.promotionCodes.list({
+                    code: couponCode,
+                    limit: 1,
+                });
+
+                if (promoCodes.data.length > 0 && promoCodes.data[0].active) {
+                    // Use the promotion code ID
+                    subscriptionParams.promotion_code = promoCodes.data[0].id;
+                    console.log("Applied promotion code:", promoCodes.data[0].id);
+                } else {
+                    // Fall back to treating it as a coupon ID
+                    subscriptionParams.coupon = couponCode;
+                    console.log("Applied as coupon ID:", couponCode);
+                }
+            } catch (error) {
+                // If promotion code lookup fails, try as direct coupon ID
+                console.log("Promotion code lookup failed, trying as coupon ID");
+                subscriptionParams.coupon = couponCode;
+            }
         }
 
         const subscription = await stripe.subscriptions.create(subscriptionParams);
