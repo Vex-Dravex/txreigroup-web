@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
 
         // Validate the coupon with Stripe
         try {
+            // First, try to retrieve as a coupon ID
             const coupon = await stripe.coupons.retrieve(couponCode);
 
             // Check if coupon is valid and not expired
@@ -42,9 +43,42 @@ export async function POST(req: NextRequest) {
                 }
             });
         } catch (error: any) {
-            // Coupon not found or invalid
+            // If not found as coupon, try as promotion code
             if (error.code === 'resource_missing') {
-                return NextResponse.json({ valid: false, message: "Invalid coupon code" }, { status: 400 });
+                console.log(`Coupon ID "${couponCode}" not found, trying as promotion code...`);
+
+                try {
+                    const promoCodes = await stripe.promotionCodes.list({
+                        code: couponCode,
+                        limit: 1,
+                    });
+
+                    if (promoCodes.data.length > 0 && promoCodes.data[0].active) {
+                        const promoCode = promoCodes.data[0];
+                        const coupon = promoCode.coupon as any;
+
+                        return NextResponse.json({
+                            valid: true,
+                            coupon: {
+                                id: coupon.id,
+                                name: coupon.name,
+                                percent_off: coupon.percent_off,
+                                amount_off: coupon.amount_off,
+                                currency: coupon.currency,
+                                duration: coupon.duration,
+                                duration_in_months: coupon.duration_in_months,
+                            }
+                        });
+                    }
+                } catch (promoError) {
+                    console.error('Error checking promotion code:', promoError);
+                }
+
+                console.log(`Neither coupon nor promotion code found for: "${couponCode}"`);
+                return NextResponse.json({
+                    valid: false,
+                    message: "Invalid coupon code. Please check the code and try again."
+                }, { status: 400 });
             }
             throw error;
         }
