@@ -153,7 +153,7 @@ export default function OnboardingPage() {
                 // Don't throw - onboarding data is saved, roles  are nice-to-have
             }
 
-            router.push("/app"); // Redirect to main app
+            router.push("/onboarding/subscription"); // Redirect to subscription page
         } catch (err) {
             console.error("Error saving onboarding data:", err);
             // Handle error (show toast etc)

@@ -78,7 +78,7 @@ export default function MembershipPage() {
                                 </div>
                             </div>
 
-                            {membership && (
+                            {membership && membership.current_period_end && (
                                 <div className="grid gap-4 mb-8">
                                     <div className="p-4 bg-zinc-50 dark:bg-zinc-950/50 rounded-lg border border-zinc-200 dark:border-zinc-800/50 flex justify-between items-center">
                                         <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Current Period Ends</span>
