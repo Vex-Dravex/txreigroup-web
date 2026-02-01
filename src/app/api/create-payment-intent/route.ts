@@ -54,24 +54,38 @@ export async function POST(req: NextRequest) {
             console.log("Using existing Stripe customer:", stripeCustomerId);
         }
 
-        // Check if user already has an active subscription
+
+        // Check if user already has an active subscription with a valid Stripe subscription
         const { data: existingMembership } = await supabase
             .from("memberships")
             .select("status, subscription_id")
             .eq("user_id", user.id)
             .single();
 
-        if (existingMembership && ['active', 'trialing'].includes(existingMembership.status)) {
+        if (existingMembership &&
+            existingMembership.status === 'active' &&
+            existingMembership.subscription_id) {
             console.log("User already has an active subscription:", existingMembership.subscription_id);
-            return new NextResponse(
-                JSON.stringify({
-                    error: "You already have an active subscription. Please manage your subscription from your account settings."
-                }),
-                {
-                    status: 400,
-                    headers: { 'Content-Type': 'application/json' }
+
+            // Verify the subscription is actually active in Stripe
+            try {
+                const stripeSubscription = await stripe.subscriptions.retrieve(existingMembership.subscription_id);
+                if (['active', 'trialing'].includes(stripeSubscription.status)) {
+                    return new NextResponse(
+                        JSON.stringify({
+                            error: "You already have an active subscription. Please manage your subscription from your account settings."
+                        }),
+                        {
+                            status: 400,
+                            headers: { 'Content-Type': 'application/json' }
+                        }
+                    );
+                } else {
+                    console.log("Stripe subscription is not active, allowing new subscription");
                 }
-            );
+            } catch (error) {
+                console.log("Stripe subscription not found, allowing new subscription");
+            }
         }
 
         // Create a Subscription with Payment Intent
