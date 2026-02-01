@@ -54,6 +54,26 @@ export async function POST(req: NextRequest) {
             console.log("Using existing Stripe customer:", stripeCustomerId);
         }
 
+        // Check if user already has an active subscription
+        const { data: existingMembership } = await supabase
+            .from("memberships")
+            .select("status, subscription_id")
+            .eq("user_id", user.id)
+            .single();
+
+        if (existingMembership && ['active', 'trialing'].includes(existingMembership.status)) {
+            console.log("User already has an active subscription:", existingMembership.subscription_id);
+            return new NextResponse(
+                JSON.stringify({
+                    error: "You already have an active subscription. Please manage your subscription from your account settings."
+                }),
+                {
+                    status: 400,
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            );
+        }
+
         // Create a Subscription with Payment Intent
         // Note: With trial_period_days, Stripe creates a setup intent instead of payment intent
         const subscriptionParams: any = {
