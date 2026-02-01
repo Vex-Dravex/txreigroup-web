@@ -1,0 +1,107 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    🚀 PRODUCTION DEPLOYMENT - NEXT STEPS                     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+⚠️  IMPORTANT: You're using LIVE Stripe keys (pk_live_... / sk_live_...)
+    Any transactions will be REAL charges!
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ STEP 1: Configure Stripe Production Webhook (5 minutes)                     │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  1. Go to: https://dashboard.stripe.com/webhooks
+  2. Click: "Add endpoint"
+  3. Endpoint URL: https://YOUR_DOMAIN.com/api/webhooks/stripe
+  4. Select events:
+     ✓ checkout.session.completed
+     ✓ customer.subscription.created
+     ✓ customer.subscription.updated
+     ✓ customer.subscription.deleted
+     ✓ invoice.payment_succeeded
+     ✓ invoice.payment_failed
+  5. Copy the webhook signing secret (whsec_...)
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ STEP 2: Configure Vercel Environment Variables (5 minutes)                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  1. Go to: https://vercel.com/dashboard
+  2. Select your project → Settings → Environment Variables
+  3. Add/Update:
+     
+     NEXT_PUBLIC_SITE_URL=https://YOUR_DOMAIN.com
+     STRIPE_WEBHOOK_SECRET=whsec_YOUR_SECRET_FROM_STEP_1
+     
+  4. Copy all other variables from .env.local
+  5. Set scope to: Production, Preview, Development
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ STEP 3: Deploy to Production (5 minutes)                                    │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  Run these commands:
+  
+  git add .
+  git commit -m "feat: Production-ready embedded checkout with trial info"
+  git push origin main
+  
+  Then monitor deployment at: https://vercel.com/dashboard
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ STEP 4: Verify Deployment (10 minutes)                                      │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  ✓ Visit: https://YOUR_DOMAIN.com/diagnostic/stripe-prices
+    → Should show 4 green checkmarks
+    
+  ✓ Visit: https://YOUR_DOMAIN.com/onboarding/subscription
+    → Click "SELECT" on any plan
+    → Modal should open without errors
+    
+  ✓ Test with card: 4242 4242 4242 4242
+    → Should process successfully
+    
+  ✓ Check Stripe Dashboard: https://dashboard.stripe.com/subscriptions
+    → Should see new subscription
+    
+  ✓ Check Supabase: memberships table
+    → Should have new record
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                           ✅ WHAT YOU'VE BUILT                               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  ✓ Embedded Stripe Checkout (users never leave your site)
+  ✓ 14-Day Free Trial (automatic for all plans)
+  ✓ Trial Information Block (clear billing explanation)
+  ✓ 4 Membership Tiers (Weekly, Monthly, Bi-Annual, Annual)
+  ✓ Multiple Payment Methods (Card, Apple Pay, Google Pay, Cash App)
+  ✓ Automatic Database Updates (via webhooks)
+  ✓ Production-Ready Configuration
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         📚 DOCUMENTATION CREATED                             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  📄 DEPLOY_NOW.md                    → Quick deployment checklist
+  📄 PRODUCTION_DEPLOYMENT_GUIDE.md   → Complete deployment guide
+  📄 STRIPE_PRICE_ID_RESOLUTION.md    → Price ID configuration
+  📄 EMBEDDED_CHECKOUT_CHECKLIST.md   → Implementation checklist
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                      🎯 ESTIMATED TIME TO PRODUCTION                         ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  Total: ~25 minutes
+  
+  Step 1: 5 min  (Stripe webhook)
+  Step 2: 5 min  (Vercel env vars)
+  Step 3: 5 min  (Deploy)
+  Step 4: 10 min (Verify)
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                            🚀 READY TO DEPLOY!                               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  Start with: cat DEPLOY_NOW.md
+  
