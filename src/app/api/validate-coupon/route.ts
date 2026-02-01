@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
+import Stripe from "stripe";
 
 export async function POST(req: NextRequest) {
     try {
@@ -54,19 +55,22 @@ export async function POST(req: NextRequest) {
                     });
 
                     if (promoCodes.data.length > 0 && promoCodes.data[0].active) {
-                        const promoCode = promoCodes.data[0];
-                        const coupon = promoCode.coupon as any;
+                        const promoCode = promoCodes.data[0] as any; // Type assertion needed - coupon property exists but not in types
+                        const couponId = typeof promoCode.coupon === 'string' ? promoCode.coupon : promoCode.coupon.id;
+
+                        // Retrieve the full coupon details
+                        const couponData = await stripe.coupons.retrieve(couponId);
 
                         return NextResponse.json({
                             valid: true,
                             coupon: {
-                                id: coupon.id,
-                                name: coupon.name,
-                                percent_off: coupon.percent_off,
-                                amount_off: coupon.amount_off,
-                                currency: coupon.currency,
-                                duration: coupon.duration,
-                                duration_in_months: coupon.duration_in_months,
+                                id: couponData.id,
+                                name: couponData.name,
+                                percent_off: couponData.percent_off,
+                                amount_off: couponData.amount_off,
+                                currency: couponData.currency,
+                                duration: couponData.duration,
+                                duration_in_months: couponData.duration_in_months,
                             }
                         });
                     }
