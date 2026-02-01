@@ -263,15 +263,24 @@ export default function EmbeddedCheckout({
             });
 
             if (!response.ok) {
-                // Try to parse as JSON first (for structured errors)
+                // Clone the response so we can try different parsing methods
+                const clonedResponse = response.clone();
+                let errorMessage = "Failed to create checkout session";
+
                 try {
                     const errorData = await response.json();
-                    throw new Error(errorData.error || "Failed to create checkout session");
-                } catch (jsonError) {
-                    // If not JSON, use text
-                    const errorText = await response.text();
-                    throw new Error(errorText || "Failed to create checkout session");
+                    errorMessage = errorData.error || errorMessage;
+                } catch {
+                    // If JSON parsing fails, try text
+                    try {
+                        const errorText = await clonedResponse.text();
+                        errorMessage = errorText || errorMessage;
+                    } catch {
+                        // Use default message
+                    }
                 }
+
+                throw new Error(errorMessage);
             }
 
             const { clientSecret } = await response.json();
