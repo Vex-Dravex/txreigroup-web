@@ -28,20 +28,21 @@ export default function SubscriptionPage() {
                 }),
             });
 
-            const { url, error } = await response.json();
-
-            if (error) {
-                throw new Error(error);
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || `HTTP error! status: ${response.status}`);
             }
 
-            if (url) {
-                window.location.href = url;
+            const data = await response.json();
+
+            if (data.url) {
+                window.location.href = data.url;
             } else {
                 throw new Error("No checkout URL returned");
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error("Checkout error:", err);
-            alert("Failed to start checkout. Please try again.");
+            alert(`Failed to start checkout: ${err.message || 'Please try again.'}`);
         } finally {
             setLoading(null);
         }
