@@ -169,10 +169,10 @@ function CheckoutForm({
                         <input
                             type="text"
                             value={couponCode}
-                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                            onChange={(e) => setCouponCode(e.target.value)}
                             onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleApplyCoupon())}
-                            placeholder="ENTER PROMO CODE"
-                            className="flex-1 px-4 py-3 bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-900 dark:text-white transition-all uppercase placeholder:text-zinc-400"
+                            placeholder="Enter promo code"
+                            className="flex-1 px-4 py-3 bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-900 dark:text-white transition-all placeholder:text-zinc-400"
                         />
                         <button
                             type="button"
