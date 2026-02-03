@@ -5,7 +5,7 @@ import { updateUserRoles } from "../actions";
 import { useRouter } from "next/navigation";
 import { roleDisplayNames, type Role } from "@/lib/roles";
 
-const AVAILABLE_ROLES: Role[] = ["admin", "investor", "wholesaler", "contractor", "vendor"];
+const AVAILABLE_ROLES: Role[] = ["admin", "investor", "wholesaler", "contractor", "vendor", "service"];
 
 export default function UserRoleForm({
   userId,

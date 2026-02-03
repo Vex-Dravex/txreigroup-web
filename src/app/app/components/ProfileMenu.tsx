@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import ThemeToggle from "@/app/components/ThemeToggle";
 
-type Role = "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
+type Role = "admin" | "investor" | "wholesaler" | "contractor" | "vendor" | "service";
 
 type ProfileMenuProps = {
   avatarUrl: string | null;

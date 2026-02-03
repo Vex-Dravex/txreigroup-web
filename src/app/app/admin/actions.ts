@@ -173,7 +173,7 @@ export async function updateInquiryStatus(inquiryId: string, status: string) {
 }
 
 // Update user role
-export async function updateUserRoles(userId: string, roles: Array<"admin" | "investor" | "wholesaler" | "contractor" | "vendor">) {
+export async function updateUserRoles(userId: string, roles: Array<"admin" | "investor" | "wholesaler" | "contractor" | "vendor" | "service">) {
   await verifyAdmin();
 
   const supabase = await createSupabaseServerClient();
