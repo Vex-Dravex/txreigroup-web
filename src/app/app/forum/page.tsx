@@ -8,6 +8,7 @@ import { ForumLeftSidebar } from "./components/ForumLeftSidebar";
 import { ForumRightSidebar } from "./components/ForumRightSidebar";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getPrimaryRole, getUserRoles } from "@/lib/roles";
+import ForumTutorialTrigger from "./ForumTutorialTrigger";
 
 type Profile = {
   id: string;
@@ -195,15 +196,32 @@ export default async function ForumPage({
             <main className="lg:col-span-9 xl:col-span-7">
               <div className="mb-8 flex flex-col gap-4">
                 <div className="sticky top-20 z-30 -mx-4 px-4 py-3 backdrop-blur-md sm:static sm:mx-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     <div className="flex-1">
                       <SearchInput />
                     </div>
+                    <ForumTutorialTrigger />
+                  </div>
+                </div>
+
+                {/* Welcome / Support Invite Panel */}
+                <div className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-6 backdrop-blur-sm">
+                  <div className="flex flex-col md:flex-row items-center gap-6">
+                    <div className="flex-1 space-y-2 text-center md:text-left">
+                      <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight">The Future of HTX Real Estate</h2>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 font-medium">
+                        Welcome to the new community forum. Whether you're a wholesaler, investor, or contractor, this is your space to connect and grow.
+                      </p>
+                    </div>
+                    <a href="/app/forum/new" className="shrink-0 rounded-xl bg-blue-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-500 hover:scale-[1.02] active:scale-[0.98]">
+                      Create First Post
+                    </a>
                   </div>
                 </div>
 
                 {/* Create Post Input Trigger (Reddit Style) */}
                 <div
+                  id="forum-create-post"
                   className="hidden sm:flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 shadow-xl backdrop-blur-sm hover:border-white/20 transition-all"
                 >
                   <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/10 bg-zinc-800">

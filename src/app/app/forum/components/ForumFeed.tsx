@@ -100,6 +100,7 @@ export default function ForumFeed({ posts, topicFilter }: ForumFeedProps) {
                 return (
                     <motion.div
                         key={post.id}
+                        id={`forum-post-card-${post.id}`}
                         variants={itemVariants}
                         className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 hover:shadow-lg ${post.is_pinned
                             ? "border-blue-500/30 bg-blue-50/10 dark:bg-blue-900/5 shadow-md shadow-blue-500/5"

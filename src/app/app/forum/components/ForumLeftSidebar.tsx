@@ -7,7 +7,7 @@ interface ForumLeftSidebarProps {
 
 export function ForumLeftSidebar({ topicFilter }: ForumLeftSidebarProps) {
     return (
-        <div className="space-y-6">
+        <div className="space-y-6" id="forum-left-sidebar">
             {/* Feeds Section */}
             <div className="rounded-xl border border-zinc-200 bg-white/50 p-4 shadow-sm backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/50">
                 <h3 className="mb-3 px-2 text-xs font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-500">

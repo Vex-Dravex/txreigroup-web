@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import AppHeader from "../../components/AppHeader";
-import { hasRole, type Role } from "@/lib/roles";
+import { type Role } from "@/lib/roles";
 import SecureDealButton from "./SecureDealButton";
 import InquiryModalButton from "./InquiryModalButton";
+import DetailTutorial from "./DetailTutorial";
 
 type DealType = "cash_deal" | "seller_finance" | "mortgage_takeover" | "trust_acquisition";
 
@@ -115,6 +116,7 @@ export default function DealDetailContent({
 
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 selection:bg-blue-500/30">
+            <DetailTutorial />
             <div className="noise-overlay fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]" />
 
             {/* Background Gradient Elements */}
@@ -138,7 +140,7 @@ export default function DealDetailContent({
                     initial="hidden"
                     animate="show"
                 >
-                    <motion.div variants={item} className="mb-8">
+                    <motion.div variants={item} className="mb-8 flex items-center justify-between gap-4">
                         <Link
                             href="/app/deals"
                             className="inline-flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-blue-600 transition-colors uppercase tracking-widest"
@@ -197,6 +199,7 @@ export default function DealDetailContent({
                             {/* Specs Bar - Zillow Style */}
                             <motion.div
                                 variants={item}
+                                id="detail-specs-bar"
                                 className="grid grid-cols-2 md:grid-cols-4 gap-6 p-8 rounded-3xl bg-white dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-zinc-200/50 dark:shadow-none"
                             >
                                 <div className="space-y-1">
@@ -254,6 +257,7 @@ export default function DealDetailContent({
                             {/* Main Transaction Card */}
                             <motion.div
                                 variants={item}
+                                id="detail-transaction-card"
                                 className="glass rounded-[2rem] border border-blue-500/20 p-8 shadow-2xl shadow-zinc-200/50 dark:shadow-none bg-white dark:bg-zinc-900/50 relative overflow-hidden"
                             >
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl -mr-16 -mt-16" />
@@ -288,20 +292,16 @@ export default function DealDetailContent({
                                     </div>
 
                                     <div className="space-y-4">
-                                        {hasRole(roles, "investor") && dealData.status === "approved" && (
-                                            <>
-                                                <InquiryModalButton
-                                                    dealId={dealData.id}
-                                                    dealTitle={dealData.title}
-                                                    dealAddress={`${dealData.property_address}, ${dealData.property_city}, ${dealData.property_state}`}
-                                                />
+                                        <InquiryModalButton
+                                            dealId={dealData.id}
+                                            dealTitle={dealData.title}
+                                            dealAddress={`${dealData.property_address}, ${dealData.property_city}, ${dealData.property_state}`}
+                                        />
 
-                                                <SecureDealButton
-                                                    dealId={dealData.id}
-                                                    dealTitle={dealData.title}
-                                                />
-                                            </>
-                                        )}
+                                        <SecureDealButton
+                                            dealId={dealData.id}
+                                            dealTitle={dealData.title}
+                                        />
                                     </div>
                                 </div>
                             </motion.div>

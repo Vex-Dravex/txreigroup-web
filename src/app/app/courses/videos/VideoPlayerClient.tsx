@@ -173,20 +173,41 @@ export default function VideoPlayerClient({
 
   if (!videoUrl) {
     return (
-      <div className="aspect-video w-full overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-900 shadow-sm dark:border-zinc-700">
-        <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-center text-white">
-          <div className="h-12 w-12 rounded-full bg-white/10 p-2">
-            <svg viewBox="0 0 24 24" className="h-full w-full">
-              <path
-                fill="currentColor"
-                d="M8.25 6.75h6.5A2.5 2.5 0 0 1 17.25 9.25v5.5a2.5 2.5 0 0 1-2.5 2.5h-6.5a2.5 2.5 0 0 1-2.5-2.5v-5.5a2.5 2.5 0 0 1 2.5-2.5Zm8.1 1.65 2.35-1.46a.75.75 0 0 1 1.15.64v8.86a.75.75 0 0 1-1.15.64l-2.35-1.46V8.4Z"
-              />
-            </svg>
+      <div className="aspect-video w-full overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-900 shadow-sm dark:border-zinc-700 relative group">
+        {poster ? (
+          <>
+            <img
+              src={poster}
+              alt={title}
+              className="h-full w-full object-cover opacity-60 transition-opacity duration-500 group-hover:opacity-40"
+            />
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center">
+              <button className="flex h-16 w-16 items-center justify-center rounded-full bg-red-600 text-white shadow-lg transition transform hover:scale-110 hover:bg-red-700 group-hover:shadow-red-500/20">
+                <svg viewBox="0 0 24 24" className="h-8 w-8 fill-current">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </button>
+              <div className="space-y-1 px-4">
+                <p className="text-sm font-bold text-white uppercase tracking-widest drop-shadow-md">Sample Lesson</p>
+                <p className="text-xs text-white/70 drop-shadow-md italic">Upload a video to enable playback</p>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-center text-white">
+            <div className="h-12 w-12 rounded-full bg-white/10 p-2">
+              <svg viewBox="0 0 24 24" className="h-full w-full">
+                <path
+                  fill="currentColor"
+                  d="M8.25 6.75h6.5A2.5 2.5 0 0 1 17.25 9.25v5.5a2.5 2.5 0 0 1-2.5 2.5h-6.5a2.5 2.5 0 0 1-2.5-2.5v-5.5a2.5 2.5 0 0 1 2.5-2.5Zm8.1 1.65 2.35-1.46a.75.75 0 0 1 1.15.64v8.86a.75.75 0 0 1-1.15.64l-2.35-1.46V8.4Z"
+                />
+              </svg>
+            </div>
+            <p className="text-sm text-white/80">
+              Sample video placeholder. Upload videos to play here.
+            </p>
           </div>
-          <p className="text-sm text-white/80">
-            Sample video placeholder. Upload videos to play here.
-          </p>
-        </div>
+        )}
       </div>
     );
   }
@@ -194,6 +215,7 @@ export default function VideoPlayerClient({
   return (
     <div
       ref={containerRef}
+      id="education-video-player-section"
       className={`theater-video-container group relative aspect-video w-full overflow-hidden bg-black shadow-lg outline-none transition-all ${theaterMode
         ? ""
         : "rounded-2xl"

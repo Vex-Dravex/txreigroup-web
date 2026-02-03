@@ -1,8 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type Role = "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
+export type Role = "admin" | "investor" | "wholesaler" | "contractor" | "vendor" | "service";
 
-const ROLE_PRIORITY: Role[] = ["admin", "wholesaler", "investor", "contractor", "vendor"];
+const ROLE_PRIORITY: Role[] = ["admin", "wholesaler", "investor", "contractor", "vendor", "service"];
 
 export const roleDisplayNames: Record<Role, string> = {
   admin: "Administrator",
@@ -10,6 +10,7 @@ export const roleDisplayNames: Record<Role, string> = {
   wholesaler: "Wholesaler",
   contractor: "Contractor",
   vendor: "Vendor",
+  service: "Transaction Service",
 };
 
 export function hasRole(roles: Role[], target: Role): boolean {

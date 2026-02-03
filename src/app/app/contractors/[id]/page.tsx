@@ -4,7 +4,7 @@ import Link from "next/link";
 import ContractorLeadForm from "./ContractorLeadForm";
 import { getUserRoles, hasRole } from "@/lib/roles";
 import { exampleVendors } from "../sampleVendors";
-import { VendorListing } from "../types";
+import VendorDetailTutorial from "./VendorDetailTutorial";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -60,20 +60,49 @@ export default async function ContractorDetailPage({ params }: { params: Promise
   const profileData = profile as Profile | null;
   const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
 
-  // Check if this is a sample vendor
-  const isSampleVendor = resolvedParams.id.startsWith("sample-");
+  // Check if this is a sample vendor (e.g. Lonestar from the tutorial)
+  const sampleVendor = exampleVendors.find(v => v.id === resolvedParams.id);
 
-  if (isSampleVendor) {
-    // Handle sample vendor
-    const sampleVendor = exampleVendors.find(v => v.id === resolvedParams.id);
+  if (sampleVendor) {
+    // Showcase Images (Hardcoded for demo/tutorial)
+    const showcaseImages = [
+      { src: "/demo-assets/kitchen_showcase.png", alt: "Recent Kitchen Remodel" },
+      { src: "/demo-assets/bathroom_showcase.png", alt: "Master Bath Renovation" },
+      { src: "/demo-assets/exterior_showcase.png", alt: "Exterior Refresh" },
+    ];
 
-    if (!sampleVendor) {
-      notFound();
-    }
+    // Dummy Reviews (Hardcoded for demo/tutorial)
+    const reviews = [
+      {
+        id: 1,
+        author: "Sarah Jenkins",
+        role: "Fix & Flip Investor",
+        rating: 5,
+        date: "2 weeks ago",
+        text: "Lonestar is my go-to GC. They understand that every day costs me money. Finished the rehab 3 days ahead of schedule!",
+      },
+      {
+        id: 2,
+        author: "Mike Ross",
+        role: "BRRRR Investor",
+        rating: 5,
+        date: "1 month ago",
+        text: "Great communication and transparent pricing. No surprise change orders.",
+      },
+      {
+        id: 3,
+        author: "Elena Rodriguez",
+        role: "Wholesaler",
+        rating: 4,
+        date: "2 months ago",
+        text: "Solid work on the make-ready. Good partner to recommend to my buyers.",
+      },
+    ];
 
-    // Render sample vendor profile
+    // Render sample vendor profile using YOUR original layout
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+        <VendorDetailTutorial />
         <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="mb-6">
             <Link
@@ -101,11 +130,6 @@ export default async function ContractorDetailPage({ params }: { params: Promise
                   {sampleVendor.location}
                 </p>
               )}
-              {sampleVendor.tagline && (
-                <p className="mt-2 text-sm italic text-zinc-500 dark:text-zinc-400">
-                  {sampleVendor.tagline}
-                </p>
-              )}
             </div>
           </div>
 
@@ -114,7 +138,7 @@ export default async function ContractorDetailPage({ params }: { params: Promise
             <div className="lg:col-span-2 space-y-6">
               {/* Bio */}
               {sampleVendor.description && (
-                <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                <div id="vendor-profile-overview" className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
                   <h2 className="mb-3 text-lg font-semibold text-zinc-900 dark:text-zinc-50">About</h2>
                   <p className="whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">{sampleVendor.description}</p>
                 </div>
@@ -136,6 +160,46 @@ export default async function ContractorDetailPage({ params }: { params: Promise
                   </div>
                 </div>
               )}
+
+              {/* Showcase Section - NEW */}
+              <div id="vendor-showcase-section" className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Project Showcase</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {showcaseImages.map((img, i) => (
+                    <div key={i} className="group relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900">
+                      <img src={img.src} alt={img.alt} className="h-full w-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Reviews Section - NEW */}
+              <div id="vendor-reviews-section" className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                <div className="flex items-center gap-3 mb-4">
+                  <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Verified Reviews</h2>
+                  <div className="flex items-center gap-1 rounded-full bg-yellow-100 px-2 py-1 text-xs font-bold text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500">
+                    <span>★</span> <span>5.0</span>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {reviews.map((review) => (
+                    <div key={review.id} className="border-b border-zinc-200 pb-6 last:border-0 last:pb-0 dark:border-zinc-800">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h4 className="font-semibold text-zinc-900 dark:text-zinc-50 text-sm">{review.author}</h4>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400">{review.role}</p>
+                        </div>
+                        <span className="text-xs text-zinc-400">{review.date}</span>
+                      </div>
+                      <div className="flex text-yellow-400 text-sm mb-2">
+                        {"★".repeat(review.rating)}
+                      </div>
+                      <p className="text-zinc-600 dark:text-zinc-300 text-sm">"{review.text}"</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
               {/* Past Projects */}
               {sampleVendor.pastProjects.length > 0 && (
@@ -238,19 +302,24 @@ export default async function ContractorDetailPage({ params }: { params: Promise
                 </dl>
               </div>
 
-              {/* Request Quote (for investors) */}
+              {/* Request Quote */}
               {hasRole(roles, "investor") && sampleVendor.verificationStatus === "verified" && (
-                <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-                  <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Request a Quote</h2>
-                  <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-                    This is a sample vendor profile. In production, you would be able to request a quote here.
-                  </p>
-                  <button
-                    disabled
-                    className="w-full rounded-md bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-500 cursor-not-allowed dark:bg-zinc-800 dark:text-zinc-400"
-                  >
-                    Contact Vendor
-                  </button>
+                <div id="vendor-connect-section" className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                  <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Connect with Vendor</h2>
+                  <div className="space-y-3">
+                    <button
+                      id="vendor-connect-button"
+                      className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                    >
+                      Connect & Follow
+                    </button>
+                    <button
+                      id="vendor-message-button"
+                      className="w-full rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                    >
+                      Send Message
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

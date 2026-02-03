@@ -133,7 +133,7 @@ export default function ServiceFilters({
     <>
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-12">
         <div className="flex-1 min-w-0">
-          <div className="relative w-full group">
+          <div id="service-search-bar" className="relative w-full group">
             <div className="relative transition-all duration-300 group-focus-within:scale-[1.01]">
               <motion.button
                 onClick={handleSearch}
@@ -197,6 +197,7 @@ export default function ServiceFilters({
         </div>
 
         <button
+          id="service-filters-button"
           onClick={() => setIsOpen(!isOpen)}
           className={`flex items-center gap-2 rounded-xl border px-4 py-4 text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 whitespace-nowrap ${isOpen
             ? "border-blue-500 bg-blue-600 text-white shadow-blue-500/20"

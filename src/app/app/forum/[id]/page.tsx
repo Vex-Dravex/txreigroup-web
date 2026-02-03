@@ -13,6 +13,7 @@ import { ForumRightSidebar } from "../components/ForumRightSidebar";
 import { SearchInput } from "../components/SearchInput";
 import { PostContentWrapper } from "./PostContentWrapper";
 import { ForumScrollRestorationProvider } from "@/lib/scrollRestoration";
+import ForumDetailTutorial from "./ForumDetailTutorial";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -59,75 +60,111 @@ export default async function PostDetailPage({ params }: PostPageParams) {
   const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
   const userRole = getPrimaryRole(roles, profileData?.role || "investor");
 
-  // Fetch post 
-  const { data: post, error: postError } = await supabase
-    .from("forum_posts")
-    .select("*")
-    .eq("id", id)
-    .single();
+  // Handle Demo Posts
+  let postData: any = null;
+  let authorProfile: any = null;
+  let tags: any[] = [];
+  let mentions: any[] = [];
+  let userVote: any = null;
+  let isSaved = false;
+  let commentCount = 0;
 
-  // If RLS blocks the row, try a server-side admin client as fallback
-  let adminClient = null;
-  let postData = post as ForumPost | null;
+  const isDemoPost = id.startsWith("demo-");
 
-  if ((!post || postError) && process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    adminClient = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-    const { data: adminPost, error: adminError } = await adminClient
+  if (isDemoPost) {
+    const { forumDemoPosts, forumDemoComments } = await import("../forumDemoData");
+    const demoPost = forumDemoPosts.find(p => p.id === id);
+    if (!demoPost) notFound();
+
+    postData = demoPost;
+    authorProfile = demoPost.author;
+    tags = demoPost.tags.map(tag => ({ tag }));
+    commentCount = demoPost.comment_count;
+    // For demo, we can just use the demo comments from the data file
+  } else {
+    // Fetch post 
+    const { data: post, error: postError } = await supabase
       .from("forum_posts")
       .select("*")
       .eq("id", id)
       .single();
 
-    postData = adminPost as ForumPost | null;
-    if (adminError) {
-      console.error("Admin fetch post error", adminError);
+    // If RLS blocks the row, try a server-side admin client as fallback
+    let adminClient = null;
+
+    if ((!post || postError) && process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      adminClient = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+      const { data: adminPost, error: adminError } = await adminClient
+        .from("forum_posts")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      postData = adminPost;
+      if (adminError) {
+        console.error("Admin fetch post error", adminError);
+      }
+    } else {
+      postData = post;
     }
+
+    if (!postData) {
+      notFound();
+    }
+
+    const db = adminClient || supabase;
+
+    // Fetch author profile
+    const { data: authorProf } = await db
+      .from("profiles")
+      .select("display_name, avatar_url")
+      .eq("id", postData.author_id)
+      .maybeSingle();
+    authorProfile = authorProf;
+
+    // Fetch tags
+    const { data: postTags } = await db
+      .from("forum_post_tags")
+      .select("tag")
+      .eq("post_id", id);
+    tags = postTags || [];
+
+    // Fetch mentions
+    const { data: postMentions } = await db
+      .from("forum_post_mentions")
+      .select("mentioned_user_id, profiles:mentioned_user_id ( display_name )")
+      .eq("post_id", id);
+    mentions = postMentions || [];
+
+    // Get user's vote
+    const { data: uVote } = await supabase
+      .from("forum_post_votes")
+      .select("vote_type")
+      .eq("post_id", id)
+      .eq("user_id", authData.user.id)
+      .maybeSingle();
+    userVote = uVote;
+
+    // Get saved status
+    const { data: savedPost } = await supabase
+      .from("forum_saved_posts")
+      .select("id")
+      .eq("post_id", id)
+      .eq("user_id", authData.user.id)
+      .maybeSingle();
+
+    isSaved = !!savedPost;
+
+    // Fetch exact comment count to ensure accuracy
+    const { count: realCommentCount } = await db
+      .from("forum_comments")
+      .select("*", { count: "exact", head: true })
+      .eq("post_id", id);
+
+    commentCount = realCommentCount ?? 0;
   }
-
-  if (!postData) {
-    notFound();
-  }
-
-  const db = adminClient || supabase;
-
-  // Fetch author profile
-  const { data: authorProfile } = await db
-    .from("profiles")
-    .select("display_name, avatar_url")
-    .eq("id", postData.author_id)
-    .maybeSingle();
-
-  // Fetch tags
-  const { data: tags } = await db
-    .from("forum_post_tags")
-    .select("tag")
-    .eq("post_id", id);
-
-  // Fetch mentions
-  const { data: mentions } = await db
-    .from("forum_post_mentions")
-    .select("mentioned_user_id, profiles:mentioned_user_id ( display_name )")
-    .eq("post_id", id);
-
-  // Get user's vote
-  const { data: userVote } = await supabase
-    .from("forum_post_votes")
-    .select("vote_type")
-    .eq("post_id", id)
-    .eq("user_id", authData.user.id)
-    .single();
-
-  // Get saved status
-  const { data: savedPost } = await supabase
-    .from("forum_saved_posts")
-    .select("id")
-    .eq("post_id", id)
-    .eq("user_id", authData.user.id)
-    .maybeSingle();
-
-  const isSaved = !!savedPost;
 
   const authorName = authorProfile?.display_name || "Anonymous";
   const authorInitials = authorName
@@ -139,14 +176,6 @@ export default async function PostDetailPage({ params }: PostPageParams) {
   const topicLabel = postData.topic
     ? FORUM_TOPICS.find((t) => t.slug === postData.topic)?.label || postData.topic
     : null;
-
-  // Fetch exact comment count to ensure accuracy
-  const { count: realCommentCount } = await db
-    .from("forum_comments")
-    .select("*", { count: "exact", head: true })
-    .eq("post_id", id);
-
-  const commentCount = realCommentCount ?? 0;
 
   const formatTimeAgo = (date: string) => {
     const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
@@ -214,7 +243,7 @@ export default async function PostDetailPage({ params }: PostPageParams) {
                 <div className="rounded-2xl border border-zinc-200 bg-white/80 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/40 overflow-hidden">
                   <div className="p-6 md:p-8">
                     {/* Header */}
-                    <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-start justify-between mb-6" id="forum-post-header">
                       <div className="flex items-center gap-3">
                         <Link
                           href={`/app/profile/${postData.author_id}`}
@@ -268,7 +297,7 @@ export default async function PostDetailPage({ params }: PostPageParams) {
                     </div>
 
                     {/* Content */}
-                    <div>
+                    <div id="forum-post-content">
                       <h1 className="mb-6 text-3xl font-black tracking-tight text-zinc-900 dark:text-zinc-50 leading-tight">
                         {postData.title}
                       </h1>
@@ -280,7 +309,7 @@ export default async function PostDetailPage({ params }: PostPageParams) {
                             <img src={postData.image_urls[0]} alt="Post" className="w-full max-h-[600px] object-contain" />
                           ) : (
                             <div className="grid grid-cols-2 gap-0.5">
-                              {postData.image_urls.map((url, idx) => (
+                              {postData.image_urls.map((url: string, idx: number) => (
                                 <img
                                   key={idx}
                                   src={url}
@@ -321,7 +350,7 @@ export default async function PostDetailPage({ params }: PostPageParams) {
                     )}
 
                     {/* Sticky Action Bar */}
-                    <div className="mt-8 flex items-center justify-between border-t border-zinc-100 pt-6 dark:border-zinc-800">
+                    <div className="mt-8 flex items-center justify-between border-t border-zinc-100 pt-6 dark:border-zinc-800" id="forum-post-actions">
                       <div className="flex items-center gap-4">
                         {/* Votes */}
                         <div className="flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 p-1 shadow-inner">
@@ -365,7 +394,7 @@ export default async function PostDetailPage({ params }: PostPageParams) {
                   </div>
 
                   {/* Comments Section Background */}
-                  <div id="comments" className="bg-zinc-50 dark:bg-black/20 border-t border-zinc-200 dark:border-zinc-800 p-6 md:p-8">
+                  <div id="forum-post-discussion" className="bg-zinc-50 dark:bg-black/20 border-t border-zinc-200 dark:border-zinc-800 p-6 md:p-8">
                     <h3 className="text-xl font-bold mb-6 text-zinc-900 dark:text-zinc-200">Discussion</h3>
                     <PostComments postId={postData.id} currentUserProfile={profileData} />
                   </div>
@@ -382,6 +411,7 @@ export default async function PostDetailPage({ params }: PostPageParams) {
 
           </div>
         </div>
+        <ForumDetailTutorial />
       </div>
     </ForumScrollRestorationProvider>
   );

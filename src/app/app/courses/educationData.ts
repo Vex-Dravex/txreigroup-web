@@ -9,6 +9,7 @@ export type SampleVideo = {
   badge?: string;
   href: string;
   videoUrl?: string | null;
+  thumbnailUrl?: string;
 };
 
 export const topicOptions = [
@@ -22,6 +23,7 @@ export const topicOptions = [
   "Market Analysis",
   "Systems & Ops",
   "Investor Relations",
+  "Creative Finance",
 ];
 
 export const sampleVideos: SampleVideo[] = [
@@ -34,6 +36,7 @@ export const sampleVideos: SampleVideo[] = [
     topics: ["Wholesale Real Estate", "Contracts", "Lead Generation"],
     type: "video",
     href: "/app/courses/videos/sample-1",
+    thumbnailUrl: "/images/education/wholesale.png",
   },
   {
     id: "sample-2",
@@ -44,6 +47,7 @@ export const sampleVideos: SampleVideo[] = [
     topics: ["Gator Strategy", "Lead Generation", "Systems & Ops"],
     type: "video",
     href: "/app/courses/videos/sample-2",
+    thumbnailUrl: "/images/education/gator.png",
   },
   {
     id: "sample-3",
@@ -54,6 +58,7 @@ export const sampleVideos: SampleVideo[] = [
     topics: ["Investor Relations", "Market Analysis", "Disposition"],
     type: "video",
     href: "/app/courses/videos/sample-3",
+    thumbnailUrl: "/images/education/pitch.png",
   },
   {
     id: "sample-4",
@@ -64,6 +69,7 @@ export const sampleVideos: SampleVideo[] = [
     topics: ["Deal Funding", "Investing Basics", "Wholesale Real Estate"],
     type: "video",
     href: "/app/courses/videos/sample-4",
+    thumbnailUrl: "/images/education/funding.png",
   },
   {
     id: "sample-5",
@@ -74,6 +80,7 @@ export const sampleVideos: SampleVideo[] = [
     topics: ["Disposition", "Wholesale Real Estate", "Investor Relations"],
     type: "video",
     href: "/app/courses/videos/sample-5",
+    thumbnailUrl: "/images/education/disposition.png",
   },
   {
     id: "sample-6",
@@ -84,6 +91,7 @@ export const sampleVideos: SampleVideo[] = [
     topics: ["Systems & Ops", "Market Analysis", "Investing Basics"],
     type: "video",
     href: "/app/courses/videos/sample-6",
+    thumbnailUrl: "/images/education/systems.png",
   },
   {
     id: "sample-7",
@@ -95,6 +103,7 @@ export const sampleVideos: SampleVideo[] = [
     type: "live",
     badge: "Live weekly",
     href: "/app/courses/videos/sample-7",
+    thumbnailUrl: "/images/education/live.png",
   },
   {
     id: "sample-8",
@@ -105,6 +114,7 @@ export const sampleVideos: SampleVideo[] = [
     topics: ["Market Analysis", "Investing Basics", "Disposition"],
     type: "video",
     href: "/app/courses/videos/sample-8",
+    thumbnailUrl: "/images/education/market.png",
   },
 ];
 

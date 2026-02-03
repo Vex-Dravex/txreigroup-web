@@ -232,7 +232,7 @@ const TabTimeline = ({
     sampleVendorData: any;
 }) => (
     <div className="space-y-6">
-        <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+        <div id="vendor-profile-overview" className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
             <div className="mb-2 flex items-center justify-between">
                 <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">About</h2>
                 {isOwner && <ProfileEditBio profileId={profileData.id} currentBio={profileData.bio || null} />}
@@ -401,7 +401,7 @@ const TabTimeline = ({
                     </div>
                 </div>
 
-                <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 text-left">
+                <div id="vendor-reviews-section" className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 text-left">
                     <div className="mb-6 flex items-center justify-between">
                         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">Reviews</h2>
                         {!isOwner && (
@@ -477,7 +477,7 @@ const TabTimeline = ({
             </div>
 
             <div className="space-y-6 lg:col-span-7">
-                <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 text-left">
+                <div id="vendor-showcase-section" className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 text-left">
                     <div className="mb-6 flex items-center justify-between">
                         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">Showcase</h2>
                         {isOwner && <CreateShowcasePostDialog profileId={profileData.id} />}
@@ -694,6 +694,7 @@ export default function ProfileContent({
                                     ) : (
                                         <form className="flex-1 sm:flex-none" action={requestNetwork.bind(null, profileData.id)}>
                                             <button
+                                                id="vendor-connect-button"
                                                 disabled={networkRequest?.status === "pending"}
                                                 className="w-full flex items-center justify-center gap-2 rounded-lg bg-purple-600 px-5 py-2 text-sm font-bold text-white shadow-lg shadow-purple-500/30 transition-all hover:bg-purple-500 disabled:bg-zinc-300 disabled:shadow-none dark:disabled:bg-zinc-800"
                                             >
@@ -705,6 +706,7 @@ export default function ProfileContent({
                                         </form>
                                     )}
                                     <button
+                                        id="vendor-message-button"
                                         onClick={() => setIsMessengerOpen(true)}
                                         className="flex-1 rounded-lg bg-zinc-200 px-5 py-2 text-center text-sm font-bold text-zinc-900 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 sm:flex-none"
                                     >

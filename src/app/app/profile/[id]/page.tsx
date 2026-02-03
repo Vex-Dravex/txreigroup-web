@@ -6,6 +6,8 @@ import { exampleVendors } from "../../contractors/sampleVendors";
 import { exampleTransactionServices } from "../../transaction-services/sampleTransactionServices";
 import { VendorListing } from "../../contractors/types";
 import ProfileContent, { Profile, PortfolioItem, Review, NetworkRequest } from "./ProfileContent";
+import VendorDetailTutorial from "../../contractors/[id]/VendorDetailTutorial";
+import TransactionServiceDetailTutorial from "../../transaction-services/demo/TransactionServiceDetailTutorial";
 
 export const dynamic = "force-dynamic";
 
@@ -132,12 +134,141 @@ export default async function UserProfilePage(props: { params: Promise<{ id: str
         .limit(50),
     ]);
 
-  const portfolioItems = (portfolioResult.data || []) as PortfolioItem[];
-  const reviews = (reviewsResult.data || []) as Review[];
+  let portfolioItems = (portfolioResult.data || []) as PortfolioItem[];
+  let reviews = (reviewsResult.data || []) as Review[];
   const networkRequest = networkRequestResult.data as NetworkRequest | null;
   const pendingRequests = (pendingRequestsResult.data || []) as any[];
   const networkCount = networkCountResult.count || 0;
   const networkConnections = (networkConnectionsResult.data || []) as any[];
+
+  // INJECT DEMO CONTENT FOR TUTORIAL (Lonestar General Builders)
+  if (profileId === '8d3c63d8-57e3-4428-ba2e-067755c3c0a1') {
+    // Inject Showcase
+    if (portfolioItems.length === 0) {
+      portfolioItems = [
+        {
+          id: "demo-showcase-1",
+          user_id: profileId,
+          category: "renovation",
+          image_url: "/demo-assets/kitchen_showcase.png",
+          images: ["/demo-assets/kitchen_showcase.png"],
+          caption: "Recent Kitchen Remodel - Full gut renovation including custom cabinets and quartz countertops.",
+          created_at: new Date().toISOString()
+        },
+        {
+          id: "demo-showcase-2",
+          user_id: profileId,
+          category: "bathroom",
+          image_url: "/demo-assets/bathroom_showcase.png",
+          images: ["/demo-assets/bathroom_showcase.png"],
+          caption: "Master Bath Renovation - Adding value with modern fixtures and tile work.",
+          created_at: new Date(Date.now() - 86400000).toISOString()
+        },
+        {
+          id: "demo-showcase-3",
+          user_id: profileId,
+          category: "exterior",
+          image_url: "/demo-assets/exterior_showcase.png",
+          images: ["/demo-assets/exterior_showcase.png"],
+          caption: "Exterior Refresh - New siding and paint to boost curb appeal.",
+          created_at: new Date(Date.now() - 172800000).toISOString()
+        }
+      ];
+    }
+
+    // Inject Reviews
+    if (reviews.length === 0) {
+      reviews = [
+        {
+          id: "demo-review-1",
+          comment: "Lonestar is my go-to GC. They understand that every day costs me money. Finished the rehab 3 days ahead of schedule!",
+          rating: 5,
+          created_at: new Date().toISOString(),
+          reviewer: { id: "demo-u1", display_name: "Sarah Jenkins", avatar_url: null, role: "investor" }
+        },
+        {
+          id: "demo-review-2",
+          comment: "Great communication and transparent pricing. No surprise change orders.",
+          rating: 5,
+          created_at: new Date(Date.now() - 86400000 * 7).toISOString(),
+          reviewer: { id: "demo-u2", display_name: "Mike Ross", avatar_url: null, role: "investor" }
+        },
+        {
+          id: "demo-review-3",
+          comment: "Solid work on the make-ready. Good partner to recommend to my buyers.",
+          rating: 4,
+          created_at: new Date(Date.now() - 86400000 * 14).toISOString(),
+          reviewer: { id: "demo-u3", display_name: "Elena Rodriguez", avatar_url: null, role: "wholesaler" }
+        }
+      ];
+    }
+  }
+
+  // INJECT DEMO CONTENT FOR TRANSACTION SERVICES (Bayou Title)
+  if (profileId === 'd8224455-1f93-4173-9622-89012345f6f1') {
+    // Inject Banner
+    if (!profileData.banner_url) profileData.banner_url = "/demo-assets/transaction_services_banner.png";
+
+    // Inject Showcase
+    if (portfolioItems.length === 0) {
+      portfolioItems = [
+        {
+          id: "demo-ts-showcase-1",
+          user_id: profileId,
+          category: "closing",
+          image_url: "https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?auto=format&fit=crop&w=800&q=80",
+          images: ["https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?auto=format&fit=crop&w=800&q=80"],
+          caption: "Secure Closing Rooms - Private, comfortable spaces for your clients.",
+          created_at: new Date().toISOString()
+        },
+        {
+          id: "demo-ts-showcase-2",
+          user_id: profileId,
+          category: "documents",
+          image_url: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=800&q=80",
+          images: ["https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=800&q=80"],
+          caption: "Digital Title Processing - Streamlined workflow with real-time updates.",
+          created_at: new Date(Date.now() - 86400000).toISOString()
+        },
+        {
+          id: "demo-ts-showcase-3",
+          user_id: profileId,
+          category: "team",
+          image_url: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=800&q=80",
+          images: ["https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=800&q=80"],
+          caption: "Expert Escrow Team - Dedicated officers for investor transactions.",
+          created_at: new Date(Date.now() - 172800000).toISOString()
+        }
+      ];
+    }
+
+    // Inject Reviews
+    if (reviews.length === 0) {
+      reviews = [
+        {
+          id: "demo-ts-review-1",
+          comment: "Bayou Title saved my deal! The double closing was smooth and they handled the assignment fee perfectly.",
+          rating: 5,
+          created_at: new Date().toISOString(),
+          reviewer: { id: "demo-u4", display_name: "James Carter", avatar_url: null, role: "wholesaler" }
+        },
+        {
+          id: "demo-ts-review-2",
+          comment: "Best title company for investors in Houston. They actually understand creative finance.",
+          rating: 5,
+          created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
+          reviewer: { id: "demo-u5", display_name: "Alicia Keys", avatar_url: null, role: "investor" }
+        },
+        {
+          id: "demo-ts-review-3",
+          comment: "Fast communication and very professional team.",
+          rating: 4,
+          created_at: new Date(Date.now() - 86400000 * 12).toISOString(),
+          reviewer: { id: "demo-u6", display_name: "Tom Hardy", avatar_url: null, role: "agent" }
+        }
+      ];
+    }
+  }
 
   const { data: onboardingData } = await supabase
     .from("user_onboarding")
@@ -156,6 +287,9 @@ export default async function UserProfilePage(props: { params: Promise<{ id: str
         displayName={viewerProfileData?.display_name || null}
         email={authData.user.email}
       />
+
+      {profileId === '8d3c63d8-57e3-4428-ba2e-067755c3c0a1' && <VendorDetailTutorial />}
+      {profileId === 'd8224455-1f93-4173-9622-89012345f6f1' && <TransactionServiceDetailTutorial />}
 
       <ProfileContent
         profileData={profileData}

@@ -5,27 +5,25 @@ import { getPrimaryRole, getUserRoles } from "@/lib/roles";
 import Image from "next/image";
 import Link from "next/link";
 import { format } from "date-fns";
+import BlogDetailTutorial from "./BlogDetailTutorial";
 
 export const dynamic = 'force-dynamic';
 
-export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function BlogPostPage({
+    params,
+    searchParams
+}: {
+    params: Promise<{ slug: string }>,
+    searchParams: Promise<{ demo?: string }>
+}) {
     const { slug } = await params;
+    const { demo } = await searchParams;
+    const isDemo = demo === "true";
+
     const supabase = await createSupabaseServerClient();
     const { data: authData } = await supabase.auth.getUser();
 
     if (!authData.user) redirect("/login?mode=signup");
-
-    // Fetch post
-    const { data: post } = await supabase
-        .from("blog_posts")
-        .select(`
-      *,
-      author:author_id(display_name, avatar_url, bio)
-    `)
-        .eq("slug", slug)
-        .single();
-
-    if (!post) notFound();
 
     // Fetch profile for header
     const { data: profile } = await supabase
@@ -37,6 +35,27 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     const roles = await getUserRoles(supabase, authData.user.id, profile?.role || "investor");
     const role = getPrimaryRole(roles, profile?.role || "investor");
     const displayName = profile?.display_name || authData.user.email?.split("@")[0] || "User";
+
+    // Fetch post
+    let post: any = null;
+    const { data: dbPost } = await supabase
+        .from("blog_posts")
+        .select(`
+            *,
+            author:author_id(display_name, avatar_url, bio)
+        `)
+        .eq("slug", slug)
+        .maybeSingle();
+
+    if (dbPost) {
+        post = dbPost;
+    } else {
+        // Fallback to demo data
+        const { blogDemoPosts } = await import("../blogDemoData");
+        post = blogDemoPosts[slug];
+    }
+
+    if (!post) notFound();
 
     return (
         <div className="relative min-h-screen bg-zinc-950 selection:bg-purple-500/30 overflow-hidden">
@@ -90,7 +109,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                                 {post.title}
                             </h1>
 
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-4" id="blog-post-header">
                                 <div className="relative h-12 w-12 overflow-hidden rounded-full ring-2 ring-white/20">
                                     {post.author?.avatar_url ? (
                                         <Image
@@ -119,7 +138,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 </div>
 
                 {/* Content Section */}
-                <article className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
+                <article className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8" id="blog-post-content">
                     {/* Introduction / Lead Paragraph Highlight */}
                     <div className="prose prose-lg prose-zinc dark:prose-invert max-w-none first-letter:float-left first-letter:mr-3 first-letter:text-7xl first-letter:font-bold first-letter:text-zinc-900 first-letter:dark:text-white">
                         <div className="whitespace-pre-wrap leading-relaxed text-zinc-800 dark:text-zinc-300">
@@ -162,6 +181,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 </div>
 
             </main>
+            <BlogDetailTutorial />
         </div>
     );
 }

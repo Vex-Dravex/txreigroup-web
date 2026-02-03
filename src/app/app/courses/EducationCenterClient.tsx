@@ -6,6 +6,9 @@ import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { sampleVideos, topicOptions } from "./educationData";
 import FadeIn, { FadeInStagger } from "../../components/FadeIn";
+import WatchLaterButton from "./WatchLaterButton";
+import EducationTutorial from "./EducationTutorial";
+import EducationTutorialTrigger from "./EducationTutorialTrigger";
 
 type Video = {
   id: string;
@@ -121,10 +124,12 @@ export default function EducationCenterClient({
   courseVideos,
   educationVideos,
   watchLaterVideos,
+  isDemo = false,
 }: {
   courseVideos: CourseVideo[];
   educationVideos: EducationVideo[];
   watchLaterVideos: { video_id: string; video_type: string }[];
+  isDemo?: boolean;
 }) {
   const [searchValue, setSearchValue] = useState("");
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
@@ -145,7 +150,9 @@ export default function EducationCenterClient({
     } else {
       setViewFilter("all");
     }
-  }, [searchParams]);
+
+    console.log("Watch Later Videos:", watchLaterVideos);
+  }, [searchParams, watchLaterVideos]);
 
   const combinedVideos = useMemo(() => {
     const mappedCourses = formatCourseVideos(courseVideos);
@@ -227,9 +234,12 @@ export default function EducationCenterClient({
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <FadeInStagger className="grid gap-12 lg:grid-cols-12 lg:items-start mb-16">
         <FadeIn className="lg:col-span-7 space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full bg-amber-100/50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-amber-700 ring-1 ring-inset ring-amber-200/50 backdrop-blur-sm dark:bg-amber-900/20 dark:text-amber-300 dark:ring-amber-800/30">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-            Education Center
+          <div className="flex items-center gap-4">
+            <div className="inline-flex items-center gap-2 rounded-full bg-amber-100/50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-amber-700 ring-1 ring-inset ring-amber-200/50 backdrop-blur-sm dark:bg-amber-900/20 dark:text-amber-300 dark:ring-amber-800/30">
+              <span className="flex h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+              Education Center
+            </div>
+            <EducationTutorialTrigger />
           </div>
 
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-zinc-950 dark:text-zinc-50 font-display leading-tight">
@@ -276,7 +286,7 @@ export default function EducationCenterClient({
 
       <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="hidden lg:block">
-          <div className="sticky top-24 space-y-8">
+          <div className="sticky top-24 space-y-8" id="education-filters-sidebar">
             {/* Feeds */}
             <div>
               <h3 className="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">
@@ -368,7 +378,7 @@ export default function EducationCenterClient({
 
         <section>
           <FadeIn>
-            <div className="rounded-2xl border border-white/40 bg-white/50 p-6 shadow-sm backdrop-blur-sm dark:border-white/5 dark:bg-zinc-900/40">
+            <div className="rounded-2xl border border-white/40 bg-white/50 p-6 shadow-sm backdrop-blur-sm dark:border-white/5 dark:bg-zinc-900/40" id="education-search-bar">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex-1">
                   <label className="text-xs font-semibold uppercase text-zinc-500 dark:text-zinc-400">
@@ -477,11 +487,24 @@ export default function EducationCenterClient({
                   cleanVideoId = video.id;
                 }
 
+                const isSaved = watchLaterVideos.some(
+                  (wl) => wl.video_type === videoType && wl.video_id === cleanVideoId
+                );
+
+                console.log(`Video: ${video.title}`, {
+                  originalId: video.id,
+                  videoType,
+                  cleanVideoId,
+                  isSaved,
+                  watchLaterVideos
+                });
+
                 return (
                   <motion.div key={video.id} variants={cardItemVariants} className="flex flex-col">
                     <Link
                       href={video.href || "#"}
                       className="block flex-1"
+                      id={`education-video-card-${cleanVideoId}`}
                       onClick={() => {
                         if (video.href) {
                           // Save scroll position before navigating
@@ -539,6 +562,13 @@ export default function EducationCenterClient({
                             <span>{video.duration}</span>
                             <span>{video.type === "live" ? "Live" : "On-demand"}</span>
                           </div>
+                          <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                            <WatchLaterButton
+                              videoId={cleanVideoId}
+                              videoType={videoType}
+                              isSaved={isSaved}
+                            />
+                          </div>
                         </div>
                       </div>
                     </Link>
@@ -549,6 +579,7 @@ export default function EducationCenterClient({
           </AnimatePresence>
         </section>
       </div>
+      {isDemo && <EducationTutorial />}
     </div>
   );
 }

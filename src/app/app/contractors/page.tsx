@@ -6,8 +6,10 @@ import VendorFilters from "./VendorFilters";
 import VendorCard from "./VendorCard";
 import { VendorListing } from "./types";
 import { getPrimaryRole, getUserRoles, hasRole } from "@/lib/roles";
-import { exampleVendors } from "./sampleVendors";
+
 import FadeIn, { FadeInStagger } from "../../components/FadeIn";
+import ContractorTutorialRedirect from "./ContractorTutorialRedirect";
+import ContractorTutorialTrigger from "./ContractorTutorialTrigger";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -119,12 +121,12 @@ export default async function ContractorsPage({ searchParams }: { searchParams: 
     const { data: contractors, error } = await contractorsQuery;
 
     if (error) {
-      console.warn("Error fetching contractors (showing sample vendors instead):", error?.message || error);
+      console.warn("Error fetching contractors:", error?.message || error);
     } else if (contractors) {
       contractorsData = contractors as ContractorProfile[];
     }
   } catch (error) {
-    console.warn("Error loading contractors (showing sample vendors instead):", error);
+    console.warn("Error loading contractors:", error);
   }
 
   const mappedVendors: VendorListing[] = contractorsData.map((contractor) => {
@@ -168,7 +170,7 @@ export default async function ContractorsPage({ searchParams }: { searchParams: 
     };
   });
 
-  const allVendors: VendorListing[] = [...mappedVendors, ...exampleVendors];
+  const allVendors: VendorListing[] = [...mappedVendors];
 
   const selectedWorkTypes = parseListParam(resolvedSearchParams.workType);
   const selectedMarkets = parseListParam(resolvedSearchParams.market);
@@ -225,6 +227,7 @@ export default async function ContractorsPage({ searchParams }: { searchParams: 
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 selection:bg-blue-500/30">
+      <ContractorTutorialRedirect />
       <div className="noise-overlay fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]" />
 
       {/* Background Gradient Elements */}
@@ -261,6 +264,7 @@ export default async function ContractorsPage({ searchParams }: { searchParams: 
               </p>
 
               <div className="flex flex-wrap gap-4 pt-2">
+                <ContractorTutorialTrigger />
               </div>
             </FadeIn>
 

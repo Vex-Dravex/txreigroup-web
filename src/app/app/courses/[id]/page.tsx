@@ -1,6 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import EducationDetailTutorial from "./EducationDetailTutorial";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -147,7 +148,7 @@ export default async function CourseDetailPage({ params }: { params: { id: strin
             </div>
           )}
 
-          <div className="mb-4 flex items-start justify-between">
+          <div className="mb-4 flex items-start justify-between" id="education-post-header">
             <div className="flex-1">
               <div className="mb-2 flex items-center gap-3">
                 <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">{courseData.title}</h1>
@@ -191,7 +192,7 @@ export default async function CourseDetailPage({ params }: { params: { id: strin
         </div>
 
         {/* Modules and Lessons */}
-        <div className="space-y-6">
+        <div className="space-y-6" id="education-post-curriculum">
           {modulesData.map((module) => (
             <div
               key={module.id}
@@ -275,6 +276,7 @@ export default async function CourseDetailPage({ params }: { params: { id: strin
           </div>
         )}
       </div>
+      <EducationDetailTutorial />
     </div>
   );
 }

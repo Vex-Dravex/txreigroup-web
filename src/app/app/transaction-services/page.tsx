@@ -4,11 +4,39 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import AppHeader from "../components/AppHeader";
 import ServiceFilters from "./ServiceFilters";
 import { VendorListing } from "../contractors/types";
-import { getPrimaryRole, getUserRoles } from "@/lib/roles";
-import { exampleTransactionServices } from "./sampleTransactionServices";
+import { getPrimaryRole, getUserRoles, hasRole } from "@/lib/roles";
 import FadeIn, { FadeInStagger } from "../../components/FadeIn";
+import TransactionServiceTutorialTrigger from "./TransactionServiceTutorialTrigger";
+import TransactionServiceTutorialRedirect from "./TransactionServiceTutorialRedirect";
 
 export const dynamic = "force-dynamic";
+
+type ContractorProfile = {
+  id: string;
+  business_name: string;
+  business_city: string | null;
+  business_state: string | null;
+  service_areas: string[] | null;
+  bio: string | null;
+  verification_status: "pending" | "verified" | "rejected";
+  logo_url?: string | null;
+  contact_phone?: string | null;
+  contact_email?: string | null;
+  website_url?: string | null;
+  profiles: {
+    display_name: string | null;
+  } | null;
+  contractor_services: {
+    service_name: string;
+  }[];
+};
+
+type Profile = {
+  id: string;
+  role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor" | "service";
+  display_name: string | null;
+  avatar_url: string | null;
+};
 
 type SearchParams = {
   workType?: string;
@@ -54,21 +82,93 @@ export default async function TransactionServicesPage({
 
   if (!authData.user) redirect("/login?mode=signup");
 
-  const { data: profileData } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
     .select("role, display_name, avatar_url")
     .eq("id", authData.user.id)
     .single();
 
+  const profileData = profile as Profile | null;
   const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
   const userRole = getPrimaryRole(roles, profileData?.role || "investor");
+  const isServiceRole = hasRole(roles, "service") || hasRole(roles, "vendor"); // Allow vendors or service roles to see pending
+
+  let servicesData: ContractorProfile[] = [];
+
+  try {
+    let servicesQuery = supabase
+      .from("contractor_profiles")
+      .select(
+        `
+        *,
+        profiles:id!inner (
+          role,
+          display_name
+        ),
+        contractor_services (
+          service_name
+        )
+      `
+      )
+      .in("profiles.role", ["service", "lender"]) // Fetch Transaction Service profiles
+      .order("created_at", { ascending: false });
+
+    // Filter for verified only, unless user is Admin or the Service Provider themselves
+    if (hasRole(roles, "investor") && !hasRole(roles, "admin") && !isServiceRole) {
+      servicesQuery = servicesQuery.eq("verification_status", "verified");
+    }
+
+    const { data: services, error } = await servicesQuery;
+
+    if (error) {
+      console.warn("Error fetching transaction services:", error?.message || error);
+    } else if (services) {
+      servicesData = services as unknown as ContractorProfile[];
+    }
+  } catch (error) {
+    console.warn("Error loading transaction services:", error);
+  }
+
+  const mappedServices: VendorListing[] = servicesData.map((service) => {
+    const location = [service.business_city, service.business_state].filter(Boolean).join(", ");
+    const marketAreas =
+      service.service_areas && service.service_areas.length > 0
+        ? service.service_areas
+        : location
+          ? [location]
+          : [];
+
+    const workTypes =
+      service.contractor_services && service.contractor_services.length > 0
+        ? service.contractor_services.map((svc) => svc.service_name)
+        : ["Transaction Service"];
+
+    return {
+      id: service.id,
+      name: service.business_name,
+      tagline: service.verification_status === "verified" ? "Verified Partner" : "Pending Verification",
+      description: service.bio,
+      location: location || null,
+      marketAreas,
+      workTypes,
+      verificationStatus: service.verification_status,
+      contact: {
+        name: service.profiles?.display_name || service.business_name,
+        email: service.contact_email || null,
+        phone: service.contact_phone || null,
+        website: service.website_url || null,
+      },
+      logoUrl: service.logo_url || null,
+      pastProjects: [], // Transaction services might not have project portfolio in same format
+    };
+  });
 
   const selectedWorkTypes = parseListParam(resolvedSearchParams.workType);
   const selectedMarkets = parseListParam(resolvedSearchParams.market);
   const verifiedOnly = resolvedSearchParams.verified === "true";
   const keyword = (resolvedSearchParams.q || "").toLowerCase().trim();
 
-  const filteredServices = exampleTransactionServices
+  const filteredServices = mappedServices
     .filter((service) => {
       const matchesWorkType =
         selectedWorkTypes.length === 0 ||
@@ -108,16 +208,17 @@ export default async function TransactionServicesPage({
     });
 
   const availableWorkTypes = Array.from(
-    new Set([...BASE_SERVICE_TYPES, ...exampleTransactionServices.flatMap((service) => service.workTypes)])
+    new Set([...BASE_SERVICE_TYPES, ...mappedServices.flatMap((service) => service.workTypes)])
   ).sort();
   const availableMarkets = Array.from(
-    new Set([...BASE_MARKET_AREAS, ...exampleTransactionServices.flatMap((service) => service.marketAreas)])
+    new Set([...BASE_MARKET_AREAS, ...mappedServices.flatMap((service) => service.marketAreas)])
   ).sort();
 
-  const verifiedCount = exampleTransactionServices.filter((service) => service.verificationStatus === "verified").length;
+  const verifiedCount = mappedServices.filter((service) => service.verificationStatus === "verified").length;
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 selection:bg-blue-500/30">
+      <TransactionServiceTutorialRedirect />
       <div className="noise-overlay fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]" />
 
       {/* Background Gradient Elements */}
@@ -151,6 +252,10 @@ export default async function TransactionServicesPage({
               <p className="max-w-2xl text-lg md:text-xl text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">
                 Connect with elite partners well-versed in Creative Finance, ready to help you facilitate your closings and scale your portfolio.
               </p>
+
+              <div className="flex flex-wrap gap-4 pt-2">
+                <TransactionServiceTutorialTrigger />
+              </div>
             </FadeIn>
 
             <FadeIn delay={0.2} className="lg:col-span-5">

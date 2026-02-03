@@ -11,6 +11,7 @@ import { sampleVideoMap, sampleVideos } from "../../educationData";
 import { getWatchLaterVideos, toggleWatchLater } from "../../watchLaterActions";
 import YouTubeWatchLaterButton from "../../YouTubeWatchLaterButton";
 import RelatedCarousel from "../RelatedCarousel";
+import EducationDetailTutorial from "./EducationDetailTutorial";
 
 export const dynamic = "force-dynamic";
 
@@ -171,6 +172,34 @@ export default async function EducationVideoPage({
     isSaved = watchLaterVideos.some(
       (wl) => wl.video_type === "sample" && wl.video_id === id
     );
+
+    // Mock comments for samples
+    commentsData = [
+      {
+        id: "mock-1",
+        body: "This Wholesale Foundations video is a game changer! The part about sourcing leads was exactly what I needed.",
+        created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+        author_id: "user-1",
+        parent_comment_id: null,
+        profiles: { display_name: "Sarah Jenkins", avatar_url: null }
+      },
+      {
+        id: "mock-2",
+        body: "Solid advice on the contracts. I've been struggling with the assignment fee clause, but this cleared it up.",
+        created_at: new Date(Date.now() - 3600000 * 5).toISOString(),
+        author_id: "user-2",
+        parent_comment_id: null,
+        profiles: { display_name: "Marcus REI", avatar_url: null }
+      },
+      {
+        id: "mock-3",
+        body: "How often do you guys update these courses? Would love to see more on creative finance.",
+        created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
+        author_id: "user-3",
+        parent_comment_id: null,
+        profiles: { display_name: "Creative Closer", avatar_url: null }
+      }
+    ];
   }
 
   return (
@@ -210,7 +239,7 @@ export default async function EducationVideoPage({
               <div className="space-y-6">
                 <VideoPlayerClient
                   videoUrl={isSample ? null : videoData?.video_url}
-                  poster={isSample ? null : videoData?.thumbnail_url}
+                  poster={isSample ? activeSample.thumbnailUrl : videoData?.thumbnail_url}
                   title={currentTitle}
                 />
 
@@ -266,26 +295,18 @@ export default async function EducationVideoPage({
               </div>
 
               {/* Comments Section */}
-              <div className="rounded-2xl border border-white/40 bg-white/50 p-6 shadow-sm backdrop-blur-sm dark:border-white/5 dark:bg-zinc-900/40">
+              <div className="rounded-2xl border border-white/40 bg-white/50 p-6 shadow-sm backdrop-blur-sm dark:border-white/5 dark:bg-zinc-900/40" id="education-comments-section">
                 <h2 className="text-xl font-black text-zinc-950 dark:text-zinc-50 font-display mb-6">
                   Comments
                 </h2>
 
-                {!isSample ? (
-                  <div className="mb-8">
-                    <CommentForm
-                      videoId={id}
-                      userAvatarUrl={profileData?.avatar_url || null}
-                      userDisplayName={profileData?.display_name || null}
-                    />
-                  </div>
-                ) : (
-                  <div className="mb-6 rounded-xl bg-zinc-100 p-4 dark:bg-zinc-800/50">
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      💬 Comments are available on published videos.
-                    </p>
-                  </div>
-                )}
+                <div className="mb-8">
+                  <CommentForm
+                    videoId={id}
+                    userAvatarUrl={profileData?.avatar_url || null}
+                    userDisplayName={profileData?.display_name || null}
+                  />
+                </div>
 
                 <div className="space-y-6">
                   <CommentList
@@ -300,7 +321,7 @@ export default async function EducationVideoPage({
 
             {/* Sidebar for Normal Desktop View */}
             <aside className="education-sidebar show-sidebar-on-normal-video">
-              <div className="sticky top-24">
+              <div className="sticky top-24" id="education-recommended-videos">
                 <RelatedCarousel
                   relatedVideos={relatedVideos}
                   relatedSamples={relatedSamples}
@@ -310,6 +331,7 @@ export default async function EducationVideoPage({
           </div>
         </div>
       </div>
+      <EducationDetailTutorial />
     </div>
   );
 }

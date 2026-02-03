@@ -19,7 +19,7 @@ export default function VendorCard({ vendor, verifiedLabel = "Verified Vendor" }
   const pastProjects = vendor.pastProjects.slice(0, 3);
 
   return (
-    <div className="group relative block h-full">
+    <div id={`vendor-card-${vendor.id}`} className="group relative block h-full">
       <div className="flex h-full flex-col rounded-3xl border border-white/50 bg-white/40 p-5 shadow-lg shadow-zinc-200/40 backdrop-blur-md ring-1 ring-white/60 transition-all duration-300 hover:scale-[1.02] hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 hover:bg-white/60 dark:border-white/5 dark:bg-zinc-900/40 dark:shadow-black/40 dark:ring-white/5 dark:hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.4)] dark:hover:bg-zinc-900/60">
         <Link
           href={`/app/profile/${vendor.id}`}

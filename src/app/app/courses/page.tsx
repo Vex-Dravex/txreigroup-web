@@ -2,143 +2,99 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import AppHeader from "../components/AppHeader";
 import { getPrimaryRole, getUserRoles } from "@/lib/roles";
-import EducationCenterClient from "./EducationCenterClient";
-import { CoursesScrollRestorationProvider } from "@/lib/scrollRestoration";
-import { getWatchLaterVideos } from "./watchLaterActions";
+import EducationTutorialTrigger from "./EducationTutorialTrigger";
+import FadeIn from "../../components/FadeIn";
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
-type Course = {
-  id: string;
-  title: string;
-  description: string | null;
-  thumbnail_url: string | null;
-  required_tier: "free" | "investor_basic" | "investor_pro" | "contractor_basic" | "contractor_featured";
-  estimated_duration_minutes: number | null;
-  instructor_name: string | null;
-  created_at: string;
-};
-
-type EducationVideo = {
-  id: string;
-  title: string;
-  description: string | null;
-  topics: string[];
-  level: string;
-  video_url: string;
-  thumbnail_url: string | null;
-  created_at: string;
-};
-
-type Profile = {
-  id: string;
-  role: "admin" | "investor" | "wholesaler" | "contractor" | "vendor";
-  display_name: string | null;
-  avatar_url: string | null;
-};
-
-export default async function CoursesPage() {
+export default async function CoursesComingSoonPage() {
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
 
   if (!authData.user) redirect("/login?mode=signup");
 
-  // Get user profile
   const { data: profile } = await supabase
     .from("profiles")
     .select("role, display_name, avatar_url")
     .eq("id", authData.user.id)
     .single();
 
-  const profileData = profile as Profile | null;
-  const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
-  const userRole = getPrimaryRole(roles, profileData?.role || "investor");
-
-  // Fetch published courses (RLS will filter by tier access)
-  let coursesQuery = supabase
-    .from("courses")
-    .select("*")
-    .eq("is_published", true)
-    .order("created_at", { ascending: false });
-
-  // Admins can see all (including unpublished), but for now we'll just show published
-  const { data: courses, error } = await coursesQuery;
-
-  if (error) {
-    console.error("Error fetching courses:", error);
-  }
-
-  const coursesData = (courses as Course[]) || [];
-
-  const { data: educationVideos, error: educationError } = await supabase
-    .from("education_videos")
-    .select("id, title, description, topics, level, video_url, thumbnail_url, created_at")
-    .eq("is_published", true)
-    .order("created_at", { ascending: false });
-
-  if (educationError) {
-    console.error("Error fetching education videos:", educationError);
-  }
-
-  const educationVideosData = (educationVideos as EducationVideo[]) || [];
-
-  const tierDisplayNames: Record<string, string> = {
-    free: "Free",
-    investor_basic: "Investor Basic",
-    investor_pro: "Investor Pro",
-    contractor_basic: "Contractor Basic",
-    contractor_featured: "Contractor Featured",
-  };
-
-  const formatDuration = (minutes: number | null) => {
-    if (!minutes) return null;
-    if (minutes < 60) return `${minutes} min`;
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-  };
-
-  const courseVideos = coursesData.map((course) => ({
-    id: course.id,
-    title: course.title,
-    description: course.description,
-    duration: formatDuration(course.estimated_duration_minutes),
-    topics: ["Wholesale Real Estate"],
-    thumbnailUrl: course.thumbnail_url,
-    href: `/app/courses/${course.id}`,
-    badge: tierDisplayNames[course.required_tier],
-  }));
-
-  // Fetch watch later videos
-  const watchLaterVideos = await getWatchLaterVideos();
+  const roles = await getUserRoles(supabase, authData.user.id, profile?.role || "investor");
+  const userRole = getPrimaryRole(roles, profile?.role || "investor");
 
   return (
-    <CoursesScrollRestorationProvider>
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 selection:bg-amber-500/30">
-        <div className="noise-overlay fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]" />
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 selection:bg-amber-500/30 overflow-hidden">
+      <div className="noise-overlay fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]" />
 
-        {/* Background Gradient Elements */}
-        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-          <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-amber-500/5 blur-[120px]" />
-          <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full bg-blue-500/5 blur-[120px]" />
-        </div>
-
-        <div className="relative z-10">
-          <AppHeader
-            userRole={userRole}
-            currentPage="courses"
-            avatarUrl={profileData?.avatar_url || null}
-            displayName={profileData?.display_name || null}
-            email={authData.user.email}
-          />
-          <EducationCenterClient
-            courseVideos={courseVideos}
-            educationVideos={educationVideosData}
-            watchLaterVideos={watchLaterVideos}
-          />
-        </div>
+      {/* Background Gradient Elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-amber-500/10 blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/10 blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
-    </CoursesScrollRestorationProvider>
+
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <AppHeader
+          userRole={userRole}
+          currentPage="courses"
+          avatarUrl={profile?.avatar_url || null}
+          displayName={profile?.display_name || null}
+          email={authData.user.email}
+        />
+
+        <main className="flex-1 flex items-center justify-center p-6">
+          <FadeIn>
+            <div className="max-w-4xl w-full text-center space-y-12">
+              <div className="space-y-6">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-amber-500/20 bg-amber-500/5 backdrop-blur-md shadow-[0_0_20px_rgba(245,158,11,0.1)]">
+                  <div className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400">
+                    Coming Soon
+                  </span>
+                </div>
+
+                <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-zinc-900 dark:text-zinc-50 font-syne leading-[0.9] italic">
+                  MASTER THE <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600">
+                    MARKET
+                  </span>
+                </h1>
+
+                <p className="max-w-2xl mx-auto text-lg md:text-xl text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">
+                  The Education Center is evolving into the ultimate resource for HTX real estate investors.
+                  From exclusive playbooks to live strategy sessions, get ready to scale your portfolio.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+                {[
+                  { title: "Expert Courses", desc: "Step-by-step guides for every strategy." },
+                  { title: "Live Sessions", desc: "Weekly Q&As with industry leaders." },
+                  { title: "Resource Library", desc: "Contracts, scripts, and calculators." }
+                ].map((item, i) => (
+                  <div key={i} className="p-6 rounded-[2rem] border border-white/20 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-xl transition-all hover:scale-[1.02] hover:bg-white/60 dark:hover:bg-zinc-900/60 shadow-xl group">
+                    <h3 className="text-sm font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100 mb-2 group-hover:text-amber-500 transition-colors">{item.title}</h3>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed font-medium">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-col items-center gap-6 pt-8">
+                <EducationTutorialTrigger />
+                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                  Ready to see what&apos;s brewing? Take the interactive tour.
+                </p>
+              </div>
+            </div>
+          </FadeIn>
+        </main>
+
+        <footer className="p-8 text-center border-t border-zinc-200 dark:border-zinc-800 backdrop-blur-md">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
+            &copy; {new Date().getFullYear()} HTXREI Group &bull; Built for Investors
+          </p>
+        </footer>
+      </div>
+    </div>
   );
 }
+

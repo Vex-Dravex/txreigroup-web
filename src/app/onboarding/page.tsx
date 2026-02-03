@@ -150,7 +150,39 @@ export default function OnboardingPage() {
 
             if (rolesError) {
                 console.error("Error saving user roles:", rolesError);
-                // Don't throw - onboarding data is saved, roles  are nice-to-have
+                // Don't throw - onboarding data is saved, roles are nice-to-have
+            }
+
+            // Create contractor profile entry if user selected Vendor role
+            if (selectedRoles.includes("vendor")) {
+                const { error: vendorError } = await supabase
+                    .from('contractor_profiles')
+                    .upsert({
+                        id: user.id,
+                        business_name: vendorData.companyName || personalData.businessName || `${personalData.firstName} ${personalData.lastName}`,
+                        business_phone: personalData.phoneNumber,
+                        verification_status: "pending"
+                    });
+
+                if (vendorError) {
+                    console.error("Error creating contractor profile:", vendorError);
+                }
+            }
+
+            // Create contractor profile entry if user selected Transaction Service role
+            if (selectedRoles.includes("service")) {
+                const { error: serviceError } = await supabase
+                    .from('contractor_profiles')
+                    .upsert({
+                        id: user.id,
+                        business_name: serviceData.companyName || personalData.businessName || `${personalData.firstName} ${personalData.lastName}`,
+                        business_phone: personalData.phoneNumber,
+                        verification_status: "pending"
+                    });
+
+                if (serviceError) {
+                    console.error("Error creating service profile:", serviceError);
+                }
             }
 
             router.push("/onboarding/subscription"); // Redirect to subscription page

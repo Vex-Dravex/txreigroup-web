@@ -42,7 +42,7 @@ export function SearchInput() {
     }, [debouncedValue, router, createQueryString, searchParams]);
 
     return (
-        <div className="relative w-full">
+        <div className="relative w-full" id="forum-search-bar">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <svg
                     aria-hidden="true"

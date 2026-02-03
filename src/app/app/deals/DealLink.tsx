@@ -10,9 +10,10 @@ type DealLinkProps = {
     dealId: string;
     children: React.ReactNode;
     className?: string;
+    id?: string;
 };
 
-export default function DealLink({ dealId, children, className }: DealLinkProps) {
+export default function DealLink({ dealId, children, className, id }: DealLinkProps) {
     const pathname = usePathname();
 
     const handleClick = () => {
@@ -38,6 +39,7 @@ export default function DealLink({ dealId, children, className }: DealLinkProps)
         <motion.div variants={item}>
             <Link
                 href={`/app/deals/${dealId}`}
+                id={id}
                 className={className}
                 onClick={handleClick}
             >

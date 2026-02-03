@@ -1,243 +1,99 @@
+
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import Link from "next/link";
-import Image from "next/image";
 import AppHeader from "../components/AppHeader";
-import { getPrimaryRole, getUserRoles, hasRole } from "@/lib/roles";
+import { getPrimaryRole, getUserRoles } from "@/lib/roles";
+import BlogTutorialTrigger from "./BlogTutorialTrigger";
+import FadeIn from "../../components/FadeIn";
 
 export const dynamic = 'force-dynamic';
 
-export default async function BlogPage() {
+export default async function BlogComingSoonPage() {
     const supabase = await createSupabaseServerClient();
     const { data: authData } = await supabase.auth.getUser();
 
     if (!authData.user) redirect("/login?mode=signup");
 
-    // Fetch profile for header
     const { data: profile } = await supabase
         .from("profiles")
-        .select("*")
+        .select("role, display_name, avatar_url")
         .eq("id", authData.user.id)
         .single();
 
     const roles = await getUserRoles(supabase, authData.user.id, profile?.role || "investor");
-    const role = getPrimaryRole(roles, profile?.role || "investor");
-
-    const displayName = profile?.display_name || authData.user.email?.split("@")[0] || "User";
-
-    // Fetch posts
-    const { data: posts } = await supabase
-        .from("blog_posts")
-        .select(`
-      *,
-      author:author_id(display_name, avatar_url)
-    `)
-        .eq("is_published", true)
-        .order("published_at", { ascending: false });
-
-    const featuredPost = posts?.[0];
-    const previousPosts = posts?.slice(1) || [];
+    const userRole = getPrimaryRole(roles, profile?.role || "investor");
 
     return (
-        <div className="relative min-h-screen bg-zinc-950 selection:bg-purple-500/30 overflow-hidden">
-            <div className="noise-overlay opacity-20" />
+        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 selection:bg-purple-500/30 overflow-hidden">
+            <div className="noise-overlay fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]" />
 
-            {/* Background Glows */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/10 blur-[120px] animate-pulse" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-600/10 blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
+            {/* Background Gradient Elements */}
+            <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/10 blur-[120px] animate-pulse" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/10 blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
             </div>
 
-            <AppHeader
-                userRole={role}
-                currentPage="blog"
-                avatarUrl={profile?.avatar_url}
-                displayName={displayName}
-                email={authData.user.email}
-            />
+            <div className="relative z-10 flex flex-col min-h-screen">
+                <AppHeader
+                    userRole={userRole}
+                    currentPage="blog"
+                    avatarUrl={profile?.avatar_url || null}
+                    displayName={profile?.display_name || null}
+                    email={authData.user.email}
+                />
 
-            <main className="relative z-10 mx-auto max-w-[1600px] px-4 py-12 sm:px-6 lg:px-8">
-                {/* Header Section */}
-                <div className="mb-16 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-                    <div className="space-y-4">
-                        <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/20 bg-purple-500/5 px-3 py-1 text-xs font-bold uppercase tracking-wider text-purple-400">
-                            <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
-                            </span>
-                            Community Blog
-                        </div>
-                        <h1 className="text-4xl font-black tracking-tight text-white md:text-5xl lg:text-7xl">
-                            Investor <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-300">Insights</span>
-                        </h1>
-                        <p className="max-w-2xl text-lg text-zinc-400">
-                            Updates, strategies, and success stories from the Dravex community.
-                        </p>
-                    </div>
-                </div>
-
-                {featuredPost ? (
-                    <section className="mb-20">
-                        <Link
-                            href={`/app/blog/${featuredPost.slug}`}
-                            className="group relative block overflow-hidden rounded-[2.5rem] bg-white/5 shadow-2xl border border-white/10 hover:border-white/20 transition-all duration-500"
-                        >
-                            {/* Background Image with Overlay */}
-                            <div className="absolute inset-0">
-                                {featuredPost.featured_image_url ? (
-                                    <Image
-                                        src={featuredPost.featured_image_url}
-                                        alt={featuredPost.title}
-                                        fill
-                                        className="object-cover opacity-40 transition-transform duration-700 group-hover:scale-105"
-                                        priority
-                                    />
-                                ) : (
-                                    <div className="h-full w-full bg-gradient-to-br from-purple-900/40 to-black" />
-                                )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent" />
-                            </div>
-
-                            <div className="relative flex min-h-[550px] flex-col justify-end p-8 md:p-12 lg:p-16">
-                                <div className="space-y-6 max-w-4xl">
-                                    <div className="flex items-center gap-4 text-sm font-bold text-white/80">
-                                        <span className="rounded-full bg-purple-500/10 px-3 py-1 text-purple-300 backdrop-blur-md border border-purple-500/20">
-                                            Featured Story
-                                        </span>
-                                        <span className="h-1 w-1 rounded-full bg-white/30" />
-                                        <span>
-                                            {new Date(featuredPost.published_at).toLocaleDateString(undefined, {
-                                                month: 'long',
-                                                day: 'numeric',
-                                                year: 'numeric'
-                                            })}
-                                        </span>
-                                    </div>
-
-                                    <h2 className="text-4xl font-black leading-tight text-white md:text-5xl lg:text-6xl transition-colors group-hover:text-purple-400">
-                                        {featuredPost.title}
-                                    </h2>
-
-                                    <p className="line-clamp-2 text-lg text-zinc-300 md:text-xl font-medium max-w-2xl leading-relaxed">
-                                        {featuredPost.excerpt}
-                                    </p>
-
-                                    <div className="flex items-center gap-4 pt-4">
-                                        <div className="relative h-12 w-12 overflow-hidden rounded-full ring-2 ring-white/10">
-                                            {featuredPost.author?.avatar_url ? (
-                                                <Image
-                                                    src={featuredPost.author.avatar_url}
-                                                    alt={featuredPost.author.display_name || "Author"}
-                                                    fill
-                                                    className="object-cover"
-                                                />
-                                            ) : (
-                                                <div className="flex h-full w-full items-center justify-center bg-zinc-800 text-xs font-bold text-zinc-400">
-                                                    {featuredPost.author?.display_name?.[0] || "A"}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <div className="text-base font-bold text-white">
-                                                {featuredPost.author?.display_name || "Unknown Author"}
-                                            </div>
-                                            <div className="text-sm font-medium text-zinc-500">
-                                                Author
-                                            </div>
-                                        </div>
-                                    </div>
+                <main className="flex-1 flex items-center justify-center p-6">
+                    <FadeIn>
+                        <div className="max-w-4xl w-full text-center space-y-12">
+                            <div className="space-y-6">
+                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-purple-500/20 bg-purple-500/5 backdrop-blur-md shadow-[0_0_20px_rgba(168,85,247,0.1)]">
+                                    <div className="w-2 h-2 rounded-full bg-purple-500 animate-ping" />
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-600 dark:text-purple-400">
+                                        Coming Soon
+                                    </span>
                                 </div>
+
+                                <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-zinc-900 dark:text-zinc-50 font-syne leading-[0.9] italic">
+                                    INVESTOR <br />
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600">
+                                        INSIGHTS
+                                    </span>
+                                </h1>
+
+                                <p className="max-w-2xl mx-auto text-lg md:text-xl text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">
+                                    Our Community Blog is being reimagined. Get ready for deep-dive case studies, market shifts, and expert guest posts from the HTX ecosystem.
+                                </p>
                             </div>
-                        </Link>
-                    </section>
-                ) : (
-                    <div className="rounded-[2.5rem] border border-dashed border-white/10 p-20 text-center bg-white/5">
-                        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
-                            <svg className="h-8 w-8 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                            </svg>
-                        </div>
-                        <h3 className="text-lg font-bold text-white">No posts yet</h3>
-                        <p className="mt-2 text-zinc-500">This blog is fresh! Check back soon for new stories.</p>
-                    </div>
-                )}
 
-                {previousPosts.length > 0 && (
-                    <section>
-                        <div className="mb-10 flex items-center justify-between border-b border-white/10 pb-6">
-                            <h3 className="text-2xl font-black tracking-tight text-white md:text-3xl">
-                                Recent Stories
-                            </h3>
-                        </div>
-
-                        <div className="grid gap-x-8 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
-                            {previousPosts.map((post) => (
-                                <Link key={post.id} href={`/app/blog/${post.slug}`} className="group flex flex-col gap-4">
-                                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-white/5 shadow-sm transition-all group-hover:shadow-xl border border-white/10 group-hover:border-purple-500/30">
-                                        {post.featured_image_url ? (
-                                            <Image
-                                                src={post.featured_image_url}
-                                                alt={post.title}
-                                                fill
-                                                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                            />
-                                        ) : (
-                                            <div className="flex h-full w-full items-center justify-center bg-zinc-900">
-                                                <svg className="h-12 w-12 text-zinc-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                </svg>
-                                            </div>
-                                        )}
-                                        <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-purple-900/10" />
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+                                {[
+                                    { title: "Deep Dives", desc: "Actionable case studies from the field." },
+                                    { title: "Market Shifts", desc: "Stay informed on the Houston economy." },
+                                    { title: "Expert Tips", desc: "Tactics from wholesalers and investors." }
+                                ].map((item, i) => (
+                                    <div key={i} className="p-6 rounded-[2rem] border border-white/20 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-xl transition-all hover:scale-[1.02] hover:bg-white/60 dark:hover:bg-zinc-900/60 shadow-xl group">
+                                        <h3 className="text-sm font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100 mb-2 group-hover:text-purple-500 transition-colors">{item.title}</h3>
+                                        <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed font-medium">{item.desc}</p>
                                     </div>
+                                ))}
+                            </div>
 
-                                    <div className="flex flex-col gap-3">
-                                        <div className="flex items-center gap-3 text-xs font-bold text-zinc-500">
-                                            <span className="text-purple-400">Article</span>
-                                            <span className="h-1 w-1 rounded-full bg-zinc-800" />
-                                            <span>
-                                                {new Date(post.published_at).toLocaleDateString(undefined, {
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                    year: 'numeric'
-                                                })}
-                                            </span>
-                                        </div>
-
-                                        <h4 className="text-xl font-black leading-tight text-white group-hover:text-purple-400 transition-colors line-clamp-2">
-                                            {post.title}
-                                        </h4>
-
-                                        <p className="line-clamp-2 text-sm leading-relaxed text-zinc-400">
-                                            {post.excerpt}
-                                        </p>
-
-                                        <div className="mt-2 flex items-center gap-2">
-                                            <div className="relative h-6 w-6 overflow-hidden rounded-full bg-zinc-800 ring-1 ring-white/10">
-                                                {post.author?.avatar_url ? (
-                                                    <Image
-                                                        src={post.author.avatar_url}
-                                                        alt={post.author.display_name || "Author"}
-                                                        fill
-                                                        className="object-cover"
-                                                    />
-                                                ) : (
-                                                    <div className="flex h-full w-full items-center justify-center text-[8px] font-bold text-zinc-500">
-                                                        {post.author?.display_name?.[0] || "A"}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <span className="text-xs font-bold text-zinc-300">
-                                                {post.author?.display_name || "Unknown"}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </Link>
-                            ))}
+                            <div className="flex flex-col items-center gap-6 pt-8">
+                                <BlogTutorialTrigger />
+                                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                                    Curious what the new blog looks like? Take the interactive tour.
+                                </p>
+                            </div>
                         </div>
-                    </section>
-                )}
-            </main>
+                    </FadeIn>
+                </main>
+
+                <footer className="p-8 text-center border-t border-zinc-200 dark:border-zinc-800 backdrop-blur-md">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
+                        &copy; {new Date().getFullYear()} HTXREI Group &bull; Built for Investors
+                    </p>
+                </footer>
+            </div>
         </div>
     );
 }
