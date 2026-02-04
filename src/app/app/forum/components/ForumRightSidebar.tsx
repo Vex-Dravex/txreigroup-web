@@ -1,6 +1,11 @@
 import Link from "next/link";
 
-export function ForumRightSidebar() {
+interface ForumRightSidebarProps {
+    totalMembers?: number;
+    activeMembers?: number;
+}
+
+export function ForumRightSidebar({ totalMembers = 0, activeMembers = 0 }: ForumRightSidebarProps) {
     return (
         <div className="space-y-6">
             {/* About Community */}
@@ -23,7 +28,7 @@ export function ForumRightSidebar() {
 
                     <div className="mt-6 grid grid-cols-2 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
                         <div>
-                            <div className="text-lg font-bold text-zinc-900 dark:text-zinc-50">5.2k</div>
+                            <div className="text-lg font-bold text-zinc-900 dark:text-zinc-50">{totalMembers.toLocaleString()}</div>
                             <div className="text-xs font-medium text-zinc-500">Members</div>
                         </div>
                         <div>
@@ -32,7 +37,7 @@ export function ForumRightSidebar() {
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                                     <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
                                 </span>
-                                142
+                                {activeMembers.toLocaleString()}
                             </div>
                             <div className="text-xs font-medium text-zinc-500">Online</div>
                         </div>

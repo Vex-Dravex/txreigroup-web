@@ -127,7 +127,7 @@ export default async function ForumPage({
     .select("post_id, vote_type")
     .eq("user_id", authData.user.id);
 
-  // Fetch user's saved posts
+  // Fetch user's saves
   const { data: userSaves } = await supabase
     .from("forum_saved_posts")
     .select("post_id")
@@ -135,6 +135,35 @@ export default async function ForumPage({
 
   const votesMap = new Map((userVotes || []).map((v) => [v.post_id, v.vote_type]));
   const savesSet = new Set((userSaves || []).map((s) => s.post_id));
+
+  // List of test user IDs to exclude
+  const testUserIds = [
+    "8d3c63d8-57e3-4428-ba2e-067755c3c0a1",
+    "a1d82084-3c66-4176-9653-90226301e2b3",
+    "a9335566-2e84-4284-9733-90123456a7a2",
+    "b7113344-9c82-4062-9511-78901234e5e6",
+    "c0446677-3d75-4395-9844-01234567b8b3",
+    "c5e91122-8f50-482a-b733-14568902f3c4",
+    "d8224455-1f93-4173-9622-89012345f6f1",
+    "e1557788-4c66-4406-9955-12345678c9c4",
+    "e9204432-6a71-4951-8944-45678913d4d5",
+    "f2668899-5b57-4517-1066-23456789d0d5",
+    "f4917400-b618-4221-8255-0d29377651a2"
+  ];
+
+  // Fetch Community Stats (excluding test users)
+  const { count: totalMembers } = await supabase
+    .from("profiles")
+    .select("*", { count: "exact", head: true })
+    .not("id", "in", `(${testUserIds.join(',')})`);
+
+  // Estimate online users (active in last hour, excluding test users)
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const { count: activeMembers } = await supabase
+    .from("profiles")
+    .select("*", { count: "exact", head: true })
+    .gt("updated_at", oneHourAgo)
+    .not("id", "in", `(${testUserIds.join(',')})`);
 
   // Calculate score for sorting (hot algorithm)
   const postsData = (posts as unknown as ForumPost[]) || [];
@@ -250,7 +279,10 @@ export default async function ForumPage({
             {/* Right Sidebar - Widgets */}
             <aside className="hidden xl:col-span-3 xl:block">
               <div className="sticky top-28 space-y-6">
-                <ForumRightSidebar />
+                <ForumRightSidebar
+                  totalMembers={totalMembers || 0}
+                  activeMembers={activeMembers || 0}
+                />
               </div>
             </aside>
 

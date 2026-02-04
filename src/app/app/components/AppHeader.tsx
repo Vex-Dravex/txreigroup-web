@@ -56,60 +56,117 @@ export default function AppHeader({
               >
                 Home
               </Link>
-              <Link
-                href="/app/deals"
-                className={`text-sm font-medium transition-colors ${currentPage === "deals"
-                  ? "text-zinc-900 dark:text-zinc-50"
-                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
-                  }`}
-              >
-                Creative Marketplace
-              </Link>
-              <Link
-                href="/app/contractors"
-                className={`text-sm font-medium transition-colors ${currentPage === "contractors"
-                  ? "text-zinc-900 dark:text-zinc-50"
-                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
-                  }`}
-              >
-                Vendors
-              </Link>
-              <Link
-                href="/app/transaction-services"
-                className={`text-sm font-medium transition-colors ${currentPage === "transaction-services"
-                  ? "text-zinc-900 dark:text-zinc-50"
-                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
-                  }`}
-              >
-                Transaction Services
-              </Link>
-              <Link
-                href="/app/courses"
-                className={`text-sm font-medium transition-colors ${currentPage === "courses"
-                  ? "text-zinc-900 dark:text-zinc-50"
-                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
-                  }`}
-              >
-                Education
-              </Link>
-              <Link
-                href="/app/forum"
-                className={`text-sm font-medium transition-colors ${currentPage === "forum"
-                  ? "text-zinc-900 dark:text-zinc-50"
-                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
-                  }`}
-              >
-                Community Forum
-              </Link>
-              <Link
-                href="/app/blog"
-                className={`text-sm font-medium transition-colors ${currentPage === "blog"
-                  ? "text-zinc-900 dark:text-zinc-50"
-                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
-                  }`}
-              >
-                Blog
-              </Link>
+              <div className="group relative h-full flex items-center">
+                <button
+                  className={`flex items-center gap-1 text-sm font-medium transition-colors ${currentPage === "deals"
+                    ? "text-zinc-900 dark:text-zinc-50"
+                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                    }`}
+                >
+                  Creative Marketplace
+                  <svg
+                    className="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                <div className="absolute left-0 top-full pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 w-48 pointer-events-none group-hover:pointer-events-auto">
+                  <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl overflow-hidden p-1.5 flex flex-col gap-0.5 backdrop-blur-xl bg-opacity-95 dark:bg-opacity-95">
+                    <Link
+                      href="/app/deals/submit"
+                      className="px-3 py-2.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-lg transition-colors group/item block"
+                    >
+                      Submit a Deal
+                    </Link>
+                    <Link
+                      href="/app/deals"
+                      className="px-3 py-2.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-lg transition-colors group/item block"
+                    >
+                      View Live Listings
+                    </Link>
+                  </div>
+                </div>
+              </div>
+              <div className="group relative h-full flex items-center">
+                <button
+                  className={`flex items-center gap-1 text-sm font-medium transition-colors ${currentPage === "contractors" || currentPage === "transaction-services"
+                    ? "text-zinc-900 dark:text-zinc-50"
+                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                    }`}
+                >
+                  Vendors
+                  <svg
+                    className="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                <div className="absolute left-0 top-full pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 w-48 pointer-events-none group-hover:pointer-events-auto">
+                  <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl overflow-hidden p-1.5 flex flex-col gap-0.5 backdrop-blur-xl bg-opacity-95 dark:bg-opacity-95">
+                    <Link
+                      href="/app/contractors"
+                      className="px-3 py-2.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-lg transition-colors group/item block"
+                    >
+                      Sub-Contractors
+                    </Link>
+                    <Link
+                      href="/app/transaction-services"
+                      className="px-3 py-2.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-lg transition-colors group/item block"
+                    >
+                      Transaction Services
+                    </Link>
+                  </div>
+                </div>
+              </div>
+              <div className="group relative h-full flex items-center">
+                <button
+                  className={`flex items-center gap-1 text-sm font-medium transition-colors ${currentPage === "courses" || currentPage === "forum" || currentPage === "blog"
+                      ? "text-zinc-900 dark:text-zinc-50"
+                      : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                    }`}
+                >
+                  Community
+                  <svg
+                    className="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                <div className="absolute left-0 top-full pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 w-48 pointer-events-none group-hover:pointer-events-auto">
+                  <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl overflow-hidden p-1.5 flex flex-col gap-0.5 backdrop-blur-xl bg-opacity-95 dark:bg-opacity-95">
+                    <Link
+                      href="/app/courses"
+                      className="px-3 py-2.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-lg transition-colors group/item block"
+                    >
+                      Education
+                    </Link>
+                    <Link
+                      href="/app/forum"
+                      className="px-3 py-2.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-lg transition-colors group/item block"
+                    >
+                      Community Forum
+                    </Link>
+                    <Link
+                      href="/app/blog"
+                      className="px-3 py-2.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-lg transition-colors group/item block"
+                    >
+                      News Feed
+                    </Link>
+                  </div>
+                </div>
+              </div>
             </nav>
           </div>
           <div className="flex items-center gap-3">

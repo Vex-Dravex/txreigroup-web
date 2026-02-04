@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { submitDeal } from "./actions";
@@ -26,7 +26,7 @@ export default function DealForm() {
   const [contractFile, setContractFile] = useState<File | null>(null);
   const [isContractDragActive, setIsContractDragActive] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction] = useFormState(submitDeal, initialState);
+  const [state, formAction] = useActionState(submitDeal, initialState);
   const router = useRouter();
   const isMortgageBased = dealType === "Mortgage Takeover" || dealType === "Trust Acquisition";
 

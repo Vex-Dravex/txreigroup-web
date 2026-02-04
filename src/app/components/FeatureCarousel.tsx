@@ -82,7 +82,7 @@ export default function FeatureCarousel() {
       {/* Carousel Container */}
       <div className="relative overflow-hidden rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white shadow-xl dark:bg-zinc-950/40 backdrop-blur-md">
         {/* Slide Content */}
-        <div className="relative w-full min-h-[500px]">
+        <div className="relative w-full min-h-[550px] md:min-h-[500px]">
           <div
             className="flex h-full transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1)"
             style={{ transform: `translateX(-${currentIndex * 100}%)` }}
@@ -92,30 +92,30 @@ export default function FeatureCarousel() {
                 key={feature.id}
                 className="min-w-full flex-shrink-0"
               >
-                <div className="flex flex-col items-center justify-center h-full gap-6 p-8 md:p-12 text-center">
+                <div className="flex flex-col items-center justify-center h-full gap-4 px-3 py-6 md:p-12 text-center">
                   {/* Category Badge */}
-                  <div className="inline-flex rounded-lg bg-blue-500/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                  <div className="inline-flex rounded-lg bg-blue-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400 border border-blue-500/20">
                     {feature.category.replace('-', ' ')}
                   </div>
 
                   {/* Text Header */}
-                  <h3 className="text-2xl md:text-3xl font-black tracking-tighter text-zinc-950 dark:text-zinc-50 font-syne">
+                  <h3 className="text-xl md:text-3xl font-black tracking-tighter text-zinc-950 dark:text-zinc-50 font-syne leading-none px-2">
                     {feature.title}
                   </h3>
 
-                  {/* Image Area - Scaled down and contained */}
-                  <div className="relative w-full max-w-2xl group/slide-img">
-                    <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-zinc-200/30 dark:border-zinc-700/30 bg-zinc-50/50 dark:bg-zinc-900/50 shadow-sm">
+                  {/* Image Area - Taller on mobile */}
+                  <div className="relative w-full max-w-sm md:max-w-2xl group/slide-img">
+                    <div className="relative aspect-square md:aspect-video w-full overflow-hidden rounded-xl">
                       <img
                         src={`${feature.image}?v=5`}
                         alt={feature.title}
-                        className="h-full w-full object-contain p-2 transition-transform duration-1000 group-hover/slide-img:scale-105"
+                        className="h-full w-full object-contain transition-transform duration-1000 group-hover/slide-img:scale-105"
                       />
                     </div>
                   </div>
 
-                  {/* Description Box - Limited width for readability */}
-                  <p className="max-w-2xl text-sm md:text-base leading-relaxed text-zinc-600 dark:text-zinc-400 font-medium">
+                  {/* Description Box - Text wrapping fixed */}
+                  <p className="w-full max-w-[320px] md:max-w-2xl mx-auto text-sm md:text-base leading-relaxed text-zinc-600 dark:text-zinc-400 font-medium whitespace-normal">
                     {feature.description}
                   </p>
                 </div>
@@ -127,11 +127,11 @@ export default function FeatureCarousel() {
         {/* Navigation Arrows */}
         <button
           onClick={goToPrevious}
-          className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-3 shadow-lg transition-all hover:bg-white hover:scale-110 dark:bg-zinc-800/90 dark:hover:bg-zinc-800"
+          className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 md:p-3 shadow-lg transition-all hover:bg-white hover:scale-110 dark:bg-zinc-800/90 dark:hover:bg-zinc-800 z-10"
           aria-label="Previous slide"
         >
           <svg
-            className="h-6 w-6 text-zinc-900 dark:text-zinc-50"
+            className="h-4 w-4 md:h-6 md:w-6 text-zinc-900 dark:text-zinc-50"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -141,11 +141,11 @@ export default function FeatureCarousel() {
         </button>
         <button
           onClick={goToNext}
-          className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-3 shadow-lg transition-all hover:bg-white hover:scale-110 dark:bg-zinc-800/90 dark:hover:bg-zinc-800"
+          className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 md:p-3 shadow-lg transition-all hover:bg-white hover:scale-110 dark:bg-zinc-800/90 dark:hover:bg-zinc-800 z-10"
           aria-label="Next slide"
         >
           <svg
-            className="h-6 w-6 text-zinc-900 dark:text-zinc-50"
+            className="h-4 w-4 md:h-6 md:w-6 text-zinc-900 dark:text-zinc-50"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
