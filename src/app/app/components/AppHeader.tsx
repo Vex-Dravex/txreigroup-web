@@ -1,8 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import ProfileMenu from "./ProfileMenu";
 import NotificationBell from "./NotificationBell";
 import type { Role } from "@/lib/roles";
+import { useState } from "react";
 
 type AppHeaderProps = {
   userRole?: Role;
@@ -27,11 +30,23 @@ export default function AppHeader({
   unreadNotificationsCount = null,
   isAuthenticated = true,
 }: AppHeaderProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <header className="sticky top-0 z-50 border-b border-white/5 bg-zinc-950/70 backdrop-blur-xl">
       <div className="mx-auto max-w-[1800px] px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden flex flex-col justify-center items-center w-8 h-8 rounded-lg text-zinc-400 hover:text-zinc-50 hover:bg-white/5 transition-colors"
+              aria-label="Toggle menu"
+            >
+              <div className={`w-5 h-0.5 bg-current rounded-full transition-all duration-300 ${isMobileMenuOpen ? "rotate-45 translate-y-1.5" : "mb-1"}`} />
+              <div className={`w-5 h-0.5 bg-current rounded-full transition-all duration-300 ${isMobileMenuOpen ? "opacity-0" : "mb-1"}`} />
+              <div className={`w-5 h-0.5 bg-current rounded-full transition-all duration-300 ${isMobileMenuOpen ? "-rotate-45 -translate-y-1.5" : ""}`} />
+            </button>
+
             <Link
               href="/"
               className="flex items-center transition-opacity hover:opacity-80"
@@ -41,7 +56,7 @@ export default function AppHeader({
                 alt="Houston Real Estate Investment Group Header Logo"
                 width={300}
                 height={100}
-                className="h-14 w-auto object-contain"
+                className="h-10 md:h-14 w-auto object-contain"
                 priority
                 unoptimized
               />
@@ -129,8 +144,8 @@ export default function AppHeader({
               <div className="group relative h-full flex items-center">
                 <button
                   className={`flex items-center gap-1 text-sm font-medium transition-colors ${currentPage === "courses" || currentPage === "forum" || currentPage === "blog"
-                      ? "text-zinc-900 dark:text-zinc-50"
-                      : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                    ? "text-zinc-900 dark:text-zinc-50"
+                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
                     }`}
                 >
                   Community
@@ -169,7 +184,7 @@ export default function AppHeader({
               </div>
             </nav>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             {isAuthenticated ? (
               <>
                 {/* Authenticated users see notifications and messages */}
@@ -226,6 +241,96 @@ export default function AppHeader({
           </div>
         </div>
       </div>
+      <MobileMenu isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} currentPage={currentPage} />
     </header>
+  );
+}
+
+// Mobile Menu Implementation
+function MobileMenu({
+  isOpen,
+  setIsOpen,
+  currentPage,
+}: {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  currentPage?: string;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="md:hidden absolute top-full left-0 w-full bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 shadow-xl p-4 flex flex-col gap-4 animate-in slide-in-from-top-2 duration-200">
+      <Link
+        href="/"
+        onClick={() => setIsOpen(false)}
+        className={`text-lg font-medium px-4 py-2 rounded-lg transition-colors ${currentPage === "home"
+          ? "bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50"
+          : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+          }`}
+      >
+        Home
+      </Link>
+
+      <div className="flex flex-col gap-2">
+        <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 px-4">Marketplace</div>
+        <Link
+          href="/app/deals"
+          onClick={() => setIsOpen(false)}
+          className="px-4 py-2 text-base font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-lg transition-colors"
+        >
+          View Listings
+        </Link>
+        <Link
+          href="/app/deals/submit"
+          onClick={() => setIsOpen(false)}
+          className="px-4 py-2 text-base font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-lg transition-colors"
+        >
+          Submit a Deal
+        </Link>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 px-4">Vendors</div>
+        <Link
+          href="/app/contractors"
+          onClick={() => setIsOpen(false)}
+          className="px-4 py-2 text-base font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-lg transition-colors"
+        >
+          Sub-Contractors
+        </Link>
+        <Link
+          href="/app/transaction-services"
+          onClick={() => setIsOpen(false)}
+          className="px-4 py-2 text-base font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-lg transition-colors"
+        >
+          Transaction Services
+        </Link>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 px-4">Community</div>
+        <Link
+          href="/app/courses"
+          onClick={() => setIsOpen(false)}
+          className="px-4 py-2 text-base font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-lg transition-colors"
+        >
+          Education
+        </Link>
+        <Link
+          href="/app/forum"
+          onClick={() => setIsOpen(false)}
+          className="px-4 py-2 text-base font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-lg transition-colors"
+        >
+          Forum
+        </Link>
+        <Link
+          href="/app/blog"
+          onClick={() => setIsOpen(false)}
+          className="px-4 py-2 text-base font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-lg transition-colors"
+        >
+          News Feed
+        </Link>
+      </div>
+    </div>
   );
 }

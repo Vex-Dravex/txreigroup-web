@@ -103,9 +103,8 @@ export default function FeatureCarousel() {
                     {feature.title}
                   </h3>
 
-                  {/* Image Area - Taller on mobile */}
                   <div className="relative w-full max-w-sm md:max-w-2xl group/slide-img">
-                    <div className="relative aspect-square md:aspect-video w-full overflow-hidden rounded-xl">
+                    <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800">
                       <img
                         src={`${feature.image}?v=5`}
                         alt={feature.title}
