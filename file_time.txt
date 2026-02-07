@@ -1,0 +1,1 @@
+-rw-r--r--. 1 vlopez vlopez 4008 2026-02-02 21:18:05.145987580 -0800 src/app/app/courses/educationData.ts

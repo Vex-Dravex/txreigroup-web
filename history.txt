@@ -1,0 +1,20 @@
+* 891a2ca Rebrand to HTX Community, reset tutorials to v2, and clear marketplace data
+* 35a2744 fix: Update to new Stripe API using discounts parameter instead of deprecated coupon parameter
+* aece01c fix: Verify subscription status in Stripe before blocking new subscriptions
+* be00b2f fix: Resolve 'Body has already been consumed' error in checkout error handling
+* 16bde7a fix: Apply promotion codes correctly to Stripe subscriptions
+* aa08cd3 fix: Apply promotion codes correctly to Stripe subscriptions
+* a42c456 fix: Prevent duplicate subscriptions and improve error handling for existing subscribers
+* aab3195 fix: Resolve TypeScript build error in coupon validation API
+* 24a8eec feat: Add promotion code support to coupon validation API
+* 8cc9007 fix: Remove uppercase transformation from coupon code input to support case-sensitive promo codes
+* 16528ab feat: Add embedded checkout with trial info block, sanitized deployment guides
+* 77b0600 Refine embedded checkout UI: repositioned promo code, restricted payment methods, updated button labels, implemented trial information block, and standardized SELECT buttons across platform.
+* 2384e98 Refine embedded checkout UI: repositioned promo code, restricted payment methods, updated button labels, implemented trial information block, and standardized SELECT buttons across platform.
+* 805c33d feat: improve checkout error handling and logging
+* 13a8e2d fix: redirect to subscription page after onboarding and handle null dates
+* 4ee0415 fix: redirect to landing page after logout instead of login page
+* f55c044 fix: add stripe_customer_id to webhook handlers and fix .gitignore
+* 48516ac fix: improve portal route to check memberships and sync stripe_customer_id
+* 498887b fix: update Stripe API version to 2026-01-28.clover
+* ece804f feat: complete stripe integration with subscription flow and portal

@@ -1,0 +1,18 @@
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	debug_git.sh
+	git_debug_output.txt
+	git_status.txt
+
+nothing added to commit but untracked files present (use "git add" to track)
+* main
+891a2ca Rebrand to HTX Community, reset tutorials to v2, and clear marketplace data
+35a2744 fix: Update to new Stripe API using discounts parameter instead of deprecated coupon parameter
+aece01c fix: Verify subscription status in Stripe before blocking new subscriptions
+be00b2f fix: Resolve 'Body has already been consumed' error in checkout error handling
+16bde7a fix: Apply promotion codes correctly to Stripe subscriptions
+origin	git@github.com:Vex-Dravex/txreigroup-web.git (fetch)
+origin	git@github.com:Vex-Dravex/txreigroup-web.git (push)

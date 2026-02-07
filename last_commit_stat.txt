@@ -1,0 +1,116 @@
+commit 891a2ca73ee213de0ea621ec26e1b6ee90de6ee6
+Author: Vex <vex@dravexinnovations.com>
+Date:   Tue Feb 3 08:38:10 2026 -0800
+
+    Rebrand to HTX Community, reset tutorials to v2, and clear marketplace data
+
+ MARKETPLACE_DEMO_LIVE_SPLIT.md                     | 110 +++
+ public/demo-assets/bathroom_showcase.png           | Bin 0 -> 731203 bytes
+ public/demo-assets/exterior_showcase.png           | Bin 0 -> 1104655 bytes
+ public/demo-assets/kitchen_showcase.png            | Bin 0 -> 636695 bytes
+ public/demo-assets/transaction_services_banner.png | Bin 0 -> 603845 bytes
+ public/images/education/disposition.png            | Bin 0 -> 707238 bytes
+ public/images/education/funding.png                | Bin 0 -> 829004 bytes
+ public/images/education/gator.png                  | Bin 0 -> 737565 bytes
+ public/images/education/live.png                   | Bin 0 -> 709601 bytes
+ public/images/education/market.png                 | Bin 0 -> 778176 bytes
+ public/images/education/pitch.png                  | Bin 0 -> 635045 bytes
+ public/images/education/systems.png                | Bin 0 -> 708910 bytes
+ public/images/education/wholesale.png              | Bin 0 -> 703166 bytes
+ src/app/app/blog/BlogCenterClient.tsx              | 202 +++++
+ src/app/app/blog/BlogTutorial.tsx                  | 337 +++++++
+ src/app/app/blog/BlogTutorialTrigger.tsx           |  28 +
+ src/app/app/blog/[slug]/BlogDetailTutorial.tsx     | 322 +++++++
+ src/app/app/blog/[slug]/page.tsx                   |  50 +-
+ src/app/app/blog/blogDemoData.ts                   |  48 +
+ src/app/app/blog/demo/page.tsx                     |  62 ++
+ src/app/app/blog/page.tsx                          | 276 ++----
+ .../app/contractors/ContractorTutorialRedirect.tsx |  20 +
+ .../app/contractors/ContractorTutorialTrigger.tsx  |  28 +
+ src/app/app/contractors/VendorCard.tsx             |   2 +-
+ .../app/contractors/[id]/VendorDetailTutorial.tsx  | 319 +++++++
+ src/app/app/contractors/[id]/page.tsx              | 131 ++-
+ .../app/contractors/demo/ContractorsTutorial.tsx   | 353 ++++++++
+ src/app/app/contractors/demo/VendorCard.tsx        | 115 +++
+ src/app/app/contractors/demo/VendorFilters.tsx     | 412 +++++++++
+ .../contractors/demo/[id]/VendorDetailTutorial.tsx |   0
+ src/app/app/contractors/demo/actions.ts            |  73 ++
+ src/app/app/contractors/demo/page.tsx              | 222 +++++
+ src/app/app/contractors/demo/sampleVendors.ts      | 220 +++++
+ src/app/app/contractors/demo/types.ts              |  30 +
+ src/app/app/contractors/page.tsx                   |  12 +-
+ src/app/app/courses/EducationCenterClient.tsx      |  43 +-
+ src/app/app/courses/EducationTutorial.tsx          | 339 ++++++++
+ src/app/app/courses/EducationTutorialTrigger.tsx   |  28 +
+ .../app/courses/[id]/EducationDetailTutorial.tsx   | 322 +++++++
+ src/app/app/courses/[id]/page.tsx                  |   6 +-
+ src/app/app/courses/demo/page.tsx                  | 145 ++++
+ src/app/app/courses/demo/videos/[id]/page.tsx      | 340 ++++++++
+ src/app/app/courses/educationData.ts               |  10 +
+ src/app/app/courses/page.tsx                       | 194 ++---
+ src/app/app/courses/videos/RelatedCarousel.tsx     |  22 +-
+ src/app/app/courses/videos/VideoPlayerClient.tsx   |  48 +-
+ .../videos/[id]/EducationDetailTutorial.tsx        | 355 ++++++++
+ src/app/app/courses/videos/[id]/page.tsx           |  58 +-
+ src/app/app/deals/DealLink.tsx                     |   4 +-
+ src/app/app/deals/DealsListContainer.tsx           |   3 +-
+ src/app/app/deals/FilterToggle.tsx                 |   1 +
+ src/app/app/deals/MarketplaceTutorial.tsx          | 359 ++++++++
+ src/app/app/deals/SaveButton.tsx                   |   1 +
+ src/app/app/deals/SearchBar.tsx                    |   1 +
+ src/app/app/deals/TutorialRedirect.tsx             |  20 +
+ src/app/app/deals/TutorialTrigger.tsx              |  30 +
+ src/app/app/deals/[id]/DealDetailContent.tsx       |  30 +-
+ src/app/app/deals/[id]/DetailTutorial.tsx          | 352 ++++++++
+ src/app/app/deals/[id]/InquiryModalButton.tsx      |   1 +
+ src/app/app/deals/[id]/SecureDealButton.tsx        |   1 +
+ src/app/app/deals/[id]/page.tsx                    |   2 +-
+ src/app/app/deals/demo/DealCardImage.bak.tsx       |  85 ++
+ src/app/app/deals/demo/DealCardImage.tsx           |  85 ++
+ src/app/app/deals/demo/DealLink.tsx                |  51 ++
+ src/app/app/deals/demo/DealsGrid.tsx               |  44 +
+ src/app/app/deals/demo/DealsListContainer.tsx      | 216 +++++
+ src/app/app/deals/demo/FilterBar.tsx               | 270 ++++++
+ src/app/app/deals/demo/FilterContainer.tsx         |  80 ++
+ src/app/app/deals/demo/FilterSidebar.tsx           | 475 ++++++++++
+ src/app/app/deals/demo/FilterTagsDisplay.tsx       |  20 +
+ src/app/app/deals/demo/FilterToggle.tsx            |  40 +
+ src/app/app/deals/demo/HeartButton.tsx             |  36 +
+ src/app/app/deals/demo/MarketplaceTutorial.tsx     | 360 ++++++++
+ src/app/app/deals/demo/PaginationControls.tsx      |  89 ++
+ src/app/app/deals/demo/SaveButton.tsx              |  50 ++
+ src/app/app/deals/demo/SavedDealsProvider.tsx      | 141 +++
+ src/app/app/deals/demo/SearchBar.tsx               | 116 +++
+ src/app/app/deals/demo/TutorialTrigger.tsx         |  26 +
+ src/app/app/deals/demo/[id]/DealDetailContent.tsx  | 366 ++++++++
+ src/app/app/deals/demo/[id]/DetailTutorial.tsx     | 352 ++++++++
+ src/app/app/deals/demo/[id]/InquiryModalButton.tsx | 408 +++++++++
+ src/app/app/deals/demo/[id]/SecureDealButton.tsx   | 372 ++++++++
+ src/app/app/deals/demo/[id]/edit/page.tsx          |  57 ++
+ src/app/app/deals/demo/[id]/page.tsx               | 301 +++++++
+ src/app/app/deals/demo/page.tsx                    | 639 ++++++++++++++
+ src/app/app/deals/demo/useScrollRestoration.tsx    |  43 +
+ src/app/app/deals/page-old-backup.tsx              | 674 ++++++++++++++
+ src/app/app/deals/page.tsx                         | 964 ++++++++-------------
+ src/app/app/forum/ForumTutorial.tsx                | 344 ++++++++
+ src/app/app/forum/ForumTutorialTrigger.tsx         |  28 +
+ src/app/app/forum/[id]/ForumDetailTutorial.tsx     | 329 +++++++
+ src/app/app/forum/[id]/page.tsx                    | 178 ++--
+ src/app/app/forum/components/ForumFeed.tsx         |   1 +
+ src/app/app/forum/components/ForumLeftSidebar.tsx  |   2 +-
+ src/app/app/forum/components/SearchInput.tsx       |   2 +-
+ src/app/app/forum/demo/page.tsx                    | 113 +++
+ src/app/app/forum/forumDemoData.ts                 | 101 +++
+ src/app/app/forum/page.tsx                         |  20 +-
+ src/app/app/profile/[id]/ProfileContent.tsx        |   8 +-
+ src/app/app/profile/[id]/page.tsx                  | 138 ++-
+ .../app/transaction-services/ServiceFilters.tsx    |   3 +-
+ .../TransactionServiceTutorialRedirect.tsx         |  19 +
+ .../TransactionServiceTutorialTrigger.tsx          |  28 +
+ .../demo/TransactionServiceDetailTutorial.tsx      | 295 +++++++
+ .../demo/TransactionServicesTutorial.tsx           | 353 ++++++++
+ src/app/app/transaction-services/demo/page.tsx     | 210 +++++
+ src/app/app/transaction-services/page.tsx          | 119 ++-
+ src/app/onboarding/page.tsx                        |  34 +-
+ src/lib/roles.ts                                   |   5 +-
+ 109 files changed, 13632 insertions(+), 1145 deletions(-)

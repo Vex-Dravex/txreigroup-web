@@ -135,12 +135,12 @@ export default function DealDetailContent({
                 />
 
                 <motion.div
-                    className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
+                    className="mx-auto max-w-6xl px-4 pt-1 pb-28 sm:py-8 sm:px-6 lg:px-8"
                     variants={container}
                     initial="hidden"
                     animate="show"
                 >
-                    <motion.div variants={item} className="mb-8 flex items-center justify-between gap-4">
+                    <motion.div variants={item} className="mb-1 sm:mb-8 flex items-center justify-between gap-4">
                         <Link
                             href="/app/deals"
                             className="inline-flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-blue-600 transition-colors uppercase tracking-widest"
@@ -151,11 +151,11 @@ export default function DealDetailContent({
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         {/* Left Column: Media & Info */}
-                        <div className="lg:col-span-8 space-y-8">
+                        <div className="lg:col-span-8 space-y-2 lg:space-y-8">
                             {/* Property Image Gallery - Refined */}
                             <motion.div
                                 variants={item}
-                                className="group relative aspect-[16/9] w-full overflow-hidden rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl shadow-zinc-200/50 dark:shadow-none"
+                                className="group relative h-[250px] sm:h-auto sm:aspect-[16/9] w-full overflow-hidden rounded-xl sm:rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl shadow-zinc-200/50 dark:shadow-none"
                             >
                                 {dealData.property_image_url ? (
                                     <img
@@ -172,14 +172,14 @@ export default function DealDetailContent({
                                 )}
 
                                 {/* Overlay Badges */}
-                                <div className="absolute top-6 left-6 flex gap-3">
+                                <div className="absolute top-4 left-4 flex gap-2 sm:gap-3">
                                     {dealData.deal_type && (
-                                        <span className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest backdrop-blur-xl ${dealTypeInfo.color.replace('bg-', 'bg-opacity-90 bg-')}`}>
+                                        <span className={`px-2 py-1 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest backdrop-blur-xl ${dealTypeInfo.color.replace('bg-', 'bg-opacity-90 bg-')}`}>
                                             {dealTypeInfo.label}
                                         </span>
                                     )}
                                     {(dealData.status !== 'approved' && dealData.status !== 'pending') && (
-                                        <span className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest bg-white/90 dark:bg-black/90 text-zinc-950 dark:text-zinc-50 backdrop-blur-xl border border-white/20">
+                                        <span className="px-2 py-1 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest bg-white/90 dark:bg-black/90 text-zinc-950 dark:text-zinc-50 backdrop-blur-xl border border-white/20">
                                             {dealData.status}
                                         </span>
                                     )}
@@ -187,12 +187,12 @@ export default function DealDetailContent({
                             </motion.div>
 
                             {/* Title & Address */}
-                            <motion.div variants={item} className="space-y-4">
-                                <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-zinc-950 dark:text-zinc-50 font-syne italic">
+                            <motion.div variants={item} className="space-y-2 lg:space-y-4">
+                                <h1 className="text-xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-zinc-950 dark:text-zinc-50 font-syne italic leading-none">
                                     {dealData.title}
                                 </h1>
-                                <p className="text-xl md:text-2xl font-medium text-zinc-500 dark:text-zinc-400">
-                                    {dealData.property_address}, {dealData.property_city}, {dealData.property_state} {dealData.property_zip}
+                                <p className="text-xs sm:text-xl md:text-2xl font-medium text-zinc-500 dark:text-zinc-400">
+                                    {dealData.property_address}, {dealData.property_city}, {dealData.property_state}
                                 </p>
                             </motion.div>
 
@@ -200,25 +200,30 @@ export default function DealDetailContent({
                             <motion.div
                                 variants={item}
                                 id="detail-specs-bar"
-                                className="grid grid-cols-2 md:grid-cols-4 gap-6 p-8 rounded-3xl bg-white dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-zinc-200/50 dark:shadow-none"
+                                className="grid grid-cols-4 gap-2 md:gap-6 p-3 md:p-8 rounded-2xl md:rounded-3xl bg-white dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 shadow-lg shadow-zinc-200/50 dark:shadow-none overflow-x-auto"
                             >
-                                <div className="space-y-1">
-                                    <div className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Beds</div>
-                                    <div className="text-2xl font-black text-zinc-950 dark:text-zinc-50">{dealData.bedrooms || '--'}</div>
+                                <div className="space-y-0.5 md:space-y-1 text-center md:text-left">
+                                    <div className="text-[10px] md:text-sm font-bold text-zinc-400 uppercase tracking-widest">Beds</div>
+                                    <div className="text-base sm:text-2xl font-black text-zinc-950 dark:text-zinc-50">{dealData.bedrooms || '--'}</div>
                                 </div>
-                                <div className="space-y-1">
-                                    <div className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Baths</div>
-                                    <div className="text-2xl font-black text-zinc-950 dark:text-zinc-50">{dealData.bathrooms || '--'}</div>
+                                <div className="space-y-0.5 md:space-y-1 text-center md:text-left">
+                                    <div className="text-[10px] md:text-sm font-bold text-zinc-400 uppercase tracking-widest">Baths</div>
+                                    <div className="text-base sm:text-2xl font-black text-zinc-950 dark:text-zinc-50">{dealData.bathrooms || '--'}</div>
                                 </div>
-                                <div className="space-y-1">
-                                    <div className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Sqft</div>
-                                    <div className="text-2xl font-black text-zinc-950 dark:text-zinc-50">{dealData.square_feet?.toLocaleString() || '--'}</div>
+                                <div className="space-y-0.5 md:space-y-1 text-center md:text-left">
+                                    <div className="text-[10px] md:text-sm font-bold text-zinc-400 uppercase tracking-widest">Sqft</div>
+                                    <div className="text-base sm:text-2xl font-black text-zinc-950 dark:text-zinc-50">{dealData.square_feet?.toLocaleString() || '--'}</div>
                                 </div>
-                                <div className="space-y-1">
-                                    <div className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Year</div>
-                                    <div className="text-2xl font-black text-zinc-950 dark:text-zinc-50">{dealData.year_built || '--'}</div>
+                                <div className="space-y-0.5 md:space-y-1 text-center md:text-left">
+                                    <div className="text-[10px] md:text-sm font-bold text-zinc-400 uppercase tracking-widest">Year</div>
+                                    <div className="text-base sm:text-2xl font-black text-zinc-950 dark:text-zinc-50">{dealData.year_built || '--'}</div>
                                 </div>
                             </motion.div>
+
+                            {/* Mobile Transaction Card */}
+                            <div className="block lg:hidden">
+                                {renderTransactionCard()}
+                            </div>
 
                             {/* Description */}
                             <motion.div variants={item} className="space-y-4">
@@ -254,57 +259,10 @@ export default function DealDetailContent({
 
                         {/* Right Column: Sticky Sidebar */}
                         <div className="lg:col-span-4 lg:sticky lg:top-8 h-fit space-y-6">
-                            {/* Main Transaction Card */}
-                            <motion.div
-                                variants={item}
-                                id="detail-transaction-card"
-                                className="glass rounded-[2rem] border border-blue-500/20 p-8 shadow-2xl shadow-zinc-200/50 dark:shadow-none bg-white dark:bg-zinc-900/50 relative overflow-hidden"
-                            >
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl -mr-16 -mt-16" />
-
-                                <div className="relative z-10 space-y-8">
-                                    <div>
-                                        <div className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-2">Total Entry Cost</div>
-                                        <div className="text-5xl font-black tracking-tighter text-zinc-950 dark:text-zinc-50 font-syne italic">
-                                            {formatPrice(buyerEntryCost)}
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4 pt-6 border-t border-zinc-100 dark:border-zinc-800">
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="font-bold text-zinc-500 uppercase tracking-widest text-[10px]">Asking Price</span>
-                                            <span className="font-black text-zinc-950 dark:text-zinc-50">{formatPrice(dealData.asking_price)}</span>
-                                        </div>
-                                        {dealData.repair_estimate && (
-                                            <div className="flex justify-between items-center text-sm">
-                                                <span className="font-bold text-zinc-500 uppercase tracking-widest text-[10px]">Estimated Repairs</span>
-                                                <span className="font-black text-zinc-950 dark:text-zinc-50">{formatPrice(dealData.repair_estimate)}</span>
-                                            </div>
-                                        )}
-                                        {dealData.arv && (
-                                            <div className="flex justify-between items-center pt-4 mt-4 border-t border-blue-500/10">
-                                                <span className="font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest text-[10px]">Potential Profit</span>
-                                                <span className="font-black text-green-600 dark:text-green-400 text-lg">
-                                                    {formatPrice(dealData.arv - dealData.asking_price - (dealData.repair_estimate || 0))}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <InquiryModalButton
-                                            dealId={dealData.id}
-                                            dealTitle={dealData.title}
-                                            dealAddress={`${dealData.property_address}, ${dealData.property_city}, ${dealData.property_state}`}
-                                        />
-
-                                        <SecureDealButton
-                                            dealId={dealData.id}
-                                            dealTitle={dealData.title}
-                                        />
-                                    </div>
-                                </div>
-                            </motion.div>
+                            {/* Desktop Transaction Card */}
+                            <div className="hidden lg:block">
+                                {renderTransactionCard()}
+                            </div>
 
                             {/* Wholesaler Info Card */}
                             <motion.div
@@ -359,8 +317,80 @@ export default function DealDetailContent({
                             </motion.div>
                         </div>
                     </div>
+
+
+                    {/* Mobile Sticky Action Bar */}
+                    <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-800 z-50 lg:hidden">
+                        <div className="grid grid-cols-2 gap-3 max-w-6xl mx-auto">
+                            <InquiryModalButton
+                                dealId={dealData.id}
+                                dealTitle={dealData.title}
+                                dealAddress={`${dealData.property_address}, ${dealData.property_city}, ${dealData.property_state}`}
+                            />
+
+                            <SecureDealButton
+                                dealId={dealData.id}
+                                dealTitle={dealData.title}
+                            />
+                        </div>
+                    </div>
                 </motion.div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
+
+    function renderTransactionCard() {
+        return (
+            <motion.div
+                variants={item}
+                id="detail-transaction-card"
+                className="glass rounded-xl sm:rounded-[2rem] border border-blue-500/20 p-5 sm:p-8 shadow-2xl shadow-zinc-200/50 dark:shadow-none bg-white dark:bg-zinc-900/50 relative overflow-hidden"
+            >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl -mr-16 -mt-16" />
+
+                <div className="relative z-10 space-y-4 sm:space-y-8">
+                    <div>
+                        <div className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-1 sm:mb-2">Total Entry Cost</div>
+                        <div className="text-4xl sm:text-5xl font-black tracking-tighter text-zinc-950 dark:text-zinc-50 font-syne italic leading-none">
+                            {formatPrice(buyerEntryCost)}
+                        </div>
+                    </div>
+
+                    <div className="space-y-4 pt-4 sm:pt-6 border-t border-zinc-100 dark:border-zinc-800">
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="font-bold text-zinc-500 uppercase tracking-widest text-[10px]">Asking Price</span>
+                            <span className="font-black text-zinc-950 dark:text-zinc-50">{formatPrice(dealData.asking_price)}</span>
+                        </div>
+                        {dealData.repair_estimate && (
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="font-bold text-zinc-500 uppercase tracking-widest text-[10px]">Estimated Repairs</span>
+                                <span className="font-black text-zinc-950 dark:text-zinc-50">{formatPrice(dealData.repair_estimate)}</span>
+                            </div>
+                        )}
+                        {dealData.arv && (
+                            <div className="flex justify-between items-center pt-4 mt-4 border-t border-blue-500/10">
+                                <span className="font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest text-[10px]">Potential Profit</span>
+                                <span className="font-black text-green-600 dark:text-green-400 text-lg">
+                                    {formatPrice(dealData.arv - dealData.asking_price - (dealData.repair_estimate || 0))}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="hidden lg:block space-y-4">
+                        <InquiryModalButton
+                            dealId={dealData.id}
+                            dealTitle={dealData.title}
+                            dealAddress={`${dealData.property_address}, ${dealData.property_city}, ${dealData.property_state}`}
+                        />
+
+                        <SecureDealButton
+                            dealId={dealData.id}
+                            dealTitle={dealData.title}
+                        />
+                    </div>
+                </div>
+            </motion.div>
+        );
+    }
 }

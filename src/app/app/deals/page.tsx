@@ -303,7 +303,7 @@ export default async function LiveDealsPage({
                                 <div className="mb-12">
                                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-10">
                                         <div className="flex-1">
-                                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-zinc-950 dark:text-zinc-50 font-syne mb-3">
+                                            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-zinc-950 dark:text-zinc-50 font-syne mb-3">
                                                 Creative <span className="text-blue-600">Marketplace</span>
                                             </h1>
                                             <p className="flex items-center flex-wrap gap-3 text-zinc-600 dark:text-zinc-400 font-medium text-lg">
@@ -332,7 +332,7 @@ export default async function LiveDealsPage({
                                             </Suspense>
                                         </div>
 
-                                        <div className="flex items-center gap-3 flex-shrink-0">
+                                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-shrink-0">
                                             <Suspense fallback={null}>
                                                 <FilterToggleButton />
                                             </Suspense>

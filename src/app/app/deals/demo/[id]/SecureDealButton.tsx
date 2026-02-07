@@ -106,24 +106,24 @@ export default function SecureDealButton({ dealId, dealTitle }: SecureDealButton
                 onClick={() => setShowConfirmModal(true)}
                 disabled={isSubmitting}
                 whileTap={{ scale: 0.98 }}
-                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 py-5 text-center font-black text-white shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] uppercase tracking-tighter disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex w-full items-center justify-center gap-1.5 sm:gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 py-3 sm:py-4 text-center font-black text-white shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] uppercase tracking-tighter disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-base"
             >
                 {isSubmitting ? (
                     <>
                         <motion.div
                             animate={{ rotate: 360 }}
                             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                            className="h-5 w-5 border-2 border-white border-t-transparent rounded-full"
+                            className="h-4 w-4 sm:h-5 sm:w-5 border-2 border-white border-t-transparent rounded-full"
                         />
                         Submitting...
                     </>
                 ) : (
                     <>
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
-                        Secure This Deal
-                        <span className="text-lg">→</span>
+                        <span>Secure This Deal</span>
+                        <span className="text-base sm:text-lg">→</span>
                     </>
                 )}
             </motion.button>

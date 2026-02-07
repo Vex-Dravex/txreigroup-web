@@ -1,0 +1,7 @@
+total 16
+drwx------. 1 vlopez vlopez  100 Jan  2 10:09 .
+drwx--x---+ 1 vlopez vlopez 1842 Feb  2 19:47 ..
+-rw-------. 1 vlopez vlopez  464 Jan  2 10:05 id_ed25519
+-rw-r--r--. 1 vlopez vlopez  107 Jan  2 10:05 id_ed25519.pub
+-rw-------. 1 vlopez vlopez  828 Jan  2 10:09 known_hosts
+-rw-r--r--. 1 vlopez vlopez   92 Jan  2 10:01 known_hosts.old

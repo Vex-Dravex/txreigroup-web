@@ -235,7 +235,7 @@ export default function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
         className={`fixed left-0 top-0 z-40 h-full w-80 transform bg-white/80 backdrop-blur-xl shadow-2xl transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) dark:bg-zinc-950/80 lg:sticky lg:top-8 lg:z-auto lg:h-fit lg:transform-none lg:rounded-[2rem] lg:border lg:border-zinc-200 lg:shadow-xl lg:dark:border-zinc-800 ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           }`}
       >
-        <div className="flex h-full flex-col overflow-y-auto p-8 lg:h-auto lg:overflow-visible">
+        <div className="flex h-full flex-col overflow-y-auto p-5 lg:p-8 lg:h-auto lg:overflow-visible">
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -270,7 +270,7 @@ export default function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
               <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Property</h3>
 
               {/* Bedrooms & Bathrooms Row */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-zinc-700 dark:text-zinc-300">Bedrooms</label>
                   <select

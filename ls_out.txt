@@ -1,0 +1,21 @@
+total 92
+drwxr-xr-x. 1 vlopez vlopez   444 Feb  2 21:04 .
+drwxr-xr-x. 1 vlopez vlopez   208 Jan 26 00:47 ..
+drwxr-xr-x. 1 vlopez vlopez    28 Feb  2 21:04 demo
+-rw-r--r--. 1 vlopez vlopez 25613 Feb  2 21:05 EducationCenterClient.tsx
+-rw-r--r--. 1 vlopez vlopez 17662 Jan 13 00:25 EducationCenterClient.tsx.backup
+-rw-r--r--. 1 vlopez vlopez  4008 Feb  2 21:18 educationData.ts
+-rw-r--r--. 1 vlopez vlopez  1285 Feb  3 08:29 EducationTutorialTrigger.tsx
+-rw-r--r--. 1 vlopez vlopez 15446 Feb  3 08:29 EducationTutorial.tsx
+drwxr-xr-x. 1 vlopez vlopez    84 Feb  3 08:11 [id]
+-rw-r--r--. 1 vlopez vlopez  5106 Feb  2 21:09 page.tsx
+drwxr-xr-x. 1 vlopez vlopez   168 Jan 26 00:47 videos
+drwxr-xr-x. 1 vlopez vlopez    16 Jan 26 00:47 watch-later
+-rw-r--r--. 1 vlopez vlopez  2110 Jan 26 00:47 watchLaterActions.ts
+-rw-r--r--. 1 vlopez vlopez  2046 Jan 26 00:47 WatchLaterButton.tsx
+-rw-r--r--. 1 vlopez vlopez  2344 Jan 26 00:47 YouTubeWatchLaterButton.tsx
+total 32
+drwxr-xr-x. 1 vlopez vlopez    70 Feb  2 20:12 .
+drwxr-xr-x. 1 vlopez vlopez   168 Jan 26 00:47 ..
+-rw-r--r--. 1 vlopez vlopez 16105 Feb  2 21:16 EducationDetailTutorial.tsx
+-rw-r--r--. 1 vlopez vlopez 12920 Feb  2 20:41 page.tsx

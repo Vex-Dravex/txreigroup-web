@@ -114,6 +114,22 @@ export default function NotificationBell({ initialNotifications = [], unreadCoun
         }
     };
 
+    const clearAllNotifications = async () => {
+        try {
+            // Optimistic update
+            setNotifications([]);
+            setCount(0);
+
+            await fetch("/api/notifications/clear-all", {
+                method: "DELETE",
+            });
+        } catch (error) {
+            console.error("Error clearing all notifications:", error);
+            // Re-fetch if error
+            fetchNotifications();
+        }
+    };
+
     const handleNetworkResponse = async (notificationId: string, requestId: string, action: "accepted" | "declined") => {
         try {
             // Optimistic update
@@ -213,13 +229,23 @@ export default function NotificationBell({ initialNotifications = [], unreadCoun
                         {/* Header */}
                         <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-50/50 dark:bg-zinc-950/20">
                             <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">Notifications</h3>
-                            {count > 0 && (
-                                <button
-                                    onClick={markAllAsRead}
-                                    className="text-xs font-bold text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 uppercase tracking-widest"
-                                >
-                                    Mark all read
-                                </button>
+                            {notifications.length > 0 && (
+                                <div className="flex items-center gap-3">
+                                    {count > 0 && (
+                                        <button
+                                            onClick={markAllAsRead}
+                                            className="text-[10px] font-bold text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 uppercase tracking-widest"
+                                        >
+                                            Mark read
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={clearAllNotifications}
+                                        className="text-[10px] font-bold text-zinc-400 hover:text-red-600 dark:text-zinc-500 dark:hover:text-red-400 uppercase tracking-widest transition-colors"
+                                    >
+                                        Clear
+                                    </button>
+                                </div>
                             )}
                         </div>
 
