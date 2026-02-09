@@ -205,7 +205,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-950 px-4 py-8 selection:bg-blue-500/30">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-50 dark:bg-zinc-950 px-4 py-8 selection:bg-blue-500/30">
       <div className="noise-overlay opacity-20" />
 
       {/* Background Glows */}
@@ -232,12 +232,12 @@ function LoginForm() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="relative z-10 w-full max-w-6xl glass rounded-[2.5rem] p-8 md:p-12 lg:p-16 overflow-hidden shadow-2xl border-white/10"
+        className="relative z-10 w-full max-w-6xl glass rounded-[2.5rem] p-8 md:p-12 lg:p-16 overflow-hidden shadow-2xl border border-zinc-200 dark:border-white/10 bg-white/80 dark:bg-zinc-900/50"
       >
         <div className="absolute top-0 right-0 p-8">
           <Link
             href="/"
-            className="group flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-zinc-500 hover:text-white transition-colors"
+            className="group flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-zinc-600 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
           >
             <span className="group-hover:-translate-x-1 transition-transform">←</span>
             Home
@@ -260,15 +260,15 @@ function LoginForm() {
 
             <div className="space-y-6 relative z-10 flex flex-col items-center text-center">
               <motion.h1
-                className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter text-white leading-[0.95]"
+                className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter text-zinc-900 dark:text-white leading-[0.95]"
               >
                 {mode === "signin" ? (
-                  <>Welcome <span className="text-blue-500">Back</span></>
+                  <>Welcome <span className="text-blue-600 dark:text-blue-500">Back</span></>
                 ) : (
-                  <>Start Your <span className="text-purple-500">Journey</span></>
+                  <>Start Your <span className="text-purple-600 dark:text-purple-500">Journey</span></>
                 )}
               </motion.h1>
-              <p className="text-xl text-zinc-400 max-w-lg leading-relaxed">
+              <p className="text-xl text-zinc-600 dark:text-zinc-400 max-w-lg leading-relaxed">
                 {mode === "signin"
                   ? "Continue building your real estate empire and connect with the best in Texas."
                   : "Join the premier ecosystem for wholesalers, investors, and vendors."}
@@ -285,19 +285,19 @@ function LoginForm() {
           >
             <form onSubmit={handleSubmit} className="space-y-6">
               <motion.div variants={itemVariants} className="space-y-3">
-                <label className="text-sm font-bold uppercase tracking-wide text-zinc-400 ml-1">Email Address</label>
+                <label className="text-sm font-bold uppercase tracking-wide text-zinc-700 dark:text-zinc-400 ml-1">Email Address</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@company.com"
-                  className="w-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl px-5 py-4 text-base text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white/10 transition-all font-medium"
+                  className="w-full bg-zinc-100 dark:bg-white/5 backdrop-blur-sm border border-zinc-300 dark:border-white/10 rounded-2xl px-5 py-4 text-base text-zinc-900 dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-white/10 transition-all font-medium"
                   required
                 />
               </motion.div>
 
               <motion.div variants={itemVariants} className="space-y-3">
-                <label className="text-sm font-bold uppercase tracking-wide text-zinc-400 ml-1">Password</label>
+                <label className="text-sm font-bold uppercase tracking-wide text-zinc-700 dark:text-zinc-400 ml-1">Password</label>
                 <input
                   type="password"
                   value={password}
@@ -305,7 +305,7 @@ function LoginForm() {
                   onFocus={() => setIsPasswordFocused(true)}
                   onBlur={() => setIsPasswordFocused(false)}
                   placeholder="••••••••"
-                  className="w-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl px-5 py-4 text-base text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white/10 transition-all font-medium"
+                  className="w-full bg-zinc-100 dark:bg-white/5 backdrop-blur-sm border border-zinc-300 dark:border-white/10 rounded-2xl px-5 py-4 text-base text-zinc-900 dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-white/10 transition-all font-medium"
                   required
                   minLength={6}
                 />
@@ -319,11 +319,11 @@ function LoginForm() {
                     exit={{ opacity: 0, height: 0 }}
                     className="overflow-hidden"
                   >
-                    <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
-                      <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Password Requirements</p>
+                    <div className="p-4 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-300 dark:border-white/10 space-y-3">
+                      <p className="text-xs font-bold text-zinc-700 dark:text-zinc-400 uppercase tracking-wider">Password Requirements</p>
                       <div className="grid grid-cols-1 gap-2">
                         {passwordRequirements.map((req, i) => (
-                          <div key={i} className={`flex items-center gap-2 text-sm transition-colors duration-200 ${req.met ? "text-green-400" : "text-zinc-500"}`}>
+                          <div key={i} className={`flex items-center gap-2 text-sm transition-colors duration-200 ${req.met ? "text-green-600 dark:text-green-400" : "text-zinc-600 dark:text-zinc-500"}`}>
                             <div className={`w-1.5 h-1.5 rounded-full transition-colors duration-200 ${req.met ? "bg-green-400" : "bg-zinc-600"}`} />
                             {req.label}
                           </div>
@@ -344,13 +344,13 @@ function LoginForm() {
                     variants={itemVariants}
                     className="space-y-3"
                   >
-                    <label className="text-sm font-bold uppercase tracking-wide text-zinc-400 ml-1">Confirm Password</label>
+                    <label className="text-sm font-bold uppercase tracking-wide text-zinc-700 dark:text-zinc-400 ml-1">Confirm Password</label>
                     <input
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl px-5 py-4 text-base text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white/10 transition-all font-medium"
+                      className="w-full bg-zinc-100 dark:bg-white/5 backdrop-blur-sm border border-zinc-300 dark:border-white/10 rounded-2xl px-5 py-4 text-base text-zinc-900 dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-white/10 transition-all font-medium"
                       required
                       minLength={6}
                     />
@@ -406,14 +406,14 @@ function LoginForm() {
                   <div className="w-full border-t border-white/10"></div>
                 </div>
                 <div className="relative flex justify-center text-xs uppercase font-bold tracking-wider">
-                  <span className="bg-[#0c0c0e] px-4 text-zinc-500">Or continue with</span>
+                  <span className="bg-white dark:bg-[#0c0c0e] px-4 text-zinc-500">Or continue with</span>
                 </div>
               </div>
 
               <div className="flex flex-col gap-4">
                 <button
                   onClick={() => handleOAuthSignIn('google')}
-                  className="relative flex items-center justify-center gap-3 w-full p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all active:scale-[0.98] group overflow-hidden"
+                  className="relative flex items-center justify-center gap-3 w-full p-4 rounded-xl bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:bg-zinc-50 dark:hover:bg-white/10 hover:border-zinc-300 dark:hover:border-white/20 transition-all active:scale-[0.98] group overflow-hidden shadow-sm hover:shadow-md"
                   disabled={oauthLoading !== null}
                 >
                   {oauthLoading === 'google' && (
@@ -421,10 +421,14 @@ function LoginForm() {
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     </div>
                   )}
-                  <span className="text-zinc-400 group-hover:text-white transition-colors">
-                    <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z" /></svg>
-                  </span>
-                  <span className="text-sm font-bold text-zinc-400 group-hover:text-white transition-colors">
+                  {/* Google's official colored logo */}
+                  <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                  </svg>
+                  <span className="text-sm font-bold text-zinc-700 dark:text-zinc-200 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
                     Continue with Google
                   </span>
                 </button>
@@ -438,14 +442,14 @@ function LoginForm() {
                   setError(null);
                   setSuccessMessage(null);
                 }}
-                className="text-base font-bold text-zinc-500 hover:text-zinc-300 transition-colors group"
+                className="text-base font-bold text-zinc-600 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 transition-colors group"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 {mode === "signin" ? (
-                  <>New to HTXREIGROUP? <span className="text-blue-500 group-hover:text-blue-400 group-hover:underline decoration-2 underline-offset-4 transition-all">Sign Up Free</span></>
+                  <>New to HTXREIGROUP? <span className="text-blue-600 dark:text-blue-500 group-hover:text-blue-700 dark:group-hover:text-blue-400 group-hover:underline decoration-2 underline-offset-4 transition-all">Sign Up Free</span></>
                 ) : (
-                  <>Already have an account? <span className="text-blue-500 group-hover:text-blue-400 group-hover:underline decoration-2 underline-offset-4 transition-all">Sign In</span></>
+                  <>Already have an account? <span className="text-blue-600 dark:text-blue-500 group-hover:text-blue-700 dark:group-hover:text-blue-400 group-hover:underline decoration-2 underline-offset-4 transition-all">Sign In</span></>
                 )}
               </motion.button>
             </motion.div>

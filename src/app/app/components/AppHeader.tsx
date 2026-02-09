@@ -33,13 +33,13 @@ export default function AppHeader({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/5 bg-zinc-950/70 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-zinc-200 dark:border-white/5 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-xl">
       <div className="mx-auto max-w-[1800px] px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 md:gap-4">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden flex flex-col justify-center items-center w-8 h-8 rounded-lg text-zinc-400 hover:text-zinc-50 hover:bg-white/5 transition-colors"
+              className="md:hidden flex flex-col justify-center items-center w-8 h-8 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors"
               aria-label="Toggle menu"
             >
               <div className={`w-5 h-0.5 bg-current rounded-full transition-all duration-300 ${isMobileMenuOpen ? "rotate-45 translate-y-1.5" : "mb-1"}`} />
@@ -191,7 +191,7 @@ export default function AppHeader({
                 <NotificationBell unreadCount={unreadNotificationsCount || 0} />
                 <Link
                   href="/app/messages"
-                  className="relative inline-flex h-10 w-10 items-center justify-center rounded-md border border-zinc-200 text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+                  className="relative inline-flex h-10 w-10 items-center justify-center rounded-md border border-zinc-300 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
                   aria-label="Messages"
                 >
                   <svg
@@ -218,7 +218,7 @@ export default function AppHeader({
                 {/* Unauthenticated users see Sign In/Sign Up buttons */}
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-zinc-900 dark:text-zinc-50 transition-colors hover:text-blue-600 dark:hover:text-blue-400"
+                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-bold text-zinc-900 dark:text-zinc-50 transition-colors hover:text-blue-600 dark:hover:text-blue-400"
                 >
                   Sign In
                 </Link>

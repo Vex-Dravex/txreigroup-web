@@ -14,6 +14,7 @@ import { SavedDealsProvider } from "./SavedDealsProvider";
 import SaveButton from "./SaveButton";
 import DealsListContainer from "./DealsListContainer";
 import TutorialTrigger from "./TutorialTrigger";
+import MarketplaceContent from "./MarketplaceContent";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -91,21 +92,31 @@ export default async function LiveDealsPage({
     const supabase = await createSupabaseServerClient();
     const { data: authData } = await supabase.auth.getUser();
 
-    if (!authData.user) redirect("/login?mode=signup");
+    // Allow unauthenticated users to view the marketplace
+    const isAuthenticated = !!authData.user;
 
-    // Get user profile
-    const { data: profile } = await supabase
-        .from("profiles")
-        .select("role, display_name, avatar_url")
-        .eq("id", authData.user.id)
-        .single();
+    // Get user profile only if authenticated
+    let profileData: Profile | null = null;
+    let roles: ("admin" | "investor" | "wholesaler" | "contractor" | "vendor" | "service")[] = [];
+    let userRole: "admin" | "investor" | "wholesaler" | "contractor" | "vendor" | "service" = "investor";
+    let isAdmin = false;
+    let isWholesaler = false;
+    let isInvestor = true;
 
-    const profileData = profile as Profile | null;
-    const roles = await getUserRoles(supabase, authData.user.id, profileData?.role || "investor");
-    const userRole = getPrimaryRole(roles, profileData?.role || "investor");
-    const isAdmin = hasRole(roles, "admin");
-    const isWholesaler = hasRole(roles, "wholesaler");
-    const isInvestor = hasRole(roles, "investor");
+    if (isAuthenticated) {
+        const { data: profile } = await supabase
+            .from("profiles")
+            .select("role, display_name, avatar_url")
+            .eq("id", authData.user!.id)
+            .single();
+
+        profileData = profile as Profile | null;
+        roles = await getUserRoles(supabase, authData.user!.id, profileData?.role || "investor");
+        userRole = getPrimaryRole(roles, profileData?.role || "investor");
+        isAdmin = hasRole(roles, "admin");
+        isWholesaler = hasRole(roles, "wholesaler");
+        isInvestor = hasRole(roles, "investor");
+    }
 
     // Fetch REAL deals from database
     let dealsQuery = supabase
@@ -129,7 +140,7 @@ export default async function LiveDealsPage({
         dealsQuery = dealsQuery.eq("status", "approved");
     }
     // Wholesalers see their own deals
-    else if (isWholesaler && !isAdmin) {
+    else if (isWholesaler && !isAdmin && authData.user) {
         dealsQuery = dealsQuery.eq("wholesaler_id", authData.user.id);
     }
     // Admins see all deals
@@ -168,7 +179,7 @@ export default async function LiveDealsPage({
         // 1. Status Filter
         if (!isAdmin) {
             if (deal.status === 'rejected' || deal.status === 'draft') {
-                if (!isWholesaler || deal.wholesaler_id !== authData.user.id) {
+                if (!isWholesaler || !authData.user || deal.wholesaler_id !== authData.user.id) {
                     return false;
                 }
             }
@@ -296,7 +307,8 @@ export default async function LiveDealsPage({
                                 currentPage="deals"
                                 avatarUrl={profileData?.avatar_url || null}
                                 displayName={profileData?.display_name || null}
-                                email={authData.user.email}
+                                email={authData.user?.email || undefined}
+                                isAuthenticated={isAuthenticated}
                             />
 
                             <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -388,8 +400,9 @@ export default async function LiveDealsPage({
                                             </div>
                                         ) : (
                                             <>
-                                                <DealsListContainer
+                                                <MarketplaceContent
                                                     initialDeals={paginatedDeals}
+                                                    isAuthenticated={isAuthenticated}
                                                 />
 
                                                 <div className="mt-12">

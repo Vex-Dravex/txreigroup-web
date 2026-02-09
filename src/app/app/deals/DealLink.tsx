@@ -11,12 +11,20 @@ type DealLinkProps = {
     children: React.ReactNode;
     className?: string;
     id?: string;
+    onUnauthenticatedClick?: (e: React.MouseEvent) => void;
 };
 
-export default function DealLink({ dealId, children, className, id }: DealLinkProps) {
+export default function DealLink({ dealId, children, className, id, onUnauthenticatedClick }: DealLinkProps) {
     const pathname = usePathname();
 
-    const handleClick = () => {
+    const handleClick = (e: React.MouseEvent) => {
+        // If there's an unauthenticated click handler, call it and prevent navigation
+        if (onUnauthenticatedClick) {
+            e.preventDefault();
+            onUnauthenticatedClick(e);
+            return;
+        }
+
         // Save scroll position before navigating
         if (pathname === "/app/deals") {
             sessionStorage.setItem(SCROLL_POSITION_KEY, window.scrollY.toString());

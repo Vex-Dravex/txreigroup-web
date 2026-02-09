@@ -33,10 +33,12 @@ type Deal = {
 
 interface DealsListContainerProps {
     initialDeals: Deal[];
+    onUnauthenticatedClick?: (e: React.MouseEvent) => void;
 }
 
 export default function DealsListContainer({
     initialDeals,
+    onUnauthenticatedClick,
 }: DealsListContainerProps) {
     // Format price for display
     const formatPrice = (price: number) => {
@@ -136,6 +138,7 @@ export default function DealsListContainer({
                         dealId={deal.id}
                         id={index === 0 ? "marketplace-first-listing" : undefined}
                         className="group relative flex flex-col bg-white dark:bg-zinc-900/50 rounded-2xl overflow-hidden border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-zinc-200/50 dark:shadow-none hover:border-blue-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/10 dark:hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.4)]"
+                        onUnauthenticatedClick={onUnauthenticatedClick}
                     >
                         {/* Save Button Overlay */}
                         <div className="absolute top-4 right-4 z-30">
