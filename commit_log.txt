@@ -1,0 +1,9 @@
+commit 9b06b54f69baf78e203e8ecd0465e326a9c574ff
+Author: Vex <vex@dravexinnovations.com>
+Date:   Sat Feb 7 08:49:49 2026 -0800
+
+    feat(mobile): optimize deal detail view
+    
+    - Implement sticky footer for action buttons on mobile
+    - Increase property image size and financial breakdown visibility
+    - Refine action button styling for compact mobile layout
